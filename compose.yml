@@ -18,6 +18,8 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      # https://github.com/elastic/elasticsearch/issues/118583#issuecomment-2644523205
+      - "_JAVA_OPTIONS=-XX:UseSVE=0"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ulimits:
