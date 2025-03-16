@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"log"
+
+	"github.com/spf13/viper"
+)
 
 type AppConfig struct {
 	Database struct {
@@ -22,4 +26,12 @@ func LoadConfig() (*AppConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func MustLoadConfig() *AppConfig {
+	config, err := LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+	return config
 }
