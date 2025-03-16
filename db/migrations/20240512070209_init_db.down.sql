@@ -1,7 +1,2 @@
-DROP TABLE IF EXISTS "article_tags";
-DROP TABLE IF EXISTS "tags";
-DROP TABLE IF EXISTS "user_favorites";
-DROP TABLE IF EXISTS "user_follows";
-DROP TABLE IF EXISTS "comments";
 DROP TABLE IF EXISTS "articles";
 DROP TABLE IF EXISTS "users";
