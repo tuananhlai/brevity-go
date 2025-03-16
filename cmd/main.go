@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+
 	"github.com/tuananhlai/brevity-go/internal/article"
 	"github.com/tuananhlai/brevity-go/internal/config"
 )
@@ -34,15 +35,17 @@ func main() {
 	// Create a new chat completion
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage("You are a Japanese teacher who often writes various articles about" +
-				" learning Japanese. For examples, commonly used grammar and vocabulary, vocabulary " +
-				"based on topics, differences between Japanese dialects, etc. Your target audience is " +
-				"people learning Japanese at N1-N2 level. You write your articles in Japanese at a level " +
-				"that your target audience can understand."),
-			openai.UserMessage("Come up with a specific topic and write an article about it."),
+			openai.SystemMessage("You are a Japanese teacher who often writes various articles about " +
+				"learning Japanese. Here are the non-exhaustive list of example topics you might write about: " +
+				"commonly used grammar and vocabulary, vocabulary based on topics, differences between Japanese " +
+				"dialects, common mistakes people make when learning Japanese, etc. Your target audience is people " +
+				"learning Japanese at N1-N2 level. You write your articles in Japanese at a level that your target " +
+				"audience can understand."),
+			openai.UserMessage("Choose an unique and interesting topic and write an article about it."),
 		}),
-		Model:     openai.F("deepseek-chat"),
-		MaxTokens: openai.F(int64(500)),
+		Model:       openai.F("deepseek-chat"),
+		Temperature: openai.F(0.5),
+		MaxTokens:   openai.F(int64(200)),
 	})
 	if err != nil {
 		log.Fatalf("Error creating chat completion: %v", err)
