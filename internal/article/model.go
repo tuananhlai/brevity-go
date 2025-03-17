@@ -6,14 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type ContentFormat string
+
+const (
+	ContentFormatHTML ContentFormat = "html"
+)
+
 type Article struct {
-	ID          uuid.UUID `db:"id"`
-	Slug        string    `db:"slug"`
-	Title       string    `db:"title"`
-	Description string    `db:"description"`
-	TextContent string    `db:"text_content"`
-	Content     string    `db:"content"`
-	AuthorID    uuid.UUID `db:"author_id"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID               uuid.UUID     `db:"id"`
+	Slug             string        `db:"slug"`
+	Title            string        `db:"title"`
+	Description      string        `db:"description"`
+	PlaintextContent string        `db:"plaintext_content"`
+	Content          string        `db:"content"`
+	ContentFormat    ContentFormat `db:"content_format"`
+	AuthorID         uuid.UUID     `db:"author_id"`
+	CreatedAt        time.Time     `db:"created_at"`
+	UpdatedAt        time.Time     `db:"updated_at"`
 }

@@ -1,3 +1,6 @@
 {
-  "Prettier-SQL.SQLFlavourOverride": "postgresql"
+  "go.toolsEnvVars": {
+    "GOFUMPT_SPLIT_LONG_LINES": "on"
+  },
+  "go.formatTool": "gofumpt"
 }
