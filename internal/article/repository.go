@@ -13,8 +13,10 @@ func NewRepository(db *sqlx.DB) *Repository {
 }
 
 func (r *Repository) Create(article *Article) error {
-	_, err := r.db.Exec("INSERT INTO articles (slug, title, description, text_content, content, author_id) VALUES ($1, $2, $3, $4, $5, $6)",
+	_, err := r.db.Exec(
+		"INSERT INTO articles (slug, title, description, text_content, content, author_id) VALUES ($1, $2, $3, $4, $5, $6)",
 		article.Slug, article.Title, article.Description,
-		article.TextContent, article.Content, article.AuthorID)
+		article.PlaintextContent, article.Content, article.AuthorID)
+
 	return err
 }

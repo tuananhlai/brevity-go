@@ -10,7 +10,11 @@ type AppConfig struct {
 	Database struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"database"`
-	DeepseekAPIKey string `mapstructure:"deepseek_api_key"`
+	LLM struct {
+		BaseURL string `mapstructure:"base_url"`
+		APIKey  string `mapstructure:"api_key"`
+		ModelID string `mapstructure:"model_id"`
+	} `mapstructure:"llm"`
 }
 
 func LoadConfig() (*AppConfig, error) {

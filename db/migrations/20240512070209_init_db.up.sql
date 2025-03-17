@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS articles (
     slug VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(500),
-    text_content TEXT NOT NULL,
+    plaintext_content TEXT NOT NULL,
     content TEXT NOT NULL,
+    content_format VARCHAR(31) NOT NULL DEFAULT 'html',
     author_id UUID NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -30,5 +31,6 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 COMMENT ON COLUMN articles.slug IS 'The slug of the article, used for the URL. Example: "my-article-slug-3921"';
 COMMENT ON COLUMN articles.description IS 'A short description of the article, provided by the author, used for previewing the article content.';
-COMMENT ON COLUMN articles.text_content IS 'The text content of the article, used for search and indexing.';
+COMMENT ON COLUMN articles.text_content IS 'The plaintext content of the article, used for search and indexing.';
 COMMENT ON COLUMN articles.content IS 'The rich text content of the article, used for display in the UI.';
+COMMENT ON COLUMN articles.content_format IS 'The format of the article content, only "html" is supported for now.';
