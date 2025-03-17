@@ -50,7 +50,7 @@ func runGenerateArticle() {
 					// A short description of the article content. Limit to 200 words or fewer.
 					description: string;
 					// The content of the article as valid, standard, unstyled HTML. Only these HTML tags are allowed: h2, h3, h4, p, a, img, strong, b, em, i, del, 
-					// strike, blockquote, pre, code, ul, ol, li, hr, br, table, thead, tbody, tr, th, td. Newline characters are not necessary. Article should be 500 - 1000 words.
+					// strike, blockquote, pre, code, ul, ol, li, hr, br, table, thead, tbody, tr, th, td. Newline characters are not necessary. Article should be 800 - 1500 words.
 					content: string;
 				}
 				`),
