@@ -43,14 +43,14 @@ func runGenerateArticle() {
 				adhering to the following schema.
 
 				type Output = {
-				    // The slug of the article, used for the URL. It must contains only URL-safe characters. Example: "my-article-slug-3921"
+				    // The slug of the article, used for the URL. It must contains only alphanumeric characters and hyphens. Example: "my-article-slug-3921"
 				    slug: string;
 					// The title of the article. It should be a plain string.
 					title: string;
 					// A short description of the article content. Limit to 200 words or fewer.
 					description: string;
-					// The content of the article as standard, unstyled HTML. Only these HTML tags are allowed: h2, h3, h4, p, a, img, strong, b, em, i, del, 
-					// strike, blockquote, pre, code, ul, ol, li, hr, br, table, thead, tbody, tr, th, td. Article should be 500 - 2000 words.
+					// The content of the article as valid, standard, unstyled HTML. Only these HTML tags are allowed: h2, h3, h4, p, a, img, strong, b, em, i, del, 
+					// strike, blockquote, pre, code, ul, ol, li, hr, br, table, thead, tbody, tr, th, td. Newline characters are not necessary. Article should be 500 - 1000 words.
 					content: string;
 				}
 				`),
