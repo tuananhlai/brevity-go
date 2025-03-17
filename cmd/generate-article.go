@@ -24,6 +24,7 @@ type LLMOutput struct {
 }
 
 func runGenerateArticle() {
+	globalCtx := context.Background()
 	cfg := config.MustLoadConfig()
 
 	client := openai.NewClient(
@@ -31,7 +32,7 @@ func runGenerateArticle() {
 		option.WithAPIKey(cfg.LLM.APIKey),
 	)
 
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
+	chatCompletion, err := client.Chat.Completions.New(globalCtx, openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(`You are a Japanese teacher who often writes various articles about learning Japanese. 
 				Here are the non-exhaustive list of example topics you might write about: 
@@ -83,7 +84,7 @@ func runGenerateArticle() {
 	authorID := uuid.MustParse("41dc81d2-97e8-41c8-a3bf-d98322302e5c")
 
 	// Create the article
-	err = articleRepo.Create(&article.Article{
+	err = articleRepo.Create(globalCtx, &article.Article{
 		Slug:             output.Slug,
 		Title:            output.Title,
 		Description:      output.Description,
