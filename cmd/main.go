@@ -6,6 +6,8 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
+
+	"github.com/tuananhlai/brevity-go/cmd/server"
 )
 
 var rootCmd = &cobra.Command{
@@ -24,7 +26,7 @@ var serverCmd = &cobra.Command{
 	Short: "Start the Brevity server",
 	Long:  `Start the Brevity web server that serves the API and web interface.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runServer()
+		server.Run()
 	},
 }
 
