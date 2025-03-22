@@ -2,9 +2,7 @@ package article
 
 import (
 	"context"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,6 +14,7 @@ func NewRepository(db *sqlx.DB) *repository {
 	return &repository{db: db}
 }
 
+// Create creates a new article.
 func (r *repository) Create(ctx context.Context, article *Article) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content, 
@@ -26,6 +25,7 @@ func (r *repository) Create(ctx context.Context, article *Article) error {
 	return err
 }
 
+// ListPreviews lists articles with basic information.
 func (r *repository) ListPreviews(ctx context.Context) ([]ArticlePreview, error) {
 	articles := []ArticlePreview{}
 
@@ -34,15 +34,4 @@ func (r *repository) ListPreviews(ctx context.Context) ([]ArticlePreview, error)
 	)
 
 	return articles, err
-}
-
-type ArticlePreview struct {
-	ID                uuid.UUID `db:"id"`
-	Slug              string    `db:"slug"`
-	Title             string    `db:"title"`
-	Description       string    `db:"description"`
-	AuthorID          uuid.UUID `db:"author_id"`
-	AuthorDisplayName string    `db:"display_name"`
-	CreatedAt         time.Time `db:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at"`
 }
