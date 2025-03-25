@@ -1,4 +1,4 @@
-package article
+package model
 
 import (
 	"time"
@@ -23,4 +23,15 @@ type Article struct {
 	AuthorID         uuid.UUID     `db:"author_id"`
 	CreatedAt        time.Time     `db:"created_at"`
 	UpdatedAt        time.Time     `db:"updated_at"`
+}
+
+type ArticlePreview struct {
+	ID                uuid.UUID `db:"id"`
+	Slug              string    `db:"slug"`
+	Title             string    `db:"title"`
+	Description       string    `db:"description"`
+	AuthorID          uuid.UUID `db:"author_id"`
+	AuthorDisplayName string    `db:"display_name"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
 }
