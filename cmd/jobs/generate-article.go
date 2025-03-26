@@ -1,4 +1,4 @@
-package main
+package jobs
 
 import (
 	"context"
@@ -12,8 +12,9 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
-	"github.com/tuananhlai/brevity-go/internal/article"
 	"github.com/tuananhlai/brevity-go/internal/config"
+	"github.com/tuananhlai/brevity-go/internal/model"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 type LLMOutput struct {
@@ -23,7 +24,7 @@ type LLMOutput struct {
 	Content     string `json:"content"`
 }
 
-func runGenerateArticle() {
+func RunGenerateArticle() {
 	globalCtx := context.Background()
 	cfg := config.MustLoadConfig()
 
@@ -58,7 +59,7 @@ func runGenerateArticle() {
 			openai.UserMessage("Choose an unique and interesting topic and write an article about it."),
 		}),
 		Model:       openai.F(cfg.LLM.ModelID),
-		Temperature: openai.F(1.5),
+		Temperature: openai.F(1.7),
 		MaxTokens:   openai.F(int64(8192)),
 		ResponseFormat: openai.F(openai.ChatCompletionNewParamsResponseFormatUnion(openai.ChatCompletionNewParamsResponseFormat{
 			Type: openai.F(openai.ChatCompletionNewParamsResponseFormatTypeJSONObject),
@@ -78,13 +79,13 @@ func runGenerateArticle() {
 
 	// Connect to database
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
-	articleRepo := article.NewRepository(db)
+	articleRepo := repository.NewArticleRepository(db)
 
 	// Use a fixed author ID for now
 	authorID := uuid.MustParse("41dc81d2-97e8-41c8-a3bf-d98322302e5c")
 
 	// Create the article
-	err = articleRepo.Create(globalCtx, &article.Article{
+	err = articleRepo.Create(globalCtx, &model.Article{
 		Slug:             output.Slug,
 		Title:            output.Title,
 		Description:      output.Description,

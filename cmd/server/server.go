@@ -5,15 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"github.com/tuananhlai/brevity-go/internal/article"
+
 	"github.com/tuananhlai/brevity-go/internal/config"
+	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 func Run() {
 	cfg := config.MustLoadConfig()
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
-	articleRepo := article.NewRepository(db)
-	articleService := article.NewService(articleRepo)
+	articleRepo := repository.NewArticleRepository(db)
+	articleService := service.NewArticleService(articleRepo)
 
 	r := gin.Default()
 

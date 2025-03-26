@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 
+	"github.com/tuananhlai/brevity-go/cmd/jobs"
 	"github.com/tuananhlai/brevity-go/cmd/server"
 )
 
@@ -35,7 +36,7 @@ var generateArticleCmd = &cobra.Command{
 	Short: "Generate a new article using AI",
 	Long:  `Generate a new article using AI and save it to the database.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runGenerateArticle()
+		jobs.RunGenerateArticle()
 	},
 }
 
