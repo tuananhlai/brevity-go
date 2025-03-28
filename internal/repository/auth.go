@@ -9,8 +9,8 @@ import (
 )
 
 type AuthRepository interface {
-	// GetUser returns the user with the given email or username and password hash.
-	GetUser(ctx context.Context, emailOrUsername string, passwordHash string) (*model.AuthUser, error)
+	// GetUser returns the user with the given email or username.
+	GetUser(ctx context.Context, emailOrUsername string) (*model.AuthUser, error)
 	// CreateUser creates a new user and returns the created user.
 	CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error)
 }
@@ -23,16 +23,14 @@ func NewAuthRepository(db *sqlx.DB) AuthRepository {
 	return &authRepositoryImpl{db: db}
 }
 
-func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string, passwordHash string) (*model.AuthUser, error) {
+func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string) (*model.AuthUser, error) {
 	var user model.AuthUser
 	err := r.db.GetContext(ctx, &user,
-		`SELECT id, username, email 
+		`SELECT id, username, email, password_hash
 		FROM users 
-		WHERE (email = $1 OR username = $2) 
-		AND password_hash = $3`,
+		WHERE (email = $1 OR username = $2) LIMIT 1`,
 		emailOrUsername,
-		emailOrUsername,
-		passwordHash)
+		emailOrUsername)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +61,6 @@ func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserPa
 
 type CreateUserParams struct {
 	Email        string
-	PasswordHash string
+	PasswordHash []byte
 	Username     string
 }

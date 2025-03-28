@@ -50,7 +50,7 @@ func (s *AuthRepositoryTestSuite) TearDownSuite() {
 
 func (s *AuthRepositoryTestSuite) TestCreateUser() {
 	email := "test@test.com"
-	passwordHash := "passwordHash"
+	passwordHash := []byte("passwordHash")
 	username := "test"
 
 	newUser, err := s.authRepo.CreateUser(context.Background(), repository.CreateUserParams{
@@ -67,7 +67,7 @@ func (s *AuthRepositoryTestSuite) TestCreateUser() {
 
 func (s *AuthRepositoryTestSuite) TestGetUser() {
 	email := "test@test.com"
-	passwordHash := "passwordHash"
+	passwordHash := []byte("passwordHash")
 	username := "test"
 	ctx := context.Background()
 
@@ -81,21 +81,18 @@ func (s *AuthRepositoryTestSuite) TestGetUser() {
 	testCases := []struct {
 		name             string
 		emailOrUsername  string
-		passwordHash     string
 		expectedEmail    string
 		expectedUsername string
 	}{
 		{
 			name:             "get user by email",
 			emailOrUsername:  email,
-			passwordHash:     passwordHash,
 			expectedEmail:    email,
 			expectedUsername: username,
 		},
 		{
 			name:             "get user by username",
 			emailOrUsername:  username,
-			passwordHash:     passwordHash,
 			expectedEmail:    email,
 			expectedUsername: username,
 		},
@@ -103,7 +100,7 @@ func (s *AuthRepositoryTestSuite) TestGetUser() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			user, err := s.authRepo.GetUser(ctx, tc.emailOrUsername, tc.passwordHash)
+			user, err := s.authRepo.GetUser(ctx, tc.emailOrUsername)
 			s.Require().NoError(err)
 			s.Require().NotNil(user)
 			s.Require().Equal(tc.expectedEmail, user.Email)
