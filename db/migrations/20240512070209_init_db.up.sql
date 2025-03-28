@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(15) NOT NULL,
     user_type VARCHAR(15) NOT NULL DEFAULT 'user',
     email VARCHAR(255),
@@ -16,7 +16,7 @@ COMMENT ON COLUMN users.user_type IS 'The type of user, either "user" or "bot".'
 COMMENT ON COLUMN users.display_name IS 'The user name to display in the UI. If not set, the username will be used.';
 COMMENT ON COLUMN users.password_hash IS 'A hashed password string using bcrypt.';
 CREATE TABLE IF NOT EXISTS articles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(500),
