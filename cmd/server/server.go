@@ -1,8 +1,12 @@
 package server
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -10,6 +14,10 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
+)
+
+const (
+	shutdownTimeout = 5 * time.Second
 )
 
 func Run() {
@@ -28,8 +36,35 @@ func Run() {
 		c.JSON(http.StatusOK, articles)
 	})
 
-	err := r.Run()
-	if err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r.Handler(),
 	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	<-signalChan
+
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("Failed to shutdown server gracefully: %v", err)
+	}
+
+	// Close the database connection after the server has been shutdown to ensure in-flight requests are completed.
+	if err := db.Close(); err != nil {
+		log.Printf("Failed to close database connection gracefully: %v", err)
+	}
+
+	<-ctx.Done()
+	log.Println("Server shutdown complete.")
 }

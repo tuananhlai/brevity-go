@@ -10,9 +10,9 @@ This project aims to be a production-ready template for my future attempts at bu
 - [x] Mocking dependencies while testing. Table testing.
 - [ ] Sensible way to configure the application for different environment.
 - [ ] Sensible database migration mechanism.
-- [ ] Built into a Docker image with relatively optimized `Dockerfile`.
+- [x] Built into a Docker image with relatively optimized `Dockerfile`.
 - [ ] Have a full-fledged local development environment.
-- [ ] Utilizes CI toolings like Github actions for code quality checking.
+- [x] Utilizes CI toolings like Github actions for code quality checking.
 - [ ] Have an extendable and maintainable project structure & application architecture.
 - [ ] Contains mechanism for keeping track of the application performance.
 - [ ] Handling errors in a sensible way.
