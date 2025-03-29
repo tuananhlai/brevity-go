@@ -2,10 +2,17 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/tuananhlai/brevity-go/internal/model"
+)
+
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type AuthRepository interface {
@@ -32,6 +39,9 @@ func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string
 		emailOrUsername,
 		emailOrUsername)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 
@@ -53,6 +63,10 @@ func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserPa
 		params.PasswordHash,
 	)
 	if err != nil {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"users_email_key\"" ||
+			err.Error() == "pq: duplicate key value violates unique constraint \"users_username_key\"" {
+			return nil, ErrUserAlreadyExists
+		}
 		return nil, err
 	}
 
