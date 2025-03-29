@@ -11,13 +11,6 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
-const (
-	postgresImageName = "docker.io/library/postgres:17-alpine"
-	postgresDB        = "brevity"
-	postgresUser      = "postgres"
-	postgresPassword  = "postgres"
-)
-
 func TestAuthRepository(t *testing.T) {
 	suite.Run(t, new(AuthRepositoryTestSuite))
 }

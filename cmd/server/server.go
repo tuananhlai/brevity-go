@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,5 +28,8 @@ func Run() {
 		c.JSON(http.StatusOK, articles)
 	})
 
-	r.Run()
+	err := r.Run()
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
