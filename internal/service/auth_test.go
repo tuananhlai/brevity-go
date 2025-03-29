@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
@@ -40,7 +41,7 @@ func (s *AuthServiceTestSuite) TestRegister_Success() {
 	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params repository.CreateUserParams) bool {
 		return params.Email == email && params.Username == username
 	})).Return(&model.AuthUser{
-		ID:       "123",
+		ID:       uuid.New(),
 		Email:    email,
 		Username: username,
 	}, nil)
@@ -72,7 +73,7 @@ func (s *AuthServiceTestSuite) TestLogin_Success() {
 	ctx := context.Background()
 	email := "test@example.com"
 	password := "password"
-	userID := "123"
+	userID := uuid.New()
 
 	s.mockRepo.On("GetUser", ctx, email).Return(&model.AuthUser{
 		ID:           userID,
@@ -85,7 +86,7 @@ func (s *AuthServiceTestSuite) TestLogin_Success() {
 
 	s.Require().NoError(err)
 	s.Require().NotNil(result)
-	s.Require().Equal(userID, result.ID)
+	s.Require().Equal(userID.String(), result.ID)
 	s.Require().Equal(email, result.Email)
 	s.Require().NotEmpty(result.AccessToken)
 	s.Require().NotEmpty(result.RefreshToken)
@@ -113,7 +114,7 @@ func (s *AuthServiceTestSuite) TestLogin_InvalidPassword() {
 	password := "wrongpassword"
 
 	s.mockRepo.On("GetUser", ctx, email).Return(&model.AuthUser{
-		ID:           "123",
+		ID:           uuid.New(),
 		Email:        email,
 		Username:     "testuser",
 		PasswordHash: hashedPassword,

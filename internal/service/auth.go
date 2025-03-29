@@ -113,17 +113,17 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 		return nil, err
 	}
 
-	accessToken, err := s.generateAccessToken(user.ID)
+	accessToken, err := s.generateAccessToken(user.ID.String())
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := s.generateRefreshToken(user.ID)
+	refreshToken, err := s.generateRefreshToken(user.ID.String())
 	if err != nil {
 		return nil, err
 	}
 
 	return &LoginReturn{
-		ID:           user.ID,
+		ID:           user.ID.String(),
 		Username:     user.Username,
 		Email:        user.Email,
 		AccessToken:  accessToken,
