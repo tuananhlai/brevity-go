@@ -4,7 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/tuananhlai/brevity-go/internal/model"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
@@ -42,19 +44,53 @@ func (s *ArticleRepositoryTestSuite) TearDownSuite() {
 
 func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
+	authorID := mustCreateUser(s)
+
+	article := &model.Article{
+		Title:    "Test Article",
+		Content:  "This is a test article",
+		AuthorID: authorID,
+	}
+	err := s.articleRepo.Create(ctx, article)
+	s.Require().NoError(err)
+}
+
+func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
+	ctx := context.Background()
+	authorID := mustCreateUser(s)
+	newArticle := mustCreateArticle(s, authorID)
+
+	previews, err := s.articleRepo.ListPreviews(ctx)
+
+	s.Require().NoError(err)
+	s.Require().Len(previews, 1)
+	s.Require().Equal(newArticle.Title, previews[0].Title)
+	s.Require().Equal(newArticle.Description, previews[0].Description)
+	s.Require().Equal(newArticle.AuthorID, previews[0].AuthorID)
+}
+
+func mustCreateUser(s *ArticleRepositoryTestSuite) uuid.UUID {
 	user := repository.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
 		PasswordHash: []byte("passwordHash"),
 	}
-	createdUser, err := s.authRepo.CreateUser(ctx, user)
+
+	createdUser, err := s.authRepo.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
 
+	return createdUser.ID
+}
+
+func mustCreateArticle(s *ArticleRepositoryTestSuite, authorID uuid.UUID) *model.Article {
 	article := &model.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
-		AuthorID: createdUser.ID,
+		AuthorID: authorID,
 	}
-	err = s.articleRepo.Create(context.Background(), article)
+
+	err := s.articleRepo.Create(context.Background(), article)
 	s.Require().NoError(err)
+
+	return article
 }
