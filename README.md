@@ -17,6 +17,6 @@ This project aims to be a production-ready template for my future attempts at bu
 - [ ] Contains mechanism for keeping track of the application performance.
 - [ ] Handling errors in a sensible way.
 - [ ] Application should follow best practice for security.
-- [ ] Should implement graceful shutdown.
+- [x] Should implement graceful shutdown.
 - [ ] Should utilize some pattern like caching with Redis.
 - [ ] (maybe) E2E tests.
