@@ -1,3 +1,5 @@
+mode: dev
+
 database:
   url: "postgres://postgres:postgres@localhost:5432/brevity?sslmode=disable"
 

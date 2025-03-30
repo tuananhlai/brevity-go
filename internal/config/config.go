@@ -6,7 +6,17 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Mode string
+
+const (
+	ModeDev     Mode = "dev"
+	ModeRelease Mode = "release"
+)
+
 type AppConfig struct {
+	// If `mode` is `dev`, the server will run in a way that is easier for development.
+	// Otherwise, it will be optimized for better performance and data safety.
+	Mode     Mode `mapstructure:"mode"`
 	Database struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"database"`
