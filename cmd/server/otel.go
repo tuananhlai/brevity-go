@@ -7,6 +7,12 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+)
+
+const (
+	serviceName = "brevity"
 )
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
@@ -31,8 +37,14 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
+	resource, err := newResource()
+	if err != nil {
+		handleErr(err)
+		return
+	}
+
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider()
+	loggerProvider, err := newLoggerProvider(resource)
 	if err != nil {
 		handleErr(err)
 		return
@@ -45,13 +57,24 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	return
 }
 
-func newLoggerProvider() (*log.LoggerProvider, error) {
+func newResource() (*resource.Resource, error) {
+	return resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(serviceName),
+		),
+	)
+}
+
+func newLoggerProvider(resource *resource.Resource) (*log.LoggerProvider, error) {
 	logExporter, err := stdoutlog.New()
 	if err != nil {
 		return nil, err
 	}
 
 	loggerProvider := log.NewLoggerProvider(
+		log.WithResource(resource),
 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
 	)
 	return loggerProvider, nil

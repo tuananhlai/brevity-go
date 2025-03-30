@@ -32,39 +32,39 @@ type authServiceImpl struct {
 	bcryptCost int
 }
 
-type Option func(*authServiceImpl)
+type AuthServiceOption func(*authServiceImpl)
 
-func WithAccessTokenSecret(secret string) Option {
+func WithAccessTokenSecret(secret string) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.accessTokenConfig.Secret = secret
 	}
 }
 
-func WithAccessTokenExpiry(expiry time.Duration) Option {
+func WithAccessTokenExpiry(expiry time.Duration) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.accessTokenConfig.Expiry = expiry
 	}
 }
 
-func WithRefreshTokenSecret(secret string) Option {
+func WithRefreshTokenSecret(secret string) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.refreshTokenConfig.Secret = secret
 	}
 }
 
-func WithRefreshTokenExpiry(expiry time.Duration) Option {
+func WithRefreshTokenExpiry(expiry time.Duration) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.refreshTokenConfig.Expiry = expiry
 	}
 }
 
-func WithBcryptCost(cost int) Option {
+func WithBcryptCost(cost int) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.bcryptCost = cost
 	}
 }
 
-func NewAuthService(authRepo repository.AuthRepository, opts ...Option) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, opts ...AuthServiceOption) AuthService {
 	defaultAccessTokenConfig := TokenGenerationConfig{
 		Secret: rand.Text(),
 		Expiry: time.Minute * 15,

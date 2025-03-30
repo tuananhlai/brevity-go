@@ -19,7 +19,6 @@ import (
 
 const (
 	shutdownTimeout = 5 * time.Second
-	serviceName     = "brevity"
 )
 
 func Run() {
