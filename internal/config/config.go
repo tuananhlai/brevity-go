@@ -25,6 +25,9 @@ type AppConfig struct {
 		APIKey  string `mapstructure:"api_key"`
 		ModelID string `mapstructure:"model_id"`
 	} `mapstructure:"llm"`
+	Otel struct {
+		CollectorGrpcURL string `mapstructure:"collector_grpc_url"`
+	} `mapstructure:"otel"`
 }
 
 func LoadConfig() (*AppConfig, error) {

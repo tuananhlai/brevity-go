@@ -33,7 +33,7 @@ func Run() {
 	articleService := service.NewArticleService(articleRepo)
 
 	// == Otel Setup ==
-	otelShutdown, err := setupOTelSDK(globalCtx)
+	otelShutdown, err := setupOTelSDK(globalCtx, cfg)
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
