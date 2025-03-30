@@ -10,6 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/repository"
@@ -18,14 +20,28 @@ import (
 
 const (
 	shutdownTimeout = 5 * time.Second
+	serviceName     = "brevity"
 )
 
 func Run() {
 	cfg := config.MustLoadConfig()
+	if cfg.Mode == config.ModeRelease {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
 	articleRepo := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepo)
 
+	// == Otel Setup ==
+	resource, err := newResource(serviceName)
+	if err != nil {
+		log.Fatalf("Failed to create resource: %v", err)
+	}
+
+	log.Println("Resource", resource)
+
+	// == Gin Setup ==
 	r := gin.Default()
 
 	r.GET("/article-previews", func(c *gin.Context) {
@@ -51,6 +67,12 @@ func Run() {
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
 
+	// == Graceful Shutdown ==
+	if cfg.Mode == config.ModeDev {
+		log.Println("Server is running in dev mode, skipping graceful shutdown.")
+		return
+	}
+
 	log.Println("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
@@ -67,4 +89,11 @@ func Run() {
 
 	<-ctx.Done()
 	log.Println("Server shutdown complete.")
+}
+
+func newResource(serviceName string) (*resource.Resource, error) {
+	return resource.Merge(resource.Default(), resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(serviceName),
+	))
 }

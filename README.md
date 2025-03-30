@@ -20,3 +20,9 @@ This project aims to be a production-ready template for my future attempts at bu
 - [x] Should implement graceful shutdown.
 - [ ] Should utilize some pattern like caching with Redis.
 - [ ] (maybe) E2E tests.
+
+## Installations
+
+```
+brew install golang-migrate
+```

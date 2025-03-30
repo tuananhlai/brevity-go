@@ -11,8 +11,6 @@ RUN go mod download
 
 COPY . ./
 
-# Switch Gin to production mode.
-ENV GIN_MODE=release
 RUN go build -v -o main ./cmd
 
 FROM debian:bookworm-slim
