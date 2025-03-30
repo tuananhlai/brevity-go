@@ -4,14 +4,21 @@ import (
 	"context"
 	"errors"
 
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
+	"github.com/tuananhlai/brevity-go/internal/config"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+)
+
+const (
+	serviceName = "brevity"
 )
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
+func setupOTelSDK(ctx context.Context, cfg *config.AppConfig) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -31,8 +38,14 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
+	resource, err := newResource()
+	if err != nil {
+		handleErr(err)
+		return
+	}
+
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider()
+	loggerProvider, err := newLoggerProvider(ctx, cfg.Otel.CollectorGrpcURL, resource)
 	if err != nil {
 		handleErr(err)
 		return
@@ -45,13 +58,24 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	return
 }
 
-func newLoggerProvider() (*log.LoggerProvider, error) {
-	logExporter, err := stdoutlog.New()
+func newResource() (*resource.Resource, error) {
+	return resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(serviceName),
+		),
+	)
+}
+
+func newLoggerProvider(ctx context.Context, endpointURL string, resource *resource.Resource) (*log.LoggerProvider, error) {
+	logExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpointURL(endpointURL))
 	if err != nil {
 		return nil, err
 	}
 
 	loggerProvider := log.NewLoggerProvider(
+		log.WithResource(resource),
 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
 	)
 	return loggerProvider, nil
