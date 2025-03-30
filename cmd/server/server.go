@@ -40,12 +40,13 @@ func Run() {
 	}
 
 	otelLogger := otelslog.NewLogger(serviceName)
-	otelLogger.Info("Starting server...")
 
 	// == Gin Setup ==
 	r := gin.Default()
 
 	r.GET("/article-previews", func(c *gin.Context) {
+		otelLogger.Info("Received request to get article previews")
+
 		articles, err := articleService.ListPreviews(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
