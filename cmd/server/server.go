@@ -10,8 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/repository"
@@ -29,17 +28,19 @@ func Run() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	globalCtx := context.Background()
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
 	articleRepo := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepo)
 
 	// == Otel Setup ==
-	resource, err := newResource(serviceName)
+	otelShutdown, err := setupOTelSDK(globalCtx)
 	if err != nil {
-		log.Fatalf("Failed to create resource: %v", err)
+		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
-	log.Println("Resource", resource)
+	otelLogger := otelslog.NewLogger(serviceName)
+	otelLogger.Info("Starting server...")
 
 	// == Gin Setup ==
 	r := gin.Default()
@@ -75,11 +76,15 @@ func Run() {
 
 	log.Println("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	timeoutCtx, cancel := context.WithTimeout(globalCtx, shutdownTimeout)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(timeoutCtx); err != nil {
 		log.Printf("Failed to shutdown server gracefully: %v", err)
+	}
+
+	if err := otelShutdown(timeoutCtx); err != nil {
+		log.Printf("Failed to shutdown opentelemetry sdk: %v", err)
 	}
 
 	// Close the database connection after the server has been shutdown to ensure in-flight requests are completed.
@@ -87,13 +92,6 @@ func Run() {
 		log.Printf("Failed to close database connection gracefully: %v", err)
 	}
 
-	<-ctx.Done()
+	<-timeoutCtx.Done()
 	log.Println("Server shutdown complete.")
-}
-
-func newResource(serviceName string) (*resource.Resource, error) {
-	return resource.Merge(resource.Default(), resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String(serviceName),
-	))
 }
