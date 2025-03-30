@@ -15,7 +15,7 @@ const (
 
 type AppConfig struct {
 	// If `mode` is `dev`, the server will run in a way that is easier for development.
-	// Otherwise, it will run in an optimized manner for better performance.
+	// Otherwise, it will be optimized for better performance and data safety.
 	Mode     Mode `mapstructure:"mode"`
 	Database struct {
 		URL string `mapstructure:"url"`
