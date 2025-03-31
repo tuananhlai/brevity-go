@@ -4,12 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tuananhlai/brevity-go/internal/config"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+
+	"github.com/tuananhlai/brevity-go/internal/config"
 )
 
 const (
@@ -53,7 +57,15 @@ func setupOTelSDK(ctx context.Context, cfg *config.AppConfig) (shutdown func(con
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
 	global.SetLoggerProvider(loggerProvider)
 
-	// TODO: Set up trace and meter providers.
+	tracerProvider, err := newTracerProvider(ctx, cfg.Otel.CollectorGrpcURL, resource)
+	if err != nil {
+		handleErr(err)
+		return
+	}
+	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	otel.SetTracerProvider(tracerProvider)
+
+	// TODO: Set up meter providers.
 
 	return
 }
@@ -79,4 +91,17 @@ func newLoggerProvider(ctx context.Context, endpointURL string, resource *resour
 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
 	)
 	return loggerProvider, nil
+}
+
+func newTracerProvider(ctx context.Context, endpointURL string, resource *resource.Resource) (*trace.TracerProvider, error) {
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpointURL(endpointURL))
+	if err != nil {
+		return nil, err
+	}
+
+	tracerProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter),
+		trace.WithResource(resource),
+	)
+	return tracerProvider, nil
 }
