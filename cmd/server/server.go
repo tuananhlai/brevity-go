@@ -10,16 +10,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"go.opentelemetry.io/contrib/bridges/otelslog"
-	"go.opentelemetry.io/otel"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
+	"github.com/tuananhlai/brevity-go/internal/otelsdk"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 const (
 	shutdownTimeout = 5 * time.Second
+	serviceName     = "brevity"
 )
 
 func Run() {
@@ -34,13 +34,17 @@ func Run() {
 	articleService := service.NewArticleService(articleRepo)
 
 	// == Otel Setup ==
-	otelShutdown, err := setupOTelSDK(globalCtx, cfg)
+	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
+		Mode:             cfg.Mode,
+		ServiceName:      serviceName,
+		CollectorGrpcURL: cfg.Otel.CollectorGrpcURL,
+	})
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
-	otelLogger := otelslog.NewLogger("article")
-	tracer := otel.Tracer("article")
+	logger := otelsdk.Logger("article")
+	tracer := otelsdk.Tracer("article")
 
 	// == Gin Setup ==
 	r := gin.Default()
@@ -49,7 +53,7 @@ func Run() {
 		ctx, span := tracer.Start(c.Request.Context(), "article.listPreviews")
 		defer span.End()
 
-		otelLogger.Info("Received request to get article previews")
+		logger.InfoContext(ctx, "Received request to get article previews")
 
 		articles, err := articleService.ListPreviews(ctx)
 		if err != nil {
