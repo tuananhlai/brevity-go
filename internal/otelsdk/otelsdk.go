@@ -84,16 +84,16 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	return
 }
 
-func Tracer(name string, opts ...trace.TracerOption) trace.Tracer {
-	return otel.Tracer(name, opts...)
+func Tracer(name string) trace.Tracer {
+	return otel.Tracer(name)
 }
 
-func Meter(name string, opts ...metric.MeterOption) metric.Meter {
-	return otel.Meter(name, opts...)
+func Meter(name string) metric.Meter {
+	return otel.Meter(name)
 }
 
-func Logger(name string, opts ...otelslog.Option) *slog.Logger {
-	return otelslog.NewLogger(name, opts...)
+func Logger(name string) *slog.Logger {
+	return otelslog.NewLogger(name)
 }
 
 func newResource(serviceName string) (*resource.Resource, error) {
