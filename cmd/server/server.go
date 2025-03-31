@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/repository"
@@ -38,17 +39,22 @@ func Run() {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
-	otelLogger := otelslog.NewLogger(serviceName)
+	otelLogger := otelslog.NewLogger("article")
+	tracer := otel.Tracer("article")
 
 	// == Gin Setup ==
 	r := gin.Default()
 
 	r.GET("/article-previews", func(c *gin.Context) {
+		ctx, span := tracer.Start(c.Request.Context(), "article.listPreviews")
+		defer span.End()
+
 		otelLogger.Info("Received request to get article previews")
 
-		articles, err := articleService.ListPreviews(c.Request.Context())
+		articles, err := articleService.ListPreviews(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 		c.JSON(http.StatusOK, articles)
 	})
