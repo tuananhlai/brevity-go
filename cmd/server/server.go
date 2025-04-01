@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/controller"
@@ -30,7 +33,8 @@ func Run() {
 	}
 
 	globalCtx := context.Background()
-	db := sqlx.MustConnect("postgres", cfg.Database.URL)
+	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
+		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
 	articleRepo := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepo)
@@ -54,6 +58,7 @@ func Run() {
 
 	// == Gin Setup ==
 	r := gin.Default()
+	r.Use(otelgin.Middleware(serviceName))
 
 	r.POST("/auth/register", authController.Register)
 

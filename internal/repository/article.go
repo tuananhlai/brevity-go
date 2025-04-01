@@ -7,8 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/tuananhlai/brevity-go/internal/model"
@@ -39,18 +37,12 @@ func NewArticleRepository(db *sqlx.DB) ArticleRepository {
 
 // Create creates a new article
 func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Article) error {
-	ctx, span := r.tracer.Start(ctx, "Create")
-	span.SetAttributes(attribute.String("article.slug", article.Slug))
-	defer span.End()
-
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content, 
 		content, author_id) VALUES ($1, $2, $3, $4, $5, $6)`,
 		article.Slug, article.Title, article.Description,
 		article.PlaintextContent, article.Content, article.AuthorID)
 	if err != nil {
-		span.SetStatus(codes.Error, "error inserting new article")
-		span.RecordError(err)
 		return err
 	}
 
@@ -59,9 +51,6 @@ func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Artic
 
 // ListPreviews lists articles with basic information
 func (r *articleRepositoryImpl) ListPreviews(ctx context.Context) ([]model.ArticlePreview, error) {
-	ctx, span := r.tracer.Start(ctx, "ListPreviews")
-	defer span.End()
-
 	articles := []model.ArticlePreview{}
 
 	err := r.db.SelectContext(ctx, &articles,
@@ -70,8 +59,6 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context) ([]model.Artic
 		FROM articles a 
 		INNER JOIN users u ON a.author_id = u.id`)
 	if err != nil {
-		span.SetStatus(codes.Error, "error getting article previews")
-		span.RecordError(err)
 		return nil, err
 	}
 

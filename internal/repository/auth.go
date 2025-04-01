@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/tuananhlai/brevity-go/internal/model"
@@ -53,9 +52,6 @@ func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string
 }
 
 func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error) {
-	ctx, span := r.tracer.Start(ctx, "repository.AuthRepository.CreateUser")
-	defer span.End()
-
 	user := &model.AuthUser{
 		Email:    params.Email,
 		Username: params.Username,
@@ -72,12 +68,8 @@ func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserPa
 	if err != nil {
 		if err.Error() == "pq: duplicate key value violates unique constraint \"users_email_key\"" ||
 			err.Error() == "pq: duplicate key value violates unique constraint \"users_username_key\"" {
-			span.SetStatus(codes.Error, "user already exists")
 			return nil, ErrUserAlreadyExists
 		}
-
-		span.SetStatus(codes.Error, "failed to create user")
-		span.RecordError(err)
 		return nil, err
 	}
 
