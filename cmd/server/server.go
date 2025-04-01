@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
+	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/otelsdk"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
@@ -30,8 +31,13 @@ func Run() {
 
 	globalCtx := context.Background()
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
+
 	articleRepo := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepo)
+
+	authRepo := repository.NewAuthRepository(db)
+	authService := service.NewAuthService(authRepo)
+	authController := controller.NewAuthController(authService)
 
 	// == Otel Setup ==
 	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
@@ -48,6 +54,8 @@ func Run() {
 
 	// == Gin Setup ==
 	r := gin.Default()
+
+	r.POST("/auth/register", authController.Register)
 
 	r.GET("/article-previews", func(c *gin.Context) {
 		ctx, span := tracer.Start(c.Request.Context(), "article.listPreviews")
