@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -73,13 +75,21 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider(ctx, cfg.CollectorGrpcURL, resource)
+	// Initialize meter provider and application runtime metric producer.
+	runtimeProducer := runtime.NewProducer()
+	meterProvider, err := newMeterProvider(ctx, cfg.CollectorGrpcURL, resource, runtimeProducer)
 	if err != nil {
 		handleErr(err)
 		return
 	}
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
+
+	runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
+	if err != nil {
+		handleErr(err)
+		return
+	}
 
 	return
 }
@@ -132,7 +142,9 @@ func newTracerProvider(ctx context.Context, endpointURL string, resource *resour
 	return tracerProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, endpointURL string, resource *resource.Resource) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, endpointURL string, resource *resource.Resource,
+	runtimeProducer *runtime.Producer,
+) (*sdkmetric.MeterProvider, error) {
 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpointURL(endpointURL))
 	if err != nil {
 		return nil, err
@@ -140,7 +152,13 @@ func newMeterProvider(ctx context.Context, endpointURL string, resource *resourc
 
 	meterProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(resource),
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter)),
+		sdkmetric.WithReader(
+			sdkmetric.NewPeriodicReader(
+				metricExporter,
+				sdkmetric.WithProducer(runtimeProducer),
+				sdkmetric.WithInterval(time.Second*5),
+			),
+		),
 	)
 	return meterProvider, nil
 }
