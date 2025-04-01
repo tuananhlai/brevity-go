@@ -85,7 +85,7 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-	runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
+	err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
 	if err != nil {
 		handleErr(err)
 		return
