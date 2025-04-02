@@ -59,8 +59,8 @@ func Run() {
 	r.Use(otelgin.Middleware(serviceName))
 
 	// == Routes ==
-	r.POST("/auth/register", authController.Register)
 	r.GET("/article-previews", articleController.ListPreviews)
+	authController.RegisterRoutes(r)
 
 	srv := &http.Server{
 		Addr:    ":8080",

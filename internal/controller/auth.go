@@ -19,6 +19,46 @@ func NewAuthController(authService service.AuthService) *AuthController {
 	}
 }
 
+func (c *AuthController) RegisterRoutes(router *gin.Engine) {
+	router.POST("/auth/register", c.Register)
+	router.POST("/auth/login", c.Login)
+}
+
+func (c *AuthController) Login(ginCtx *gin.Context) {
+	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.Login")
+	defer span.End()
+
+	var req LoginRequest
+	if err := ginCtx.ShouldBindJSON(&req); err != nil {
+		span.SetStatus(codes.Error, "failed to bind request")
+		span.RecordError(err)
+		ginCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	span.SetAttributes(
+		attribute.String("emailOrUsername", req.EmailOrUsername),
+	)
+
+	user, err := c.authService.Login(ctx, req.EmailOrUsername, req.Password)
+	if err != nil {
+		span.SetStatus(codes.Error, "failed to login")
+		span.RecordError(err)
+		ginCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res := LoginResponse{
+		ID:           user.ID,
+		Username:     user.Username,
+		Email:        user.Email,
+		AccessToken:  user.AccessToken,
+		RefreshToken: user.RefreshToken,
+	}
+
+	ginCtx.JSON(http.StatusOK, res)
+}
+
 func (c *AuthController) Register(ginCtx *gin.Context) {
 	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.Register")
 	defer span.End()
@@ -45,6 +85,19 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	}
 
 	ginCtx.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
+}
+
+type LoginRequest struct {
+	EmailOrUsername string `json:"emailOrUsername" binding:"required"`
+	Password        string `json:"password" binding:"required"`
+}
+
+type LoginResponse struct {
+	ID           string `json:"id"`
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type RegisterRequest struct {
