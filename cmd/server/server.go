@@ -38,6 +38,7 @@ func Run() {
 
 	articleRepo := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepo)
+	articleController := controller.NewArticleController(articleService)
 
 	authRepo := repository.NewAuthRepository(db)
 	authService := service.NewAuthService(authRepo)
@@ -53,28 +54,13 @@ func Run() {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
-	logger := otelsdk.Logger("article")
-	tracer := otelsdk.Tracer("article")
-
 	// == Gin Setup ==
 	r := gin.Default()
 	r.Use(otelgin.Middleware(serviceName))
 
+	// == Routes ==
 	r.POST("/auth/register", authController.Register)
-
-	r.GET("/article-previews", func(c *gin.Context) {
-		ctx, span := tracer.Start(c.Request.Context(), "article.listPreviews")
-		defer span.End()
-
-		logger.InfoContext(ctx, "Received request to get article previews")
-
-		articles, err := articleService.ListPreviews(ctx)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, articles)
-	})
+	r.GET("/article-previews", articleController.ListPreviews)
 
 	srv := &http.Server{
 		Addr:    ":8080",
