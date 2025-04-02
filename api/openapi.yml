@@ -102,11 +102,23 @@ paths:
   /v1/article-previews:
     get:
       security: []
-      summary: Get article previews
+      summary: Get article previews sorted by creation time.
       description: Get article previews
       operationId: getArticlePreviews
       tags:
         - article
+      parameters:
+        - name: pageToken
+          in: query
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
       responses:
         "200":
           description: "Successfully retrieved article previews."
@@ -119,6 +131,9 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ArticlePreview"
+                  nextPageToken:
+                    type: string
+                    description: "The token to fetch the next page of results."
                 required:
                   - items
         "400":
