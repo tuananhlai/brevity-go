@@ -1,12 +1,18 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuananhlai/brevity-go/internal/service"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+)
+
+const (
+	CodeInvalidCredentials Code = "invalid_credentials"
+	CodeUserAlreadyExists  Code = "user_already_exists"
 )
 
 type AuthController struct {
@@ -32,7 +38,10 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
 		span.SetStatus(codes.Error, "failed to bind request")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeBindingRequestError,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -44,7 +53,18 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to login")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+				Code:    CodeInvalidCredentials,
+				Message: err.Error(),
+			})
+			return
+		}
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeUnknown,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -67,7 +87,10 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
 		span.SetStatus(codes.Error, "failed to bind request")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeBindingRequestError,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -80,11 +103,22 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to register user")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+		if errors.Is(err, service.ErrUserAlreadyExists) {
+			ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+				Code:    CodeUserAlreadyExists,
+				Message: err.Error(),
+			})
+			return
+		}
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeUnknown,
+			Message: err.Error(),
+		})
 		return
 	}
 
-	ginCtx.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
+	ginCtx.Status(http.StatusOK)
 }
 
 type LoginRequest struct {

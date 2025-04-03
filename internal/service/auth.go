@@ -3,12 +3,18 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/tuananhlai/brevity-go/internal/repository"
+)
+
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 type AuthService interface {
@@ -98,19 +104,29 @@ func (s *authServiceImpl) Register(ctx context.Context, email, username, passwor
 		Username:     username,
 		PasswordHash: hashedPassword,
 	})
-	return err
+	if err != nil {
+		if errors.Is(err, repository.ErrUserAlreadyExists) {
+			return ErrUserAlreadyExists
+		}
+		return err
+	}
+
+	return nil
 }
 
 // Login logs in a user and returns a JWT token.
 func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, password string) (*LoginReturn, error) {
 	user, err := s.authRepo.GetUser(ctx, emailOrUsername)
 	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return nil, ErrInvalidCredentials
+		}
 		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidCredentials
 	}
 
 	accessToken, err := s.generateAccessToken(user.ID.String())
