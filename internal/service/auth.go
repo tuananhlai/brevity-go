@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -106,7 +107,7 @@ func (s *authServiceImpl) Register(ctx context.Context, email, username, passwor
 	})
 	if err != nil {
 		if errors.Is(err, repository.ErrUserAlreadyExists) {
-			return ErrUserAlreadyExists
+			return fmt.Errorf("%w: %s", ErrUserAlreadyExists, err)
 		}
 		return err
 	}
@@ -119,14 +120,14 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 	user, err := s.authRepo.GetUser(ctx, emailOrUsername)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			return nil, ErrInvalidCredentials
+			return nil, fmt.Errorf("%w: %s", ErrInvalidCredentials, err)
 		}
 		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, fmt.Errorf("%w: %s", ErrInvalidCredentials, err)
 	}
 
 	accessToken, err := s.generateAccessToken(user.ID.String())
