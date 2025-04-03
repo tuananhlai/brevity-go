@@ -65,7 +65,7 @@ func (s *AuthServiceTestSuite) TestRegister_RepositoryError() {
 	err := s.authService.Register(ctx, email, username, password)
 
 	s.Require().Error(err)
-	s.Require().Equal(repository.ErrUserAlreadyExists, err)
+	s.Require().ErrorIs(err, service.ErrUserAlreadyExists)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
@@ -104,7 +104,7 @@ func (s *AuthServiceTestSuite) TestLogin_UserNotFound() {
 
 	s.Require().Error(err)
 	s.Require().Nil(result)
-	s.Require().Equal(repository.ErrUserNotFound, err)
+	s.Require().ErrorIs(err, service.ErrInvalidCredentials)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
