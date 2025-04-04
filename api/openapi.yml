@@ -98,7 +98,40 @@ paths:
                   - accessToken
                   - refreshToken
         "400":
-          description: "Invalid credentials."
+          description: "Bad request."
+  /v1/auth/refresh:
+    post:
+      security: []
+      summary: Refresh the access token
+      description: Refresh the access token
+      operationId: refresh
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        "200":
+          description: "Successfully refreshed the access token."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                required:
+                  - accessToken
+        "400":
+          description: "Bad request."
+
   /v1/article-previews:
     get:
       security: []
