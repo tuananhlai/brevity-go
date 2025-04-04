@@ -8,15 +8,19 @@ jobs:
   api-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out head branch
+      - name: Check out repository
         uses: actions/checkout@v4
-      - name: Check out master branch
+
+      - name: Check out base openapi.yml
         uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
-          path: base
-      - name: Run OpenAPI Diff (from HEAD revision)
+          path: api/openapi_base_branch.yml
+          sparse-checkout: api/openapi.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Run OpenAPI Diff
         uses: ./.github/actions/openapi-diff
         with:
           head-spec: ./api/openapi.yml
-          base-spec: ./base/api/openapi.yml
+          base-spec: ./api/openapi_base_branch.yml
