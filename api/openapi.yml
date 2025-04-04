@@ -39,6 +39,8 @@ paths:
                   type: string
                 password:
                   type: string
+                newProp:
+                  type: number
               required:
                 - email
                 - username
