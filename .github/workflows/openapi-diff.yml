@@ -10,8 +10,15 @@ jobs:
     steps:
       - name: Check out head branch
         uses: actions/checkout@v4
-      - name: Run OpenAPI Diff (from HEAD revision)
-        uses: ./.github/actions/openapi-diff
         with:
-          head-spec: ./api/openapi_new.yml
-          base-spec: ./api/openapi.yml
+          path: head
+      - name: Check out master branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: base
+      - name: Run OpenAPI Diff (from HEAD revision)
+        uses: head/.github/actions/openapi-diff
+        with:
+          head-spec: head/api/openapi.yml
+          base-spec: base/api/openapi.yml
