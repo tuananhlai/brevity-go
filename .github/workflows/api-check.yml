@@ -1,0 +1,24 @@
+name: API Compatibility Check
+on:
+  pull_request:
+    paths:
+      - "api/**"
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out head branch
+        uses: actions/checkout@v4
+        with:
+          path: head
+      - name: Check out master branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+      - name: Run OpenAPI Diff (from HEAD revision)
+        uses: mvegter/openapi-diff-action@v0.23.5
+        with:
+          head-spec: head/spec/openapi.yaml
+          base-spec: base/spec/openapi.yaml
