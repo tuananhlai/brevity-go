@@ -66,9 +66,12 @@ paths:
                   type: string
                 password:
                   type: string
+                sample:
+                  type: string
               required:
                 - emailOrUsername
                 - password
+                - sample
       responses:
         "200":
           description: "Successfully logged in."
