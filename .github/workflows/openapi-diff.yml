@@ -1,0 +1,24 @@
+name: OpenAPI Diff
+on:
+  pull_request:
+    paths:
+      - "api/**"
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out head branch
+        uses: actions/checkout@v2
+        with:
+          path: head
+      - name: Check out master branch
+        uses: actions/checkout@v2
+        with:
+          ref: main
+          path: base
+      - name: Run OpenAPI Diff (from HEAD revision)
+        uses: ./.github/actions/openapi-diff
+        with:
+          head-spec: head/api/openapi.yml
+          base-spec: base/api/openapi.yml

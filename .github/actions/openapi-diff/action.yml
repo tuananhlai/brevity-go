@@ -1,0 +1,18 @@
+name: "OpenAPI Diff"
+
+description: "A GitHub Action to identify differences between Swagger or OpenApi specifications."
+
+inputs:
+  base-spec:
+    description: "Path to the BASE Swagger or OpenApi specification file."
+    required: true
+  head-spec:
+    description: "Path to the HEAD Swagger or OpenApi specification file."
+    required: true
+
+runs:
+  using: "docker"
+  image: "openapitools/openapi-diff:latest"
+  args:
+    - ${{ inputs.head-spec }}
+    - ${{ inputs.base-spec }}
