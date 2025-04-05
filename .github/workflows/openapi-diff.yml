@@ -10,11 +10,13 @@ jobs:
     steps:
       - name: Check out head branch
         uses: actions/checkout@v4
-      - name: Check out master branch
+
+      - name: Check out base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
           path: base
+
       - name: Run OpenAPI Diff (from HEAD revision)
         uses: ./.github/actions/openapi-diff
         with:
