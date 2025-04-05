@@ -16,3 +16,4 @@ runs:
   args:
     - ${{ inputs.head-spec }}
     - ${{ inputs.base-spec }}
+    - '--markdown'
