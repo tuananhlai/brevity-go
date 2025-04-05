@@ -7,6 +7,8 @@ on:
 jobs:
   api-check:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Check out head branch
         uses: actions/checkout@v4
@@ -18,7 +20,18 @@ jobs:
           path: base
 
       - name: Run OpenAPI Diff (from HEAD revision)
+        id: diff
         uses: ./.github/actions/openapi-diff
         with:
           head-spec: ./api/openapi.yml
           base-spec: ./base/api/openapi.yml
+
+      - name: Print diff content
+        run: |
+          echo "OpenAPI Diff Content:"
+          echo "-------------------"
+          cat ${{ steps.diff.outputs.file-name }}
+
+      - uses: mshick/add-pr-comment@v2
+        with:
+          message-path: ${{ steps.diff.outputs.file-name }}

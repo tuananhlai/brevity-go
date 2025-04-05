@@ -10,9 +10,21 @@ inputs:
     description: "Path to the HEAD Swagger or OpenApi specification file."
     required: true
 
+outputs:
+  file-name:
+    description: "The name of the generated markdown file containing the diff"
+    value: ${{ steps.generate_filename.outputs.file-name }}
+
 runs:
-  using: "docker"
-  image: "openapitools/openapi-diff:2.1.0-beta.12"
-  args:
-    - ${{ inputs.head-spec }}
-    - ${{ inputs.base-spec }}
+  using: "composite"
+  steps:
+    - id: generate_filename
+      name: Generate random filename
+      shell: bash
+      run: |
+        TIMESTAMP=$(date +%s)
+        echo "file-name=openapi-diff-$TIMESTAMP.md" >> $GITHUB_OUTPUT
+    - name: Run OpenAPI Diff
+      uses: docker://openapitools/openapi-diff:2.1.0-beta.12
+      with:
+        args: ${{ inputs.base-spec }} ${{ inputs.head-spec }} --markdown /github/workspace/${{ steps.generate_filename.outputs.file-name }}
