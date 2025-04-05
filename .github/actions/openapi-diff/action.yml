@@ -23,8 +23,10 @@ runs:
       shell: bash
       run: |
         TIMESTAMP=$(date +%s)
-        echo "file-name=openapi-diff-$TIMESTAMP.html" >> $GITHUB_OUTPUT
+        echo "file-name=openapi-diff-$TIMESTAMP.md" >> $GITHUB_OUTPUT
     - name: Run OpenAPI Diff
       uses: docker://openapitools/openapi-diff:2.1.0-beta.12
+      # The /github/workspace directory within the container is mapped to the working directory of the action.
+      # https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-docker-container-action#accessing-files-created-by-a-container-action
       with:
-        args: ${{ inputs.base-spec }} ${{ inputs.head-spec }} --html /github/workspace/${{ steps.generate_filename.outputs.file-name }}
+        args: ${{ inputs.base-spec }} ${{ inputs.head-spec }} --markdown /github/workspace/${{ steps.generate_filename.outputs.file-name }}
