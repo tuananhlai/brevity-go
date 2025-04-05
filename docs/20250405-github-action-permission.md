@@ -1,0 +1,1 @@
+Github Action's workflow has a predefined set of permissions. If you add a new permission, it will overwrite all existing default permissions, so you need to add the default action back for the workflow to work.
