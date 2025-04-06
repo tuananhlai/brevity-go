@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/tidwall/gjson"
 
 	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/model"
@@ -42,7 +43,7 @@ func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
 func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 	articleID := uuid.New()
 	authorID := uuid.New()
-	now := time.Now()
+	date := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
 	previews := []model.ArticlePreview{
 		{
 			ID:                articleID,
@@ -51,16 +52,31 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 			Description:       "Test Description",
 			AuthorID:          authorID,
 			AuthorDisplayName: "Test Author",
-			CreatedAt:         now,
-			UpdatedAt:         now,
+			CreatedAt:         date,
+			UpdatedAt:         date,
 		},
 	}
-	s.mockService.On("ListPreviews", mock.Anything, 50, mock.Anything).Return(previews, "next-token", nil)
+	nextPageToken := "next-token"
+	s.mockService.On("ListPreviews", mock.Anything, 50, mock.Anything).Return(previews, nextPageToken, nil)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/article-previews?pageSize=50", nil)
+	req, _ := http.NewRequest("GET", "/v1/article-previews?pageSize=50", nil)
 	s.router.ServeHTTP(w, req)
+
+	res := w.Body.String()
 
 	s.Require().Equal(http.StatusOK, w.Code)
 	s.mockService.AssertExpectations(s.T())
+	s.Require().Len(gjson.Get(res, "items").Array(), 1)
+	s.Require().Equal(articleID.String(), gjson.Get(res, "items.0.id").String())
+	s.Require().Equal(previews[0].Slug, gjson.Get(res, "items.0.slug").String())
+	s.Require().Equal(previews[0].Title, gjson.Get(res, "items.0.title").String())
+	s.Require().Equal(previews[0].Description, gjson.Get(res, "items.0.description").String())
+	s.Require().Equal(authorID.String(), gjson.Get(res, "items.0.authorID").String())
+	s.Require().Equal(previews[0].AuthorDisplayName, gjson.Get(res, "items.0.authorDisplayName").String())
+	s.Require().Equal(date.Format(time.RFC3339),
+		gjson.Get(res, "items.0.createdAt").String())
+	s.Require().Equal(date.Format(time.RFC3339),
+		gjson.Get(res, "items.0.updatedAt").String())
+	s.Require().Equal(nextPageToken, gjson.Get(res, "nextPageToken").String())
 }

@@ -22,7 +22,7 @@ func NewArticleController(articleService service.ArticleService) *ArticleControl
 }
 
 func (c *ArticleController) RegisterRoutes(router *gin.Engine) {
-	router.GET("/article-previews", c.ListPreviews)
+	router.GET("/v1/article-previews", c.ListPreviews)
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
