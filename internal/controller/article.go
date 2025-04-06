@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
@@ -19,22 +21,34 @@ func NewArticleController(articleService service.ArticleService) *ArticleControl
 	return &ArticleController{articleService: articleService}
 }
 
-func (c *ArticleController) ListPreviews(ctx *gin.Context) {
+func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
+	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
+	defer span.End()
+
 	var req ListPreviewsRequest
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+	if err := ginCtx.ShouldBindQuery(&req); err != nil {
+		span.SetStatus(codes.Error, "failed to bind request")
+		span.RecordError(err)
+
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:    CodeBindingRequestError,
 			Message: err.Error(),
 		})
 		return
 	}
 
+	span.SetAttributes(attribute.Int("page_size", req.PageSize),
+		attribute.String("page_token", req.PageToken))
+
 	req.PageSize = clamp(req.PageSize, 1, 100)
 
-	articles, nextPageToken, err := c.articleService.ListPreviews(ctx.Request.Context(),
+	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
 		req.PageSize, repository.WithPageToken(req.PageToken))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, ErrorResponse{
+		span.SetStatus(codes.Error, "failed to list previews")
+		span.RecordError(err)
+
+		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
 			Code:    CodeUnknown,
 			Message: err.Error(),
 		})
@@ -57,7 +71,7 @@ func (c *ArticleController) ListPreviews(ctx *gin.Context) {
 			UpdatedAt:         article.UpdatedAt,
 		}
 	}
-	ctx.JSON(http.StatusOK, response)
+	ginCtx.JSON(http.StatusOK, response)
 }
 
 type ListPreviewResponseItem struct {
