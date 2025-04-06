@@ -21,6 +21,10 @@ func NewArticleController(articleService service.ArticleService) *ArticleControl
 	return &ArticleController{articleService: articleService}
 }
 
+func (c *ArticleController) RegisterRoutes(router *gin.Engine) {
+	router.GET("/article-previews", c.ListPreviews)
+}
+
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
 	defer span.End()
