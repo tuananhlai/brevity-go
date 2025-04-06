@@ -83,7 +83,7 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 		Limit(uint64(pageSize))
 
 	if token != nil {
-		queryBuilder = queryBuilder.Where("a.created_at < ? AND a.id != ?", token.CreatedAt, token.ArticleID)
+		queryBuilder = queryBuilder.Where("a.created_at <= ? AND a.id != ?", token.CreatedAt, token.ArticleID)
 	}
 
 	query, args, err := queryBuilder.ToSql()
