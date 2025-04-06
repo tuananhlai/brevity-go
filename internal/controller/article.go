@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
@@ -19,14 +20,30 @@ func NewArticleController(articleService service.ArticleService) *ArticleControl
 }
 
 func (c *ArticleController) ListPreviews(ctx *gin.Context) {
-	articles, err := c.articleService.ListPreviews(ctx.Request.Context())
+	var req ListPreviewsRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeBindingRequestError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	req.PageSize = clamp(req.PageSize, 1, 100)
+
+	articles, nextPageToken, err := c.articleService.ListPreviews(ctx.Request.Context(),
+		req.PageSize, repository.WithPageToken(req.PageToken))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, ErrorResponse{
+			Code:    CodeUnknown,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	response := ListPreviewsResponse{
-		Items: make([]ListPreviewResponseItem, len(articles)),
+		Items:         make([]ListPreviewResponseItem, len(articles)),
+		NextPageToken: nextPageToken,
 	}
 	for i, article := range articles {
 		response.Items[i] = ListPreviewResponseItem{
@@ -54,6 +71,12 @@ type ListPreviewResponseItem struct {
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
+type ListPreviewsRequest struct {
+	PageToken string `form:"pageToken"`
+	PageSize  int    `form:"pageSize,default=50"`
+}
+
 type ListPreviewsResponse struct {
-	Items []ListPreviewResponseItem `json:"items"`
+	Items         []ListPreviewResponseItem `json:"items"`
+	NextPageToken string                    `json:"nextPageToken"`
 }
