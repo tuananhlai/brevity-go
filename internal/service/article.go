@@ -10,7 +10,7 @@ import (
 // ArticleService defines the interface for article business logic
 type ArticleService interface {
 	Create(ctx context.Context, article *model.Article) error
-	ListPreviews(ctx context.Context) ([]model.ArticlePreview, error)
+	ListPreviews(ctx context.Context, pageSize int, opts ...repository.ListPreviewsOption) ([]model.ArticlePreview, string, error)
 }
 
 type articleServiceImpl struct {
@@ -28,6 +28,14 @@ func (s *articleServiceImpl) Create(ctx context.Context, article *model.Article)
 }
 
 // ListPreviews lists articles with basic information
-func (s *articleServiceImpl) ListPreviews(ctx context.Context) ([]model.ArticlePreview, error) {
-	return s.repo.ListPreviews(ctx)
+func (s *articleServiceImpl) ListPreviews(ctx context.Context,
+	pageSize int,
+	opts ...repository.ListPreviewsOption,
+) ([]model.ArticlePreview, string, error) {
+	previews, nextPageToken, err := s.repo.ListPreviews(ctx, pageSize, opts...)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return previews, nextPageToken, nil
 }

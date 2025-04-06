@@ -60,7 +60,7 @@ func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 	authorID := mustCreateUser(s)
 	newArticle := mustCreateArticle(s, authorID)
 
-	previews, err := s.articleRepo.ListPreviews(ctx)
+	previews, _, err := s.articleRepo.ListPreviews(ctx, 100)
 
 	s.Require().NoError(err)
 	s.Require().Len(previews, 1)

@@ -25,4 +25,7 @@ This project aims to be a production-ready template for my future attempts at bu
 
 ```
 brew install golang-migrate
+brew install mockery
+
+mockery --name=ArticleService
 ```
