@@ -24,7 +24,6 @@ func TestArticleController(t *testing.T) {
 type ArticleControllerTestSuite struct {
 	suite.Suite
 	mockService *mocks.ArticleService
-	controller  *controller.ArticleController
 	router      *gin.Engine
 }
 
@@ -34,10 +33,10 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
 	s.mockService = new(mocks.ArticleService)
-	s.controller = controller.NewArticleController(s.mockService)
+	controller := controller.NewArticleController(s.mockService)
 
 	s.router = gin.Default()
-	s.controller.RegisterRoutes(s.router)
+	controller.RegisterRoutes(s.router)
 }
 
 func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
