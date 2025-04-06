@@ -33,9 +33,9 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
 	s.mockService = new(mocks.ArticleService)
-	controller := controller.NewArticleController(s.mockService)
-
 	s.router = gin.Default()
+
+	controller := controller.NewArticleController(s.mockService)
 	controller.RegisterRoutes(s.router)
 }
 
