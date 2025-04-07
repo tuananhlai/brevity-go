@@ -15,10 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
-	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/otelsdk"
-	"github.com/tuananhlai/brevity-go/internal/repository"
-	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 const (
@@ -36,13 +33,8 @@ func Run() {
 	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
-	articleRepo := repository.NewArticleRepository(db)
-	articleService := service.NewArticleService(articleRepo)
-	articleController := controller.NewArticleController(articleService)
-
-	authRepo := repository.NewAuthRepository(db)
-	authService := service.NewAuthService(authRepo)
-	authController := controller.NewAuthController(authService)
+	articleController := InitializeArticleController(db)
+	authController := InitializeAuthController(db)
 
 	// == Otel Setup ==
 	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
