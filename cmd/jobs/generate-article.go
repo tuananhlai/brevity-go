@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/invopop/jsonschema"
 	"github.com/jmoiron/sqlx"
 	"github.com/k3a/html2text"
 	"github.com/openai/openai-go"
@@ -33,8 +34,23 @@ func RunGenerateArticle() {
 		option.WithAPIKey(cfg.LLM.APIKey),
 	)
 
+	type Output struct {
+		Slug        string `json:"slug"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Content     string `json:"content"`
+	}
+
+	outputSchema := generateSchema[Output]()
+
+	schemaParam := openai.ResponseFormatJSONSchemaJSONSchemaParam{
+		Name:   "Output",
+		Schema: outputSchema,
+		Strict: openai.Bool(true),
+	}
+
 	chatCompletion, err := client.Chat.Completions.New(globalCtx, openai.ChatCompletionNewParams{
-		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
+		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(`You are a Japanese teacher who often writes various articles about learning Japanese.
 				Here are the non-exhaustive list of example topics you might write about:
 				commonly used grammar and vocabulary, vocabulary based on topics,
@@ -57,13 +73,15 @@ func RunGenerateArticle() {
 				}
 				`),
 			openai.UserMessage("Choose an unique and interesting topic and write an article about it."),
-		}),
-		Model:       openai.F(cfg.LLM.ModelID),
-		Temperature: openai.F(1.7),
-		MaxTokens:   openai.F(int64(8192)),
-		ResponseFormat: openai.F(openai.ChatCompletionNewParamsResponseFormatUnion(openai.ChatCompletionNewParamsResponseFormat{
-			Type: openai.F(openai.ChatCompletionNewParamsResponseFormatTypeJSONObject),
-		})),
+		},
+		Model:       openai.ChatModel(cfg.LLM.ModelID),
+		Temperature: openai.Float(1.7),
+		MaxTokens:   openai.Int(8192),
+		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
+			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
+				JSONSchema: schemaParam,
+			},
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error creating chat completion: %v", err)
@@ -96,4 +114,16 @@ func RunGenerateArticle() {
 	if err != nil {
 		log.Fatalf("Failed to create article: %v", err)
 	}
+}
+
+func generateSchema[T any]() interface{} {
+	reflector := jsonschema.Reflector{
+		AllowAdditionalProperties: true,
+		DoNotReference:            true,
+	}
+
+	var v T
+	schema := reflector.Reflect(v)
+
+	return schema
 }
