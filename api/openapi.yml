@@ -140,7 +140,7 @@ paths:
                       $ref: "#/components/schemas/ArticlePreview"
                   nextPageToken:
                     type: string
-                    description: "The token to fetch the next page of results."
+                    description: "The token to fetch the next page of results. If there are no more results, this field will not be present."
                 required:
                   - items
         "400":

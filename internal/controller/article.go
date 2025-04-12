@@ -96,5 +96,5 @@ type ListPreviewsRequest struct {
 
 type ListPreviewsResponse struct {
 	Items         []ListPreviewResponseItem `json:"items"`
-	NextPageToken string                    `json:"nextPageToken"`
+	NextPageToken string                    `json:"nextPageToken,omitempty"`
 }
