@@ -1,7 +1,7 @@
 mode: dev
 
 database:
-  url: "postgres://postgres:postgres@localhost:5432/brevity?sslmode=disable"
+  url: "postgres://postgres:postgres@localhost:45432/brevity?sslmode=disable"
 
 llm:
   base_url: "http://localhost:1337/v1/"
@@ -9,4 +9,4 @@ llm:
   api_key: "PLACEHOLDER_API_KEY"
 
 otel:
-  collector_grpc_url: "http://localhost:4317"
+  collector_grpc_url: "http://localhost:44317"

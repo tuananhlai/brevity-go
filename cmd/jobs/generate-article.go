@@ -100,7 +100,7 @@ func RunGenerateArticle() {
 	articleRepo := repository.NewArticleRepository(db)
 
 	// Use a fixed author ID for now
-	authorID := uuid.MustParse("41dc81d2-97e8-41c8-a3bf-d98322302e5c")
+	authorID := uuid.MustParse("2bc5d7c4-5702-4ac7-b951-c8ed0921896e")
 
 	// Create the article
 	err = articleRepo.Create(globalCtx, &model.Article{
