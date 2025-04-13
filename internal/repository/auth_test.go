@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -154,4 +155,37 @@ func (s *AuthRepositoryTestSuite) TestGetUser() {
 			s.Require().Equal(tc.expectedUsername, user.Username)
 		})
 	}
+}
+
+func (s *AuthRepositoryTestSuite) TestCreateRefreshToken() {
+	email := "test@test.com"
+	passwordHash := []byte("passwordHash")
+	username := "test"
+	ctx := context.Background()
+
+	newUser, err := s.authRepo.CreateUser(ctx, repository.CreateUserParams{
+		Email:        email,
+		PasswordHash: passwordHash,
+		Username:     username,
+	})
+	s.Require().NoError(err)
+
+	userID := newUser.ID
+	token := "testToken"
+	expiresAt := time.Now().Add(time.Hour * 24)
+
+	refreshToken, err := s.authRepo.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
+		UserID:    userID,
+		Token:     token,
+		ExpiresAt: expiresAt,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(refreshToken)
+	s.Require().Equal(token, refreshToken.Token)
+	s.Require().Equal(userID, refreshToken.UserID)
+	// Use WithinDuration instead of Equal to avoid precision issues.
+	s.Require().WithinDuration(expiresAt, refreshToken.ExpiresAt, time.Microsecond)
+	s.Require().NotNil(refreshToken.ID)
+	s.Require().NotNil(refreshToken.CreatedAt)
+	s.Require().Nil(refreshToken.RevokedAt)
 }

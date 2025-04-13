@@ -87,18 +87,49 @@ paths:
                     format: email
                   accessToken:
                     type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                  refreshToken:
-                    type: string
+                    description: "An access token to be used for authenticated requests. Expires in 15 minutes. /v1/auth/refresh can be used to refresh the access token."
                     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
                 required:
                   - id
                   - username
                   - email
                   - accessToken
-                  - refreshToken
         "400":
           description: "Invalid credentials."
+  /v1/auth/refresh:
+    post:
+      security: []
+      summary: Refresh the access token
+      description: Refresh the access token
+      operationId: refresh
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        "200":
+          description: "Successfully refreshed the access token."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                required:
+                  - accessToken
+        "400":
+          description: "Invalid request."
+
   /v1/article-previews:
     get:
       security: []

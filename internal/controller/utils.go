@@ -13,6 +13,7 @@ type Code string
 const (
 	CodeUnknown             Code = "unknown"
 	CodeBindingRequestError Code = "binding_request_error"
+	CodeUnauthorized        Code = "unauthorized"
 )
 
 func clamp(value, min, max int) int {
