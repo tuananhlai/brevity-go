@@ -183,7 +183,8 @@ func (s *AuthRepositoryTestSuite) TestCreateRefreshToken() {
 	s.Require().NotNil(refreshToken)
 	s.Require().Equal(token, refreshToken.Token)
 	s.Require().Equal(userID, refreshToken.UserID)
-	s.Require().Equal(expiresAt, refreshToken.ExpiresAt)
+	// Use WithinDuration instead of Equal to avoid precision issues.
+	s.Require().WithinDuration(expiresAt, refreshToken.ExpiresAt, time.Microsecond)
 	s.Require().NotNil(refreshToken.ID)
 	s.Require().NotNil(refreshToken.CreatedAt)
 	s.Require().Nil(refreshToken.RevokedAt)
