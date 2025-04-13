@@ -16,6 +16,36 @@ type AuthRepository struct {
 	mock.Mock
 }
 
+// CreateRefreshToken provides a mock function with given fields: ctx, params
+func (_m *AuthRepository) CreateRefreshToken(ctx context.Context, params repository.CreateRefreshTokenParams) (*model.RefreshToken, error) {
+	ret := _m.Called(ctx, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRefreshToken")
+	}
+
+	var r0 *model.RefreshToken
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, repository.CreateRefreshTokenParams) (*model.RefreshToken, error)); ok {
+		return rf(ctx, params)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, repository.CreateRefreshTokenParams) *model.RefreshToken); ok {
+		r0 = rf(ctx, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RefreshToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, repository.CreateRefreshTokenParams) error); ok {
+		r1 = rf(ctx, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateUser provides a mock function with given fields: ctx, params
 func (_m *AuthRepository) CreateUser(ctx context.Context, params repository.CreateUserParams) (*model.AuthUser, error) {
 	ret := _m.Called(ctx, params)
@@ -39,6 +69,36 @@ func (_m *AuthRepository) CreateUser(ctx context.Context, params repository.Crea
 
 	if rf, ok := ret.Get(1).(func(context.Context, repository.CreateUserParams) error); ok {
 		r1 = rf(ctx, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetRefreshToken provides a mock function with given fields: ctx, token
+func (_m *AuthRepository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
+	ret := _m.Called(ctx, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRefreshToken")
+	}
+
+	var r0 *model.RefreshToken
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
+		return rf(ctx, token)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
+		r0 = rf(ctx, token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RefreshToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, token)
 	} else {
 		r1 = ret.Error(1)
 	}

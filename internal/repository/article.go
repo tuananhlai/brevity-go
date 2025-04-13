@@ -3,14 +3,10 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"go.opentelemetry.io/contrib/bridges/otelslog"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/tuananhlai/brevity-go/internal/model"
 )
@@ -23,20 +19,12 @@ type ArticleRepository interface {
 }
 
 type articleRepositoryImpl struct {
-	db     *sqlx.DB
-	tracer trace.Tracer
-	logger *slog.Logger
+	db *sqlx.DB
 }
 
 // NewArticleRepository creates a new article repository
 func NewArticleRepository(db *sqlx.DB) ArticleRepository {
-	name := "repository.ArticleRepository"
-
-	return &articleRepositoryImpl{
-		db:     db,
-		tracer: otel.Tracer(name),
-		logger: otelslog.NewLogger(name),
-	}
+	return &articleRepositoryImpl{db: db}
 }
 
 // Create creates a new article

@@ -8,19 +8,24 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrInvalidCredentials   = errors.New("invalid credentials")
+	ErrUserAlreadyExists    = errors.New("user already exists")
+	ErrRefreshTokenNotFound = errors.New("refresh token not found")
+	ErrRefreshTokenExpired  = errors.New("refresh token expired")
+	ErrRefreshTokenRevoked  = errors.New("refresh token revoked")
 )
 
 type AuthService interface {
 	Register(ctx context.Context, email, username, password string) error
 	Login(ctx context.Context, emailOrUsername, password string) (*LoginReturn, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (string, error)
 }
 
 type TokenGenerationConfig struct {
@@ -50,12 +55,6 @@ func WithAccessTokenSecret(secret string) AuthServiceOption {
 func WithAccessTokenExpiry(expiry time.Duration) AuthServiceOption {
 	return func(s *authServiceImpl) {
 		s.accessTokenConfig.Expiry = expiry
-	}
-}
-
-func WithRefreshTokenSecret(secret string) AuthServiceOption {
-	return func(s *authServiceImpl) {
-		s.refreshTokenConfig.Secret = secret
 	}
 }
 
@@ -134,7 +133,7 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := s.generateRefreshToken(user.ID.String())
+	refreshToken, err := s.generateRefreshToken(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +147,30 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 	}, nil
 }
 
+func (s *authServiceImpl) RefreshAccessToken(ctx context.Context, refreshToken string) (string, error) {
+	refreshTokenInfo, err := s.authRepo.GetRefreshToken(ctx, refreshToken)
+	if err != nil {
+		if errors.Is(err, repository.ErrRefreshTokenNotFound) {
+			return "", ErrRefreshTokenNotFound
+		}
+		return "", err
+	}
+
+	if refreshTokenInfo.ExpiresAt.Before(time.Now()) {
+		return "", ErrRefreshTokenExpired
+	}
+	if refreshTokenInfo.RevokedAt != nil {
+		return "", ErrRefreshTokenRevoked
+	}
+
+	accessToken, err := s.generateAccessToken(refreshTokenInfo.UserID.String())
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
+}
+
 func (s *authServiceImpl) generateToken(userID string, secret string, expiry time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
@@ -157,8 +180,21 @@ func (s *authServiceImpl) generateToken(userID string, secret string, expiry tim
 	return token.SignedString([]byte(secret))
 }
 
-func (s *authServiceImpl) generateRefreshToken(userID string) (string, error) {
-	return s.generateToken(userID, s.refreshTokenConfig.Secret, s.refreshTokenConfig.Expiry)
+// generateRefreshToken generates a refresh token for the given user and returns the token.
+func (s *authServiceImpl) generateRefreshToken(ctx context.Context, userID uuid.UUID) (string, error) {
+	token := uuid.New().String()
+	expiresAt := time.Now().Add(s.refreshTokenConfig.Expiry)
+
+	_, err := s.authRepo.CreateRefreshToken(ctx, repository.CreateRefreshTokenParams{
+		UserID:    userID,
+		Token:     token,
+		ExpiresAt: expiresAt,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (s *authServiceImpl) generateAccessToken(userID string) (string, error) {

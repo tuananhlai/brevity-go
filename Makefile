@@ -1,7 +1,7 @@
 # Makefile for brevity-go project
 
 # Database connection string for PostgreSQL
-DB_URL=postgres://postgres:postgres@localhost:5432/brevity?sslmode=disable
+DB_URL=postgres://postgres:postgres@localhost:45432/brevity?sslmode=disable
 
 # Migration directory
 MIGRATIONS_DIR=db/migrations
@@ -42,7 +42,7 @@ migrate-create:
 		exit 1; \
 	fi
 	@echo "Creating migration $(NAME)..."
-	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(NAME)
+	migrate create -ext sql -dir $(MIGRATIONS_DIR) -format 20060102150405 $(NAME)
 
 # Force migration version
 .PHONY: migrate-force
