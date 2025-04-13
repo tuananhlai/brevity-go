@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
@@ -49,9 +50,11 @@ func Run() {
 	// == Gin Setup ==
 	r := gin.Default()
 	r.Use(otelgin.Middleware(serviceName))
+	// TODO: Reconfigure CORs before production deployment.
+	r.Use(cors.Default())
 
 	// == Routes ==
-	r.GET("/article-previews", articleController.ListPreviews)
+	articleController.RegisterRoutes(r)
 	authController.RegisterRoutes(r)
 
 	srv := &http.Server{
