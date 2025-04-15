@@ -16,6 +16,7 @@ type ArticleRepository interface {
 	Create(ctx context.Context, article *model.Article) error
 	ListPreviews(ctx context.Context, pageSize int, opts ...ListPreviewsOption) (
 		results []model.ArticlePreview, nextPageToken string, err error)
+	GetBySlug(ctx context.Context, slug string) (*model.ArticleDetails, error)
 }
 
 type articleRepositoryImpl struct {
@@ -41,6 +42,21 @@ func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Artic
 	return nil
 }
 
+func (r *articleRepositoryImpl) GetBySlug(ctx context.Context, slug string) (*model.ArticleDetails, error) {
+	article := model.ArticleDetails{}
+	err := r.db.GetContext(ctx, &article, `
+		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
+			u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url
+		FROM articles a
+		INNER JOIN users u ON a.author_id = u.id
+		WHERE a.slug = $1`, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return &article, nil
+}
+
 // ListPreviews lists articles with basic information
 func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 	opts ...ListPreviewsOption,
@@ -63,7 +79,7 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 
 	queryBuilder := squirrel.Select(
 		"a.id", "a.slug", "a.title", "a.description", "a.author_id", "a.created_at", "a.updated_at",
-		"CASE WHEN u.display_name IS NOT NULL THEN u.display_name ELSE u.username END AS display_name",
+		"u.username AS author_username", "u.display_name AS author_display_name", "u.avatar_url AS author_avatar_url",
 	).
 		From("articles a").
 		InnerJoin("users u ON a.author_id = u.id").
@@ -71,6 +87,7 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 		Limit(uint64(pageSize))
 
 	if token != nil {
+		// TODO: Review the logic for next page token.
 		queryBuilder = queryBuilder.Where("a.created_at <= ? AND a.id != ?", token.CreatedAt, token.ArticleID)
 	}
 

@@ -65,28 +65,38 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	}
 	for i, article := range articles {
 		response.Items[i] = ListPreviewResponseItem{
-			ID:                article.ID,
-			Slug:              article.Slug,
-			Title:             article.Title,
-			Description:       article.Description,
-			AuthorID:          article.AuthorID,
-			AuthorDisplayName: article.AuthorDisplayName,
-			CreatedAt:         article.CreatedAt,
-			UpdatedAt:         article.UpdatedAt,
+			ID:          article.ID,
+			Slug:        article.Slug,
+			Title:       article.Title,
+			Description: article.Description,
+			Author: ListPreviewResponseItemAuthor{
+				ID:          article.AuthorID,
+				Username:    article.AuthorUsername,
+				DisplayName: article.AuthorDisplayName.String,
+				AvatarURL:   article.AuthorAvatarURL.String,
+			},
+			CreatedAt: article.CreatedAt,
+			UpdatedAt: article.UpdatedAt,
 		}
 	}
 	ginCtx.JSON(http.StatusOK, response)
 }
 
 type ListPreviewResponseItem struct {
-	ID                uuid.UUID `json:"id"`
-	Slug              string    `json:"slug"`
-	Title             string    `json:"title"`
-	Description       string    `json:"description"`
-	AuthorID          uuid.UUID `json:"authorID"`
-	AuthorDisplayName string    `json:"authorDisplayName"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	ID          uuid.UUID                     `json:"id"`
+	Slug        string                        `json:"slug"`
+	Title       string                        `json:"title"`
+	Description string                        `json:"description"`
+	Author      ListPreviewResponseItemAuthor `json:"author"`
+	CreatedAt   time.Time                     `json:"createdAt"`
+	UpdatedAt   time.Time                     `json:"updatedAt"`
+}
+
+type ListPreviewResponseItemAuthor struct {
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"displayName,omitempty"`
+	AvatarURL   string    `json:"avatarURL,omitempty"`
 }
 
 type ListPreviewsRequest struct {

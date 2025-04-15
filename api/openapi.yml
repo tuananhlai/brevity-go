@@ -176,6 +176,30 @@ paths:
                   - items
         "400":
           description: "Invalid request."
+  /v1/articles/{slug}:
+    get:
+      security: []
+      summary: Get an article by slug.
+      description: Get an article by slug.
+      operationId: getArticleBySlug
+      tags:
+        - article
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "my-article-3821"
+      responses:
+        "200":
+          description: "Successfully retrieved the article."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        "404":
+          description: "Article not found."
 
 components:
   securitySchemes:
@@ -200,20 +224,28 @@ components:
         description:
           type: string
           example: "This is a description of my article."
-        authorID:
-          type: string
-          format: uuid
-        authorDisplayName:
-          type: string
-          description: The display name of the author if it is set, otherwise the username.
-          example: "John Doe"
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            displayName:
+              type: string
+            username:
+              type: string
+            avatarURL:
+              type: string
+          required:
+            - id
+            - username
         createdAt:
           type: string
-          format: datetime
+          format: date-time
           example: "2021-01-01T00:00:00Z"
         updatedAt:
           type: string
-          format: datetime
+          format: date-time
           example: "2021-01-05T00:00:00Z"
       required:
         - id
@@ -221,5 +253,52 @@ components:
         - title
         - authorID
         - authorDisplayName
+        - createdAt
+        - updatedAt
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          example: "my-article-3821"
+        title:
+          type: string
+          example: "My Article Title"
+        content:
+          type: string
+          description: "The HTML content of the article."
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            displayName:
+              type: string
+            username:
+              type: string
+            avatarURL:
+              type: string
+          required:
+            - id
+            - username
+        createdAt:
+          type: string
+          format: date-time
+          example: "2021-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2021-01-05T00:00:00Z"
+      required:
+        - id
+        - slug
+        - title
+        - content
+        - author
         - createdAt
         - updatedAt

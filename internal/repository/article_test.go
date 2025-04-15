@@ -3,6 +3,7 @@ package repository_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
@@ -44,12 +45,12 @@ func (s *ArticleRepositoryTestSuite) TearDownSuite() {
 
 func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
-	authorID := mustCreateUser(s)
+	author := mustCreateUser(s)
 
 	article := &model.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
-		AuthorID: authorID,
+		AuthorID: author.ID,
 	}
 	err := s.articleRepo.Create(ctx, article)
 	s.Require().NoError(err)
@@ -57,8 +58,8 @@ func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 
 func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 	ctx := context.Background()
-	authorID := mustCreateUser(s)
-	newArticle := mustCreateArticle(s, authorID)
+	author := mustCreateUser(s)
+	newArticle := mustCreateArticle(s, author.ID)
 
 	previews, _, err := s.articleRepo.ListPreviews(ctx, 100)
 
@@ -69,7 +70,24 @@ func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 	s.Require().Equal(newArticle.AuthorID, previews[0].AuthorID)
 }
 
-func mustCreateUser(s *ArticleRepositoryTestSuite) uuid.UUID {
+func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
+	ctx := context.Background()
+	author := mustCreateUser(s)
+	newArticle := mustCreateArticle(s, author.ID)
+
+	article, err := s.articleRepo.GetBySlug(ctx, newArticle.Slug)
+
+	s.Require().NoError(err)
+	s.Require().Equal(newArticle.Slug, article.Slug)
+	s.Require().Equal(newArticle.Title, article.Title)
+	s.Require().Equal(newArticle.AuthorID, article.AuthorID)
+	s.Require().WithinDuration(newArticle.CreatedAt, article.CreatedAt, time.Microsecond)
+	s.Require().WithinDuration(newArticle.UpdatedAt, article.UpdatedAt, time.Microsecond)
+	s.Require().Equal(newArticle.Content, article.Content)
+	s.Require().Equal(author.Username, article.AuthorUsername)
+}
+
+func mustCreateUser(s *ArticleRepositoryTestSuite) *model.AuthUser {
 	user := repository.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
@@ -79,7 +97,7 @@ func mustCreateUser(s *ArticleRepositoryTestSuite) uuid.UUID {
 	createdUser, err := s.authRepo.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
 
-	return createdUser.ID
+	return createdUser
 }
 
 func mustCreateArticle(s *ArticleRepositoryTestSuite, authorID uuid.UUID) *model.Article {
@@ -90,6 +108,11 @@ func mustCreateArticle(s *ArticleRepositoryTestSuite, authorID uuid.UUID) *model
 	}
 
 	err := s.articleRepo.Create(context.Background(), article)
+	s.Require().NoError(err)
+
+	err = s.dbTestUtil.DB().GetContext(context.Background(), article, `
+		SELECT * FROM articles LIMIT 1`,
+	)
 	s.Require().NoError(err)
 
 	return article

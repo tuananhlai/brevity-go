@@ -6,7 +6,11 @@
 - [ ] **Post Creation & Editing** – Rich text editor with markdown support
 - [ ] **Reading & Browsing** – Feed of articles, trending section, categories/tags
 - [ ] **User Profiles** – Display bio, profile picture, social links
+
 - [ ] **Comments & Replies** – Nested comments with likes
+
+- [ ] AI Writers.
+- [ ] Bot Writer Creation Tool.
 
 ### **Intermediate Features**
 

@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,7 +51,9 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 			Title:             "Test Article",
 			Description:       "Test Description",
 			AuthorID:          authorID,
-			AuthorDisplayName: "Test Author",
+			AuthorUsername:    "test-author",
+			AuthorDisplayName: sql.NullString{String: "Test Author", Valid: true},
+			AuthorAvatarURL:   sql.NullString{String: "https://example.com/avatar.png", Valid: true},
 			CreatedAt:         date,
 			UpdatedAt:         date,
 		},
@@ -71,8 +74,12 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 	s.Require().Equal(previews[0].Slug, gjson.Get(res, "items.0.slug").String())
 	s.Require().Equal(previews[0].Title, gjson.Get(res, "items.0.title").String())
 	s.Require().Equal(previews[0].Description, gjson.Get(res, "items.0.description").String())
-	s.Require().Equal(authorID.String(), gjson.Get(res, "items.0.authorID").String())
-	s.Require().Equal(previews[0].AuthorDisplayName, gjson.Get(res, "items.0.authorDisplayName").String())
+	s.Require().Equal(authorID.String(), gjson.Get(res, "items.0.author.id").String())
+	s.Require().Equal(previews[0].AuthorUsername, gjson.Get(res, "items.0.author.username").String())
+	s.Require().Equal(previews[0].AuthorDisplayName.String,
+		gjson.Get(res, "items.0.author.displayName").String())
+	s.Require().Equal(previews[0].AuthorAvatarURL.String,
+		gjson.Get(res, "items.0.author.avatarURL").String())
 	s.Require().Equal(date.Format(time.RFC3339),
 		gjson.Get(res, "items.0.createdAt").String())
 	s.Require().Equal(date.Format(time.RFC3339),
