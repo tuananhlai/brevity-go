@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +12,8 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/model"
 )
+
+var ErrArticleNotFound = errors.New("article not found")
 
 // ArticleRepository defines the interface for article data access
 type ArticleRepository interface {
@@ -51,6 +55,9 @@ func (r *articleRepositoryImpl) GetBySlug(ctx context.Context, slug string) (*mo
 		INNER JOIN users u ON a.author_id = u.id
 		WHERE a.slug = $1`, slug)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrArticleNotFound
+		}
 		return nil, err
 	}
 
