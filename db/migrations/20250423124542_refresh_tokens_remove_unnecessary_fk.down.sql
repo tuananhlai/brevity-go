@@ -1,0 +1,1 @@
+-- Down migration is not necessary because the foreign key was mistakenly duplicated.

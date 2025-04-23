@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,12 +27,27 @@ type Article struct {
 }
 
 type ArticlePreview struct {
-	ID                uuid.UUID `db:"id"`
-	Slug              string    `db:"slug"`
-	Title             string    `db:"title"`
-	Description       string    `db:"description"`
-	AuthorID          uuid.UUID `db:"author_id"`
-	AuthorDisplayName string    `db:"display_name"`
-	CreatedAt         time.Time `db:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at"`
+	ID                uuid.UUID      `db:"id"`
+	Slug              string         `db:"slug"`
+	Title             string         `db:"title"`
+	Description       string         `db:"description"`
+	AuthorID          uuid.UUID      `db:"author_id"`
+	AuthorUsername    string         `db:"author_username"`
+	AuthorDisplayName sql.NullString `db:"author_display_name"`
+	AuthorAvatarURL   sql.NullString `db:"author_avatar_url"`
+	CreatedAt         time.Time      `db:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at"`
+}
+
+type ArticleDetails struct {
+	ID                uuid.UUID      `db:"id"`
+	Slug              string         `db:"slug"`
+	Title             string         `db:"title"`
+	Content           string         `db:"content"`
+	CreatedAt         time.Time      `db:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at"`
+	AuthorID          uuid.UUID      `db:"author_id"`
+	AuthorUsername    string         `db:"author_username"`
+	AuthorDisplayName sql.NullString `db:"author_display_name"`
+	AuthorAvatarURL   sql.NullString `db:"author_avatar_url"`
 }

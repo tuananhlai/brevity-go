@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
+const (
+	CodeArticleNotFound Code = "article_not_found"
+)
+
 type ArticleController struct {
 	articleService service.ArticleService
 }
@@ -23,6 +28,7 @@ func NewArticleController(articleService service.ArticleService) *ArticleControl
 
 func (c *ArticleController) RegisterRoutes(router *gin.Engine) {
 	router.GET("/v1/article-previews", c.ListPreviews)
+	router.GET("/v1/articles/:slug", c.GetBySlug)
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
@@ -65,28 +71,82 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	}
 	for i, article := range articles {
 		response.Items[i] = ListPreviewResponseItem{
-			ID:                article.ID,
-			Slug:              article.Slug,
-			Title:             article.Title,
-			Description:       article.Description,
-			AuthorID:          article.AuthorID,
-			AuthorDisplayName: article.AuthorDisplayName,
-			CreatedAt:         article.CreatedAt,
-			UpdatedAt:         article.UpdatedAt,
+			ID:          article.ID,
+			Slug:        article.Slug,
+			Title:       article.Title,
+			Description: article.Description,
+			Author: ListPreviewResponseItemAuthor{
+				ID:          article.AuthorID,
+				Username:    article.AuthorUsername,
+				DisplayName: article.AuthorDisplayName.String,
+				AvatarURL:   article.AuthorAvatarURL.String,
+			},
+			CreatedAt: article.CreatedAt,
+			UpdatedAt: article.UpdatedAt,
 		}
 	}
 	ginCtx.JSON(http.StatusOK, response)
 }
 
+func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
+	var req GetBySlugRequest
+	if err := ginCtx.ShouldBindUri(&req); err != nil {
+		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:    CodeBindingRequestError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	article, err := c.articleService.GetBySlug(ginCtx.Request.Context(), req.Slug)
+	if err != nil {
+		if errors.Is(err, service.ErrArticleNotFound) {
+			ginCtx.JSON(http.StatusNotFound, ErrorResponse{
+				Code:    CodeArticleNotFound,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
+			Code:    CodeUnknown,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	response := GetBySlugResponse{
+		ID:      article.ID,
+		Slug:    article.Slug,
+		Title:   article.Title,
+		Content: article.Content,
+		Author: GetBySlugResponseAuthor{
+			ID:          article.AuthorID,
+			Username:    article.AuthorUsername,
+			DisplayName: article.AuthorDisplayName.String,
+			AvatarURL:   article.AuthorAvatarURL.String,
+		},
+		CreatedAt: article.CreatedAt,
+		UpdatedAt: article.UpdatedAt,
+	}
+	ginCtx.JSON(http.StatusOK, response)
+}
+
 type ListPreviewResponseItem struct {
-	ID                uuid.UUID `json:"id"`
-	Slug              string    `json:"slug"`
-	Title             string    `json:"title"`
-	Description       string    `json:"description"`
-	AuthorID          uuid.UUID `json:"authorID"`
-	AuthorDisplayName string    `json:"authorDisplayName"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	ID          uuid.UUID                     `json:"id"`
+	Slug        string                        `json:"slug"`
+	Title       string                        `json:"title"`
+	Description string                        `json:"description"`
+	Author      ListPreviewResponseItemAuthor `json:"author"`
+	CreatedAt   time.Time                     `json:"createdAt"`
+	UpdatedAt   time.Time                     `json:"updatedAt"`
+}
+
+type ListPreviewResponseItemAuthor struct {
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"displayName,omitempty"`
+	AvatarURL   string    `json:"avatarURL,omitempty"`
 }
 
 type ListPreviewsRequest struct {
@@ -97,4 +157,25 @@ type ListPreviewsRequest struct {
 type ListPreviewsResponse struct {
 	Items         []ListPreviewResponseItem `json:"items"`
 	NextPageToken string                    `json:"nextPageToken,omitempty"`
+}
+
+type GetBySlugRequest struct {
+	Slug string `uri:"slug"`
+}
+
+type GetBySlugResponse struct {
+	ID        uuid.UUID               `json:"id"`
+	Slug      string                  `json:"slug"`
+	Title     string                  `json:"title"`
+	Content   string                  `json:"content"`
+	Author    GetBySlugResponseAuthor `json:"author"`
+	CreatedAt time.Time               `json:"createdAt"`
+	UpdatedAt time.Time               `json:"updatedAt"`
+}
+
+type GetBySlugResponseAuthor struct {
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"displayName,omitempty"`
+	AvatarURL   string    `json:"avatarURL,omitempty"`
 }
