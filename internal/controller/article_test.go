@@ -15,7 +15,7 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/service/mocks"
+	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 func TestArticleController(t *testing.T) {
@@ -24,7 +24,7 @@ func TestArticleController(t *testing.T) {
 
 type ArticleControllerTestSuite struct {
 	suite.Suite
-	mockService *mocks.ArticleService
+	mockService *service.MockArticleService
 	router      *gin.Engine
 }
 
@@ -33,7 +33,7 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 }
 
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
-	s.mockService = new(mocks.ArticleService)
+	s.mockService = service.NewMockArticleService(s.T())
 	s.router = gin.Default()
 
 	controller := controller.NewArticleController(s.mockService)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/model"
 	"github.com/tuananhlai/brevity-go/internal/repository"
-	"github.com/tuananhlai/brevity-go/internal/repository/mocks"
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
@@ -25,11 +24,11 @@ func TestAuthService(t *testing.T) {
 type AuthServiceTestSuite struct {
 	suite.Suite
 	authService service.AuthService
-	mockRepo    *mocks.AuthRepository
+	mockRepo    *repository.MockAuthRepository
 }
 
 func (s *AuthServiceTestSuite) SetupTest() {
-	s.mockRepo = mocks.NewAuthRepository(s.T())
+	s.mockRepo = repository.NewMockAuthRepository(s.T())
 	s.authService = service.NewAuthService(s.mockRepo)
 }
 
