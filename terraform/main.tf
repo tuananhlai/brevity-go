@@ -14,7 +14,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name            = "BrevityVPC"
+  name            = "brevity-vpc"
   cidr            = local.default_vpc_cidr
   azs             = slice(data.aws_availability_zones.available.names, 0, 2)
   public_subnets  = ["10.0.0.0/20", "10.0.16.0/20"]
@@ -23,7 +23,7 @@ module "vpc" {
 
 resource "random_password" "db_password" {
   length  = 16
-  special = true
+  special = false
   upper   = true
   numeric = true
 }
@@ -33,7 +33,7 @@ module "db_sg" {
   version = "~> 5.0"
 
   vpc_id          = module.vpc.vpc_id
-  name            = "BrevityDBSG"
+  name            = "brevity-db-sg"
   use_name_prefix = true
 
   // TODO: Make the CIDR block more restrictive.
@@ -58,12 +58,14 @@ module "db_sg" {
 }
 
 resource "aws_db_subnet_group" "primary" {
-  name       = "BrevityDBSubnetGroup"
+  name       = "brevity-db-subnet-group"
   subnet_ids = module.vpc.private_subnets
 }
 
 resource "aws_db_instance" "primary" {
+  identifier_prefix      = "brevity-"
   engine                 = "postgres"
+  engine_version         = "17.2"
   instance_class         = "db.t4g.micro"
   allocated_storage      = 20
   db_name                = "brevity"
