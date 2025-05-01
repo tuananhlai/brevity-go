@@ -12,7 +12,7 @@ data "aws_availability_zones" "available" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.21.0"
+  version = "~> 5.0"
 
   name            = "BrevityVPC"
   cidr            = local.default_vpc_cidr
@@ -28,16 +28,51 @@ resource "random_password" "db_password" {
   numeric = true
 }
 
+module "db_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
+
+  vpc_id          = module.vpc.vpc_id
+  name            = "BrevityDBSG"
+  use_name_prefix = true
+
+  // TODO: Make the CIDR block more restrictive.
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      protocol         = "-1"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
+    }
+  ]
+}
+
+resource "aws_db_subnet_group" "primary" {
+  name       = "BrevityDBSubnetGroup"
+  subnet_ids = module.vpc.private_subnets
+}
+
 resource "aws_db_instance" "primary" {
-  identifier_prefix   = "brevity-db"
-  engine              = "postgres"
-  instance_class      = "db.t4g.micro"
-  allocated_storage   = 20
-  skip_final_snapshot = true
-  db_name             = "brevity"
-  username            = "postgres"
-  password            = random_password.db_password.result
-  apply_immediately   = true
+  engine                 = "postgres"
+  instance_class         = "db.t4g.micro"
+  allocated_storage      = 20
+  db_name                = "brevity"
+  username               = "postgres"
+  password               = random_password.db_password.result
+  apply_immediately      = true
+  skip_final_snapshot    = true
+  vpc_security_group_ids = [module.db_sg.security_group_id]
+  db_subnet_group_name   = aws_db_subnet_group.primary.name
 }
 
 output "primary" {
