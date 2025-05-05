@@ -168,6 +168,13 @@ resource "aws_launch_template" "ecs_lt" {
 echo ECS_CLUSTER=${aws_ecs_cluster.default.name} >> /etc/ecs/ecs.config
     EOF
   )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "brevity-ecs-instance"
+    }
+  }
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
@@ -189,11 +196,58 @@ resource "aws_autoscaling_group" "ecs_asg" {
   }
 }
 
+resource "aws_ecr_repository" "default" {
+  name = "brevity-ecs-repo"
+}
+
+module "ecs_alb_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
+
+  vpc_id          = module.vpc.vpc_id
+  name            = "brevity-ecs-alb-sg-"
+  use_name_prefix = true
+
+  // TODO: Make the CIDR block more restrictive.
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "all"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      protocol         = "all"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
+    }
+  ]
+}
+
+resource "aws_lb" "ecs" {
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [module.ecs_alb_sg.security_group_id]
+  subnets            = module.vpc.public_subnets
+}
+
 output "primary_db" {
   value = {
     password = nonsensitive(random_password.db_password.result),
     username = aws_db_instance.primary.username
     host     = aws_db_instance.primary.address
     port     = aws_db_instance.primary.port
+  }
+}
+
+output "ecr" {
+  value = {
+    name = aws_ecr_repository.default.name
+    url  = aws_ecr_repository.default.repository_url
   }
 }
