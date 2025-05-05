@@ -9,6 +9,11 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: brevity-ecs-repo
+  IAM_ROLE_ARN: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -23,7 +28,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
+          role-to-assume: ${{ env.IAM_ROLE_ARN }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
 
