@@ -25,6 +25,10 @@ resource "aws_iam_role" "github_actions" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          // Note that the sub claim must use `StringLike` instead of `StringEquals`.
+          // See the docs.github.com link at the beginning of this file.
+          StringLike = {
             "token.actions.githubusercontent.com:sub" = "repo:tuananhlai/brevity-go:*",
           }
         }
