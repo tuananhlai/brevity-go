@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - main
-      - chore/docker/update-image-tag
 
 env:
   AWS_REGION: us-east-1
+  # The ECR repository that new Docker images will be pushed to.
   ECR_REPOSITORY: brevity-ecs-repo
+  # The ARN for the IAM role for the GitHub Actions workflow to assume.
   IAM_ROLE_ARN: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
 
 permissions:
@@ -36,21 +37,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Test
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
           IMAGE_TAG="$TIMESTAMP-${GITHUB_SHA}"
-          echo $IMAGE_TAG
 
-      # - name: Build, tag, and push image to Amazon ECR
-      #   id: build-image
-      #   env:
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     IMAGE_TAG: ${{ github.sha }}
-      #   run: |
-      #     # Build a docker container and
-      #     # push it to ECR so that it can
-      #     # be deployed to ECS.
-      #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
