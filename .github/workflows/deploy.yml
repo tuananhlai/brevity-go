@@ -1,3 +1,4 @@
+# Reference: https://docs.github.com/en/actions/use-cases-and-examples/deploying/deploying-to-amazon-elastic-container-service
 name: Deploy to Amazon ECS
 
 on:
@@ -20,7 +21,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
