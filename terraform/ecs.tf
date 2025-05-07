@@ -126,69 +126,69 @@ resource "aws_lb_listener" "ecs" {
   }
 }
 
-# resource "aws_launch_template" "ecs_lt" {
-#   name_prefix            = "brevity-ecs-lt-"
-#   image_id               = data.aws_ami.amz_linux_2023.id
-#   instance_type          = "t2.micro"
-#   vpc_security_group_ids = [module.ecs_ec2_sg.security_group_id]
+resource "aws_launch_template" "ecs_lt" {
+  name_prefix            = "brevity-ecs-lt-"
+  image_id               = data.aws_ami.amz_linux_2023.id
+  instance_type          = "t2.micro"
+  vpc_security_group_ids = [module.ecs_ec2_sg.security_group_id]
 
-#   iam_instance_profile {
-#     arn = module.ecs_ec2_iam.iam_instance_profile_arn
-#   }
+  iam_instance_profile {
+    arn = module.ecs_ec2_iam.iam_instance_profile_arn
+  }
 
-#   // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html#linux-liw-advanced-details
-#   user_data = base64encode(<<EOF
-# #!/bin/bash
-# echo ECS_CLUSTER=${aws_ecs_cluster.default.name} >> /etc/ecs/ecs.config
-#     EOF
-#   )
+  // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html#linux-liw-advanced-details
+  user_data = base64encode(<<EOF
+#!/bin/bash
+echo ECS_CLUSTER=${aws_ecs_cluster.default.name} >> /etc/ecs/ecs.config
+    EOF
+  )
 
-#   tag_specifications {
-#     resource_type = "instance"
-#     tags = {
-#       Name = "brevity-ecs-instance"
-#     }
-#   }
-# }
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "brevity-ecs-instance"
+    }
+  }
+}
 
-# resource "aws_autoscaling_group" "ecs_asg" {
-#   name_prefix = "brevity-ecs-asg-"
-#   // Deploy the EC2 instances in public subnets to avoid the need
-#   // for a NAT gateway.
-#   vpc_zone_identifier = module.vpc.public_subnets
-#   min_size            = 0
-#   desired_capacity    = 2
-#   max_size            = 3
+resource "aws_autoscaling_group" "ecs_asg" {
+  name_prefix = "brevity-ecs-asg-"
+  // Deploy the EC2 instances in public subnets to avoid the need
+  // for a NAT gateway.
+  vpc_zone_identifier = module.vpc.public_subnets
+  min_size            = 0
+  desired_capacity    = 0
+  max_size            = 3
 
-#   launch_template {
-#     id      = aws_launch_template.ecs_lt.id
-#     version = "$Latest"
-#   }
+  launch_template {
+    id      = aws_launch_template.ecs_lt.id
+    version = "$Latest"
+  }
 
-#   tag {
-#     key                 = "AmazonECSManaged"
-#     value               = true
-#     propagate_at_launch = true
-#   }
-# }
+  tag {
+    key                 = "AmazonECSManaged"
+    value               = true
+    propagate_at_launch = true
+  }
+}
 
-# resource "aws_ecs_capacity_provider" "default" {
-#   name = "brevity-ecs-asg-capacity-provider"
+resource "aws_ecs_capacity_provider" "default" {
+  name = "brevity-ecs-asg-capacity-provider"
 
-#   auto_scaling_group_provider {
-#     auto_scaling_group_arn = aws_autoscaling_group.ecs_asg.arn
-#   }
-# }
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.ecs_asg.arn
+  }
+}
 
-# resource "aws_ecs_cluster_capacity_providers" "default" {
-#   cluster_name       = aws_ecs_cluster.default.name
-#   capacity_providers = [aws_ecs_capacity_provider.default.name]
+resource "aws_ecs_cluster_capacity_providers" "default" {
+  cluster_name       = aws_ecs_cluster.default.name
+  capacity_providers = [aws_ecs_capacity_provider.default.name]
 
-#   default_capacity_provider_strategy {
-#     capacity_provider = aws_ecs_capacity_provider.default.name
-#     weight            = 1
-#   }
-# }
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.default.name
+    weight            = 1
+  }
+}
 
 module "ecs_task_execution_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
