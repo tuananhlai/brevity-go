@@ -106,6 +106,7 @@ resource "aws_lb" "ecs" {
   load_balancer_type = "application"
   security_groups    = [module.ecs_alb_sg.security_group_id]
   subnets            = module.vpc.public_subnets
+  ip_address_type    = "dualstack-without-public-ipv4"
 }
 
 resource "aws_lb_target_group" "ecs" {

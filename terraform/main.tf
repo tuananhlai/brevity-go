@@ -22,8 +22,18 @@ module "vpc" {
   enable_dns_hostnames    = true
   enable_dns_support      = true
   map_public_ip_on_launch = true
+
+  enable_ipv6                                    = true
+  public_subnet_assign_ipv6_address_on_creation  = true
+  private_subnet_assign_ipv6_address_on_creation = true
+  public_subnet_ipv6_prefixes                    = [0, 1]
+  private_subnet_ipv6_prefixes                   = [2, 3]
 }
 
+// For some stupid reason, ECS endpoint doesn't support IPv6, so a NAT instance
+// is still necessary to register EC2 instances with ECS.
+// If they have fixed that issue, the following command will return an IPv6 address.
+// > dig AAAA +short ecs.us-east-1.amazonaws.com
 module "fck-nat" {
   source  = "RaJiska/fck-nat/aws"
   version = "~> 1.0"
