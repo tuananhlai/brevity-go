@@ -152,12 +152,10 @@ echo ECS_CLUSTER=${aws_ecs_cluster.default.name} >> /etc/ecs/ecs.config
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
-  name_prefix = "brevity-ecs-asg-"
-  // Deploy the EC2 instances in public subnets to avoid the need
-  // for a NAT gateway.
-  vpc_zone_identifier = module.vpc.public_subnets
+  name_prefix         = "brevity-ecs-asg-"
+  vpc_zone_identifier = module.vpc.private_subnets
   min_size            = 0
-  desired_capacity    = 0
+  desired_capacity    = 1
   max_size            = 3
 
   launch_template {
