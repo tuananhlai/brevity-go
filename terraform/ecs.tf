@@ -106,8 +106,7 @@ resource "aws_lb" "ecs" {
   load_balancer_type = "application"
   security_groups    = [module.ecs_alb_sg.security_group_id]
   subnets            = module.vpc.public_subnets
-  // I can not send request to the ALB if "dualstack-without-public-ipv4" is used for some reason.
-  ip_address_type = "dualstack"
+  ip_address_type    = "dualstack-without-public-ipv4"
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -282,6 +281,21 @@ resource "aws_ecs_service" "backend" {
     target_group_arn = aws_lb_target_group.ecs.arn
     container_name   = "nginx"
     container_port   = 80
+  }
+
+  capacity_provider_strategy {
+    base              = 0
+    capacity_provider = aws_ecs_capacity_provider.default.name
+    weight            = 1
+  }
+
+  deployment_circuit_breaker {
+    enable   = false
+    rollback = false
+  }
+
+  deployment_controller {
+    type = "ECS"
   }
 }
 
