@@ -106,7 +106,8 @@ resource "aws_lb" "ecs" {
   load_balancer_type = "application"
   security_groups    = [module.ecs_alb_sg.security_group_id]
   subnets            = module.vpc.public_subnets
-  ip_address_type    = "dualstack-without-public-ipv4"
+  // I can not send request to the ALB if "dualstack-without-public-ipv4" is used for some reason.
+  ip_address_type = "dualstack"
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -242,6 +243,46 @@ module "ecs_service_sg" {
       ipv6_cidr_blocks = "::0/0"
     }
   ]
+}
+
+resource "aws_ecs_task_definition" "backend" {
+  family       = "brevity"
+  network_mode = "awsvpc"
+
+  container_definitions = jsonencode([
+    {
+      name      = "nginx"
+      image     = "nginx:latest"
+      cpu       = 128
+      memory    = 256
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+          protocol      = "tcp"
+        }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "backend" {
+  name            = "brevity-backend-service"
+  cluster         = aws_ecs_cluster.default.id
+  task_definition = aws_ecs_task_definition.backend.arn
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.public_subnets
+    security_groups = [module.ecs_service_sg.security_group_id]
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ecs.arn
+    container_name   = "nginx"
+    container_port   = 80
+  }
 }
 
 output "ecr" {
