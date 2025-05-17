@@ -283,10 +283,10 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 1
 
-  network_configuration {
-    subnets         = module.vpc.public_subnets
-    security_groups = [module.ecs_service_sg.security_group_id]
-  }
+  # network_configuration {
+  #   subnets         = module.vpc.public_subnets
+  #   security_groups = [module.ecs_service_sg.security_group_id]
+  # }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs.arn
