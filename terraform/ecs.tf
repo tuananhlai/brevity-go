@@ -248,6 +248,15 @@ resource "aws_ecs_task_definition" "backend" {
   family       = "brevity"
   network_mode = "awsvpc"
 
+  // NOTE: The task definition will be updated using CI/CD, so we
+  // don't want terraform to override the latest version.
+  lifecycle {
+    ignore_changes = [
+      container_definitions
+    ]
+  }
+  track_latest = true
+
   container_definitions = jsonencode([
     {
       name      = "nginx"
