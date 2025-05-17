@@ -36,10 +36,11 @@ module "ecs_ec2_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      cidr_blocks = "0.0.0.0/0"
+      protocol         = "all"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
     }
   ]
 
@@ -84,10 +85,11 @@ module "ecs_alb_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      cidr_blocks = "0.0.0.0/0"
+      protocol         = "all"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
     }
   ]
 
@@ -226,10 +228,11 @@ module "ecs_service_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
+      protocol    = "all"
       from_port   = 0
       to_port     = 0
-      protocol    = "all"
       cidr_blocks = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
     }
   ]
 

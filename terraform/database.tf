@@ -16,16 +16,17 @@ module "db_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
-      from_port   = 5432
-      to_port     = 5432
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
+      protocol         = "tcp"
+      from_port        = 5432
+      to_port          = 5432
+      cidr_blocks      = "0.0.0.0/0"
+      ipv6_cidr_blocks = "::0/0"
     }
   ]
 
   egress_with_cidr_blocks = [
     {
-      protocol         = "-1"
+      protocol         = "all"
       from_port        = 0
       to_port          = 0
       cidr_blocks      = "0.0.0.0/0"
