@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	"github.com/spf13/viper"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Mode string
@@ -16,29 +16,25 @@ const (
 type AppConfig struct {
 	// If `mode` is `dev`, the server will run in a way that is easier for development.
 	// Otherwise, it will be optimized for better performance and data safety.
-	Mode     Mode `mapstructure:"mode"`
+	Mode     Mode `yaml:"mode" env:"MODE" env-default:"dev"`
 	Database struct {
-		URL string `mapstructure:"url"`
-	} `mapstructure:"database"`
+		URL string `yaml:"url" env:"DATABASE_URL" env-required:"true"`
+	}
 	LLM struct {
-		BaseURL string `mapstructure:"base_url"`
-		APIKey  string `mapstructure:"api_key"`
-		ModelID string `mapstructure:"model_id"`
-	} `mapstructure:"llm"`
+		BaseURL string `yaml:"base_url" env:"LLM_BASE_URL" env-required:"true"`
+		APIKey  string `yaml:"api_key" env:"LLM_API_KEY" env-required:"true"`
+		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID" env-required:"true"`
+	}
 	Otel struct {
-		CollectorGrpcURL string `mapstructure:"collector_grpc_url"`
-	} `mapstructure:"otel"`
+		CollectorGrpcURL string `yaml:"collector_grpc_url" env:"OTEL_COLLECTOR_GRPC_URL" env-required:"true"`
+	}
 }
 
 func LoadConfig() (*AppConfig, error) {
-	viper.SetConfigFile("./config.yaml")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
-	}
-
 	var config AppConfig
-	if err := viper.Unmarshal(&config); err != nil {
+
+	err := cleanenv.ReadConfig("config.yaml", &config)
+	if err != nil {
 		return nil, err
 	}
 
