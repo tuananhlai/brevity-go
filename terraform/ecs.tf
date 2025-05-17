@@ -104,29 +104,29 @@ module "ecs_alb_sg" {
   ]
 }
 
-# resource "aws_lb" "ecs" {
-#   load_balancer_type = "application"
-#   security_groups    = [module.ecs_alb_sg.security_group_id]
-#   subnets            = module.vpc.public_subnets
-#   ip_address_type    = "dualstack-without-public-ipv4"
-# }
+resource "aws_lb" "ecs" {
+  load_balancer_type = "application"
+  security_groups    = [module.ecs_alb_sg.security_group_id]
+  subnets            = module.vpc.public_subnets
+  ip_address_type    = "dualstack-without-public-ipv4"
+}
 
-# resource "aws_lb_target_group" "ecs" {
-#   port     = 80
-#   protocol = "HTTP"
-#   vpc_id   = module.vpc.vpc_id
-# }
+resource "aws_lb_target_group" "ecs" {
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+}
 
-# resource "aws_lb_listener" "ecs" {
-#   port              = 80
-#   protocol          = "HTTP"
-#   load_balancer_arn = aws_lb.ecs.arn
+resource "aws_lb_listener" "ecs" {
+  port              = 80
+  protocol          = "HTTP"
+  load_balancer_arn = aws_lb.ecs.arn
 
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.ecs.arn
-#   }
-# }
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
+  }
+}
 
 resource "aws_launch_template" "ecs_lt" {
   name_prefix            = "brevity-ecs-lt-"
@@ -277,49 +277,49 @@ resource "aws_ecs_task_definition" "backend" {
   ])
 }
 
-# resource "aws_ecs_service" "backend" {
-#   name            = "brevity-backend-service"
-#   cluster         = aws_ecs_cluster.default.id
-#   task_definition = aws_ecs_task_definition.backend.arn
-#   desired_count   = 1
+resource "aws_ecs_service" "backend" {
+  name            = "brevity-backend-service"
+  cluster         = aws_ecs_cluster.default.id
+  task_definition = aws_ecs_task_definition.backend.arn
+  desired_count   = 1
 
-#   network_configuration {
-#     subnets         = module.vpc.public_subnets
-#     security_groups = [module.ecs_service_sg.security_group_id]
-#   }
+  network_configuration {
+    subnets         = module.vpc.public_subnets
+    security_groups = [module.ecs_service_sg.security_group_id]
+  }
 
-#   load_balancer {
-#     target_group_arn = aws_lb_target_group.ecs.arn
-#     container_name   = "nginx"
-#     container_port   = 80
-#   }
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ecs.arn
+    container_name   = "nginx"
+    container_port   = 80
+  }
 
-#   capacity_provider_strategy {
-#     base              = 0
-#     capacity_provider = aws_ecs_capacity_provider.default.name
-#     weight            = 1
-#   }
+  capacity_provider_strategy {
+    base              = 0
+    capacity_provider = aws_ecs_capacity_provider.default.name
+    weight            = 1
+  }
 
-#   deployment_circuit_breaker {
-#     enable   = false
-#     rollback = false
-#   }
+  deployment_circuit_breaker {
+    enable   = false
+    rollback = false
+  }
 
-#   deployment_controller {
-#     type = "ECS"
-#   }
-# }
+  deployment_controller {
+    type = "ECS"
+  }
+}
 
-# output "ecr" {
-#   value = {
-#     name = aws_ecr_repository.default.name
-#     url  = aws_ecr_repository.default.repository_url
-#   }
-# }
+output "ecr" {
+  value = {
+    name = aws_ecr_repository.default.name
+    url  = aws_ecr_repository.default.repository_url
+  }
+}
 
-# output "alb" {
-#   value = {
-#     url = aws_lb.ecs.dns_name
-#   }
-#   description = "The main load balancer for the backend server instances."
-# }
+output "alb" {
+  value = {
+    url = aws_lb.ecs.dns_name
+  }
+  description = "The main load balancer for the backend server instances."
+}
