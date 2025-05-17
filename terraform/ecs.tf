@@ -112,22 +112,21 @@ resource "aws_lb" "ecs" {
 }
 
 resource "aws_lb_target_group" "ecs" {
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = module.vpc.vpc_id
-  target_type = "ip"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
 }
 
-resource "aws_lb_listener" "ecs" {
-  port              = 80
-  protocol          = "HTTP"
-  load_balancer_arn = aws_lb.ecs.arn
+# resource "aws_lb_listener" "ecs" {
+#   port              = 80
+#   protocol          = "HTTP"
+#   load_balancer_arn = aws_lb.ecs.arn
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs.arn
-  }
-}
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.ecs.arn
+#   }
+# }
 
 resource "aws_launch_template" "ecs_lt" {
   name_prefix            = "brevity-ecs-lt-"
@@ -228,10 +227,10 @@ module "ecs_service_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
-      protocol    = "all"
-      from_port   = 0
-      to_port     = 0
-      cidr_blocks = "0.0.0.0/0"
+      protocol         = "all"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
       ipv6_cidr_blocks = "::0/0"
     }
   ]
@@ -249,7 +248,7 @@ module "ecs_service_sg" {
 
 resource "aws_ecs_task_definition" "backend" {
   family       = "brevity"
-  network_mode = "awsvpc"
+  network_mode = "bridge"
 
   // NOTE: The task definition will be updated using CI/CD, so we
   // don't want terraform to override the latest version.
