@@ -70,6 +70,12 @@ resource "aws_ecs_cluster" "default" {
   name = "brevity-ecs-cluster"
 }
 
+// https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-eni.html
+resource "aws_ecs_account_setting_default" "awsvpcTrunking" {
+  name  = "awsvpcTrunking"
+  value = "enabled"
+}
+
 resource "aws_ecr_repository" "default" {
   name = "brevity-ecs-repo"
 }
@@ -158,7 +164,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
   name_prefix         = "brevity-ecs-asg-"
   vpc_zone_identifier = module.vpc.private_subnets
   min_size            = 0
-  desired_capacity    = 1
+  desired_capacity    = 2
   max_size            = 3
 
   launch_template {
@@ -228,10 +234,10 @@ module "ecs_service_sg" {
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
-      protocol    = "all"
-      from_port   = 0
-      to_port     = 0
-      cidr_blocks = "0.0.0.0/0"
+      protocol         = "all"
+      from_port        = 0
+      to_port          = 0
+      cidr_blocks      = "0.0.0.0/0"
       ipv6_cidr_blocks = "::0/0"
     }
   ]
