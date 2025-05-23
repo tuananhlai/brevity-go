@@ -18,15 +18,15 @@ type AppConfig struct {
 	// Otherwise, it will be optimized for better performance and data safety.
 	Mode     Mode `yaml:"mode" env:"MODE" env-default:"dev"`
 	Database struct {
-		URL string `yaml:"url" env:"DATABASE_URL" env-required:"true"`
+		URL string `yaml:"url" env:"DATABASE_URL"`
 	}
 	LLM struct {
-		BaseURL string `yaml:"base_url" env:"LLM_BASE_URL" env-required:"true"`
-		APIKey  string `yaml:"api_key" env:"LLM_API_KEY" env-required:"true"`
-		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID" env-required:"true"`
+		BaseURL string `yaml:"base_url" env:"LLM_BASE_URL"`
+		APIKey  string `yaml:"api_key" env:"LLM_API_KEY"`
+		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID"`
 	}
 	Otel struct {
-		CollectorGrpcURL string `yaml:"collector_grpc_url" env:"OTEL_COLLECTOR_GRPC_URL" env-required:"true"`
+		CollectorGrpcURL string `yaml:"collector_grpc_url" env:"OTEL_COLLECTOR_GRPC_URL"`
 	}
 }
 
