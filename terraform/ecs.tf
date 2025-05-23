@@ -141,6 +141,10 @@ resource "aws_launch_template" "ecs_lt" {
   instance_type          = "t2.micro"
   vpc_security_group_ids = [module.ecs_ec2_sg.security_group_id]
 
+  instance_market_options {
+    market_type = "spot"
+  }
+
   iam_instance_profile {
     arn = module.ecs_ec2_iam.iam_instance_profile_arn
   }
