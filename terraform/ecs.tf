@@ -76,9 +76,9 @@
 #   value = "enabled"
 # }
 
-# resource "aws_ecr_repository" "default" {
-#   name = "brevity-ecs-repo"
-# }
+resource "aws_ecr_repository" "default" {
+  name = "brevity-ecs-repo"
+}
 
 # module "ecs_alb_sg" {
 #   source  = "terraform-aws-modules/security-group/aws"
