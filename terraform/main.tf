@@ -34,18 +34,18 @@ module "vpc" {
 // is still necessary to register EC2 instances with ECS.
 // If they have fixed that issue, the following command will return an IPv6 address.
 // > dig AAAA +short ecs.us-east-1.amazonaws.com
-module "fck-nat" {
-  source  = "RaJiska/fck-nat/aws"
-  version = "~> 1.0"
+# module "fck-nat" {
+#   source  = "RaJiska/fck-nat/aws"
+#   version = "~> 1.0"
 
-  instance_type = "t2.micro"
-  name          = "brevity-fck-nat-instance"
-  vpc_id        = module.vpc.vpc_id
-  subnet_id     = module.vpc.public_subnets[0]
+#   instance_type = "t2.micro"
+#   name          = "brevity-fck-nat-instance"
+#   vpc_id        = module.vpc.vpc_id
+#   subnet_id     = module.vpc.public_subnets[0]
 
-  update_route_tables = true
-  route_tables_ids = {
-    for index, rt_id in toset(module.vpc.private_route_table_ids) :
-    rt_id => rt_id
-  }
-}
+#   update_route_tables = true
+#   route_tables_ids = {
+#     for index, rt_id in toset(module.vpc.private_route_table_ids) :
+#     rt_id => rt_id
+#   }
+# }
