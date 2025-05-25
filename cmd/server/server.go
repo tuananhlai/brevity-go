@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -58,7 +59,7 @@ func Run() {
 	authController.RegisterRoutes(r)
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),
 		Handler: r.Handler(),
 	}
 

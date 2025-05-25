@@ -65,3 +65,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# HTTP Request test files
+*.http
