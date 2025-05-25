@@ -16,7 +16,10 @@ const (
 type AppConfig struct {
 	// If `mode` is `dev`, the server will run in a way that is easier for development.
 	// Otherwise, it will be optimized for better performance and data safety.
-	Mode     Mode `yaml:"mode" env:"MODE" env-default:"dev"`
+	Mode   Mode `yaml:"mode" env:"MODE" env-default:"dev"`
+	Server struct {
+		Port string `yaml:"port" env:"SERVER_PORT" env-default:"8080"`
+	}
 	Database struct {
 		URL string `yaml:"url" env:"DATABASE_URL"`
 	}
