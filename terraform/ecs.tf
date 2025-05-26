@@ -293,6 +293,8 @@ resource "aws_ecr_repository" "default" {
 #   cluster         = aws_ecs_cluster.default.id
 #   task_definition = aws_ecs_task_definition.backend.arn
 #   desired_count   = 1
+#   // TODO: Remove when the application is running stably on production.
+#   force_delete = true
 
 #   network_configuration {
 #     subnets         = module.vpc.public_subnets
