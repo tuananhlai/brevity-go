@@ -38,10 +38,11 @@ module "vpc" {
 #   source  = "RaJiska/fck-nat/aws"
 #   version = "~> 1.0"
 
-#   instance_type = "t2.micro"
-#   name          = "brevity-fck-nat-instance"
-#   vpc_id        = module.vpc.vpc_id
-#   subnet_id     = module.vpc.public_subnets[0]
+#   instance_type      = "t2.micro"
+#   name               = "brevity-fck-nat-instance"
+#   vpc_id             = module.vpc.vpc_id
+#   subnet_id          = module.vpc.public_subnets[0]
+#   use_spot_instances = true
 
 #   update_route_tables = true
 #   route_tables_ids = {
