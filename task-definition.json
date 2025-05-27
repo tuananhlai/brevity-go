@@ -22,7 +22,7 @@
       "environment": [
         {
           "name": "MODE",
-          "value": "dev"
+          "value": "release"
         },
         {
           "name": "SERVER_PORT",
@@ -34,7 +34,7 @@
         },
         {
           "name": "LLM_BASE_URL",
-          "value": "https://api.example.com/llm"
+          "value": "https://openrouter.ai/api/v1/"
         },
         {
           "name": "LLM_API_KEY",
@@ -42,21 +42,13 @@
         },
         {
           "name": "LLM_MODEL_ID",
-          "value": "your-llm-model-id"
+          "value": "google/gemini-2.5-flash-preview"
         },
         {
           "name": "OTEL_COLLECTOR_GRPC_URL",
-          "value": "your-otel-collector-grpc-url:4317"
+          "value": "http://your-otel-collector-grpc-url:4317"
         }
       ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/brevity",
-          "awslogs-region": "your-aws-region",
-          "awslogs-stream-prefix": "ecs"
-        }
-      },
       "essential": true
     }
   ]
