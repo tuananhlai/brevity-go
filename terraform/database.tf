@@ -10,27 +10,39 @@ module "db_sg" {
   version = "~> 5.0"
 
   vpc_id          = module.vpc.vpc_id
-  name            = "brevity-db-sg-"
+  name            = "brevity-db-sg"
   use_name_prefix = true
 
   // TODO: Make the CIDR block more restrictive.
   ingress_with_cidr_blocks = [
     {
+      protocol    = "tcp"
+      from_port   = 5432
+      to_port     = 5432
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  ingress_with_ipv6_cidr_blocks = [
+    {
       protocol         = "tcp"
       from_port        = 5432
       to_port          = 5432
-      cidr_blocks      = "0.0.0.0/0"
-      ipv6_cidr_blocks = "::0/0"
+      ipv6_cidr_blocks = "::/0"
     }
   ]
 
   egress_with_cidr_blocks = [
     {
-      protocol         = "all"
-      from_port        = 0
-      to_port          = 0
-      cidr_blocks      = "0.0.0.0/0"
-      ipv6_cidr_blocks = "::0/0"
+      rule        = "all-all"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_ipv6_cidr_blocks = [
+    {
+      rule             = "all-all"
+      ipv6_cidr_blocks = "::/0"
     }
   ]
 }

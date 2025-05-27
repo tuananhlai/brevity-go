@@ -1,0 +1,63 @@
+{
+  "family": "brevity",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/your-ecs-task-role",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/your-ecs-execution-role",
+  "networkMode": "awsvpc",
+  "cpu": "256",
+  "memory": "512",
+  "requiresCompatibilities": ["EC2"],
+  "containerDefinitions": [
+    {
+      "name": "brevity-backend",
+      "image": "your-aws-account-id.dkr.ecr.your-aws-region.amazonaws.com/your-app-repo:latest",
+      "cpu": 256,
+      "memory": 384,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "MODE",
+          "value": "dev"
+        },
+        {
+          "name": "SERVER_PORT",
+          "value": "8080"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "your-database-connection-string"
+        },
+        {
+          "name": "LLM_BASE_URL",
+          "value": "https://api.example.com/llm"
+        },
+        {
+          "name": "LLM_API_KEY",
+          "value": "your-llm-api-key"
+        },
+        {
+          "name": "LLM_MODEL_ID",
+          "value": "your-llm-model-id"
+        },
+        {
+          "name": "OTEL_COLLECTOR_GRPC_URL",
+          "value": "your-otel-collector-grpc-url:4317"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/brevity",
+          "awslogs-region": "your-aws-region",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "essential": true
+    }
+  ]
+}
