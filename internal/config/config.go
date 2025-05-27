@@ -38,6 +38,12 @@ func LoadConfig() (*AppConfig, error) {
 
 	err := cleanenv.ReadConfig("config.yaml", &config)
 	if err != nil {
+		log.Printf("Failed to read configuration file: %v. Trying to read environment variables instead.", err)
+	}
+
+	// Read from environment variables if the configuration file does not exists.
+	err = cleanenv.ReadEnv(&config)
+	if err != nil {
 		return nil, err
 	}
 

@@ -23,5 +23,3 @@ COPY --from=builder /app/main /app/main
 USER 1001
 
 CMD ["/app/main", "server"]
-
-EXPOSE 8080

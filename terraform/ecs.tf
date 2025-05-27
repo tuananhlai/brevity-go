@@ -282,8 +282,9 @@ module "ecs_service_sg" {
 }
 
 resource "aws_ecs_task_definition" "backend" {
-  family       = "brevity"
-  network_mode = "awsvpc"
+  family             = "brevity"
+  network_mode       = "awsvpc"
+  execution_role_arn = module.ecs_task_execution_role.iam_role_arn
 
   // NOTE: The task definition will be updated using CI/CD, so we
   // don't want terraform to override the latest version.
