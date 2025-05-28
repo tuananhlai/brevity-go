@@ -17,6 +17,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/tuananhlai/brevity-go/internal/config"
+	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/otelsdk"
 )
 
@@ -37,6 +38,7 @@ func Run() {
 
 	articleController := InitializeArticleController(db)
 	authController := InitializeAuthController(db)
+	healthController := controller.NewHealthController()
 
 	// == Otel Setup ==
 	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
@@ -57,6 +59,7 @@ func Run() {
 	// == Routes ==
 	articleController.RegisterRoutes(r)
 	authController.RegisterRoutes(r)
+	healthController.RegisterRoutes(r)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),

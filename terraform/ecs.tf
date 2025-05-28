@@ -138,6 +138,10 @@ resource "aws_lb_target_group" "ecs" {
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
+
+  health_check {
+    path = "/health/liveness"
+  }
 }
 
 resource "aws_lb_listener" "ecs" {
