@@ -65,6 +65,7 @@ resource "aws_db_instance" "primary" {
   skip_final_snapshot    = true
   vpc_security_group_ids = [module.db_sg.security_group_id]
   db_subnet_group_name   = aws_db_subnet_group.primary.name
+  network_type           = "DUAL"
 }
 
 output "primary_db" {
