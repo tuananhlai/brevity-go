@@ -12,6 +12,10 @@ env:
   ECR_REPOSITORY: brevity-ecs-repo
   # The ARN for the IAM role for the GitHub Actions workflow to assume.
   IAM_ROLE_ARN: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
+  ECS_SERVICE: brevity-ecs-service
+  ECS_CLUSTER: brevity-ecs-cluster
+  ECS_TASK_DEFINITION: infra/task-definition.json
+  CONTAINER_NAME: brevity-backend
 
 permissions:
   id-token: write
@@ -51,3 +55,16 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@c804dfbdd57f713b6c079302a4c01db7017a36fc
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Display rendered task definition
+        run: |
+          echo "Rendered Task Definition:"
+          echo "${{ steps.task-def.outputs.task-definition }}"
