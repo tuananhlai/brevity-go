@@ -46,6 +46,7 @@ resource "aws_iam_role_policy" "github_actions" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
+      // Allow Github Actions to push new Docker images to the ECR repository.
       {
         Sid    = "ECRAccess",
         Effect = "Allow",
@@ -56,17 +57,6 @@ resource "aws_iam_role_policy" "github_actions" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload"
-        ],
-        Resource = "*"
-      },
-      {
-        Sid    = "ECSAccess",
-        Effect = "Allow",
-        Action = [
-          "ecs:DescribeServices",
-          "ecs:DescribeTaskDefinition",
-          "ecs:RegisterTaskDefinition",
-          "ecs:UpdateService"
         ],
         Resource = "*"
       },

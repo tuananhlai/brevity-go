@@ -7,11 +7,10 @@ on:
       - main
 
 env:
-  AWS_REGION: us-east-1
-  # The ECR repository that new Docker images will be pushed to.
-  ECR_REPOSITORY: brevity-ecs-repo
   # The ARN for the IAM role for the GitHub Actions workflow to assume.
   IAM_ROLE_ARN: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: brevity-ecs-repo
   ECS_SERVICE: brevity-backend-service
   ECS_CLUSTER: brevity-ecs-cluster
   ECS_TASK_DEFINITION: infra/task-definition.json
@@ -47,7 +46,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
-          IMAGE_TAG="$TIMESTAMP-${GITHUB_SHA}"
+          IMAGE_TAG="$TIMESTAMP-${GITHUB_SHA::7}"
 
           # Build a docker container and
           # push it to ECR so that it can
@@ -63,12 +62,6 @@ jobs:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
-
-      - name: Display rendered task definition
-        run: |
-          echo "Rendered Task Definition:"
-          echo "${{ steps.task-def.outputs.task-definition }}"
-          cat "${{ steps.task-def.outputs.task-definition }}"
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a

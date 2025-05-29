@@ -261,6 +261,7 @@ module "ecs_task_execution_role" {
 
   custom_role_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+    // Allow Github Actions to read secrets from the SSM parameter store.
     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
   ]
 }
