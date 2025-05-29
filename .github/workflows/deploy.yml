@@ -12,7 +12,7 @@ env:
   ECR_REPOSITORY: brevity-ecs-repo
   # The ARN for the IAM role for the GitHub Actions workflow to assume.
   IAM_ROLE_ARN: arn:aws:iam::969026361642:role/brevity-github-actions-20250505120903940800000001
-  ECS_SERVICE: brevity-ecs-service
+  ECS_SERVICE: brevity-backend-service
   ECS_CLUSTER: brevity-ecs-cluster
   ECS_TASK_DEFINITION: infra/task-definition.json
   CONTAINER_NAME: nginx

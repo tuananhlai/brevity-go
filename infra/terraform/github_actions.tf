@@ -79,6 +79,37 @@ resource "aws_iam_role_policy" "github_actions" {
           "logs:GetLogEvents"
         ],
         Resource : "*"
+      },
+      // Allow Github Actions to create new task definitions and update ECS services for continuous deployment.
+      // https://github.com/aws-actions/amazon-ecs-deploy-task-definition?tab=readme-ov-file#permissions
+      {
+        Sid    = "RegisterTaskDefinition",
+        Effect = "Allow",
+        Action = [
+          "ecs:RegisterTaskDefinition"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid    = "PassRolesInTaskDefinition",
+        Effect = "Allow",
+        Action = [
+          "iam:PassRole"
+        ],
+        Resource = [
+          module.ecs_task_execution_role.iam_role_arn
+        ]
+      },
+      {
+        Sid    = "DeployService",
+        Effect = "Allow",
+        Action = [
+          "ecs:UpdateService",
+          "ecs:DescribeServices"
+        ],
+        Resource = [
+          "${aws_ecs_service.backend.id}"
+        ]
       }
     ]
   })
