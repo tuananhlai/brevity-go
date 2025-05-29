@@ -2,7 +2,7 @@
   "family": "brevity",
   "containerDefinitions": [
     {
-      "name": "THIS_WILL_BE_REPLACED_BY_GITHUB_ACTIONS",
+      "name": "nginx",
       "image": "THIS_WILL_BE_REPLACED_BY_GITHUB_ACTIONS",
       "cpu": 128,
       "memory": 256,
