@@ -1,3 +1,8 @@
+data "aws_acm_certificate" "api_brevity" {
+  domain = "api.brevity.laituananh.com"
+  types  = ["AMAZON_ISSUED"]
+}
+
 module "ecs_ec2_iam" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version = "~> 5.0"
@@ -148,6 +153,18 @@ resource "aws_lb_listener" "ecs" {
   port              = 80
   protocol          = "HTTP"
   load_balancer_arn = aws_lb.ecs.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
+  }
+}
+
+resource "aws_lb_listener" "ecs_https" {
+  port              = 443
+  protocol          = "HTTPS"
+  load_balancer_arn = aws_lb.ecs.arn
+  certificate_arn   = data.aws_acm_certificate.api_brevity.arn
 
   default_action {
     type             = "forward"
@@ -364,4 +381,10 @@ output "alb" {
     url = aws_lb.ecs.dns_name
   }
   description = "The main load balancer for the backend server instances."
+}
+
+output "ecs" {
+  value = {
+    task_execution_role = module.ecs_task_execution_role.iam_role_arn
+  }
 }

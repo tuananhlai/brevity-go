@@ -68,3 +68,4 @@ jobs:
         run: |
           echo "Rendered Task Definition:"
           echo "${{ steps.task-def.outputs.task-definition }}"
+          cat "${{ steps.task-def.outputs.task-definition }}"

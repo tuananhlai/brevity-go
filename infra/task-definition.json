@@ -1,15 +1,14 @@
 {
   "family": "brevity",
-  "taskRoleArn": "arn:aws:iam::123456789012:role/your-ecs-task-role",
-  "executionRoleArn": "arn:aws:iam::123456789012:role/your-ecs-execution-role",
+  "executionRoleArn": "arn:aws:iam::969026361642:role/brevity-ecs-execution-20250527104533230800000002",
   "networkMode": "awsvpc",
   "cpu": "256",
   "memory": "512",
   "requiresCompatibilities": ["EC2"],
   "containerDefinitions": [
     {
-      "name": "brevity-backend",
-      "image": "your-aws-account-id.dkr.ecr.your-aws-region.amazonaws.com/your-app-repo:latest",
+      "name": "THIS_WILL_BE_REPLACED_BY_GITHUB_ACTIONS",
+      "image": "THIS_WILL_BE_REPLACED_BY_GITHUB_ACTIONS",
       "cpu": 256,
       "memory": 384,
       "portMappings": [
