@@ -15,7 +15,7 @@ env:
   ECS_SERVICE: brevity-ecs-service
   ECS_CLUSTER: brevity-ecs-cluster
   ECS_TASK_DEFINITION: infra/task-definition.json
-  CONTAINER_NAME: brevity-backend
+  CONTAINER_NAME: nginx
 
 permissions:
   id-token: write
@@ -69,3 +69,11 @@ jobs:
           echo "Rendered Task Definition:"
           echo "${{ steps.task-def.outputs.task-definition }}"
           cat "${{ steps.task-def.outputs.task-definition }}"
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
