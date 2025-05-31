@@ -38,7 +38,7 @@ module "fck-nat" {
   source  = "RaJiska/fck-nat/aws"
   version = "~> 1.0"
 
-  instance_type      = "t2.micro"
+  instance_type      = "t3a.nano"
   name               = "brevity-fck-nat-instance"
   vpc_id             = module.vpc.vpc_id
   subnet_id          = module.vpc.public_subnets[0]

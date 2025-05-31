@@ -175,7 +175,7 @@ resource "aws_lb_listener" "ecs_https" {
 resource "aws_launch_template" "ecs_lt" {
   name_prefix            = "brevity-ecs-lt-"
   image_id               = data.aws_ami.amz_linux_2023.id
-  instance_type          = "t2.micro"
+  instance_type          = "t3a.nano"
   vpc_security_group_ids = [module.ecs_ec2_sg.security_group_id]
 
   instance_market_options {
