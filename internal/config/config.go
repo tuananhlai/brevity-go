@@ -28,9 +28,6 @@ type AppConfig struct {
 		APIKey  string `yaml:"api_key" env:"LLM_API_KEY"`
 		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID"`
 	}
-	Otel struct {
-		CollectorGrpcURL string `yaml:"collector_grpc_url" env:"OTEL_COLLECTOR_GRPC_URL"`
-	}
 }
 
 func LoadConfig() (*AppConfig, error) {

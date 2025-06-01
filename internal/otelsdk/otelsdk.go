@@ -9,9 +9,9 @@ import (
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
@@ -25,9 +25,7 @@ import (
 )
 
 type SetupConfig struct {
-	Mode             config.Mode
-	ServiceName      string
-	CollectorGrpcURL string
+	Mode config.Mode
 }
 
 // Setup bootstraps the OpenTelemetry pipeline.
@@ -52,14 +50,14 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	resource, err := newResource(cfg.ServiceName)
+	resource, err := newResource()
 	if err != nil {
 		handleErr(err)
 		return
 	}
 
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx, cfg.CollectorGrpcURL, resource)
+	loggerProvider, err := newLoggerProvider(ctx, resource)
 	if err != nil {
 		handleErr(err)
 		return
@@ -67,7 +65,7 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
 	global.SetLoggerProvider(loggerProvider)
 
-	tracerProvider, err := newTracerProvider(ctx, cfg.CollectorGrpcURL, resource)
+	tracerProvider, err := newTracerProvider(ctx, resource)
 	if err != nil {
 		handleErr(err)
 		return
@@ -77,7 +75,7 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 
 	// Initialize meter provider and application runtime metric producer.
 	runtimeProducer := runtime.NewProducer()
-	meterProvider, err := newMeterProvider(ctx, cfg.CollectorGrpcURL, resource, runtimeProducer)
+	meterProvider, err := newMeterProvider(ctx, resource, runtimeProducer)
 	if err != nil {
 		handleErr(err)
 		return
@@ -106,31 +104,29 @@ func Logger(name string) *slog.Logger {
 	return otelslog.NewLogger(name)
 }
 
-func newResource(serviceName string) (*resource.Resource, error) {
+func newResource() (*resource.Resource, error) {
 	return resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(serviceName),
 		),
 	)
 }
 
-func newLoggerProvider(ctx context.Context, endpointURL string, resource *resource.Resource) (*sdklog.LoggerProvider, error) {
-	logExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpointURL(endpointURL))
+func newLoggerProvider(ctx context.Context, resource *resource.Resource) (*sdklog.LoggerProvider, error) {
+	logExporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	loggerProvider := sdklog.NewLoggerProvider(
-		sdklog.WithResource(resource),
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
 	)
 	return loggerProvider, nil
 }
 
-func newTracerProvider(ctx context.Context, endpointURL string, resource *resource.Resource) (*sdktrace.TracerProvider, error) {
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpointURL(endpointURL))
+func newTracerProvider(ctx context.Context, resource *resource.Resource) (*sdktrace.TracerProvider, error) {
+	traceExporter, err := otlptracehttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -142,10 +138,10 @@ func newTracerProvider(ctx context.Context, endpointURL string, resource *resour
 	return tracerProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, endpointURL string, resource *resource.Resource,
+func newMeterProvider(ctx context.Context, resource *resource.Resource,
 	runtimeProducer *runtime.Producer,
 ) (*sdkmetric.MeterProvider, error) {
-	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpointURL(endpointURL))
+	metricExporter, err := otlpmetrichttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}

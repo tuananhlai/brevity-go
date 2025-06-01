@@ -23,7 +23,6 @@ import (
 
 const (
 	shutdownTimeout = 5 * time.Second
-	serviceName     = "brevity"
 )
 
 func Run() {
@@ -42,9 +41,7 @@ func Run() {
 
 	// == Otel Setup ==
 	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
-		Mode:             cfg.Mode,
-		ServiceName:      serviceName,
-		CollectorGrpcURL: cfg.Otel.CollectorGrpcURL,
+		Mode: cfg.Mode,
 	})
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
@@ -52,7 +49,7 @@ func Run() {
 
 	// == Gin Setup ==
 	r := gin.Default()
-	r.Use(otelgin.Middleware(serviceName))
+	r.Use(otelgin.Middleware("main-server"))
 	// TODO: Reconfigure CORs before production deployment.
 	r.Use(cors.Default())
 
