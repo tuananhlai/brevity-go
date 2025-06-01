@@ -135,7 +135,7 @@ resource "aws_lb" "ecs" {
   load_balancer_type = "application"
   security_groups    = [module.ecs_alb_sg.security_group_id]
   subnets            = module.vpc.public_subnets
-  ip_address_type    = "dualstack-without-public-ipv4"
+  # ip_address_type    = "dualstack-without-public-ipv4"
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -369,6 +369,11 @@ resource "aws_ecs_service" "backend" {
   deployment_controller {
     type = "ECS"
   }
+}
+
+resource "aws_cloudwatch_log_group" "brevity" {
+  name              = "/ecs/brevity"
+  retention_in_days = 90
 }
 
 output "ecr" {
