@@ -4,7 +4,7 @@
     {
       "name": "nginx",
       "image": "THIS_WILL_BE_REPLACED_BY_GITHUB_ACTIONS",
-      "cpu": 128,
+      "cpu": 512,
       "memory": 256,
       "portMappings": [
         {
@@ -24,8 +24,12 @@
           "value": "80"
         },
         {
-          "name": "OTEL_COLLECTOR_GRPC_URL",
-          "value": "http://your-otel-collector-grpc-url:4317"
+          "name": "OTEL_RESOURCE_ATTRIBUTES",
+          "value": "service.name=backend,service.namespace=brevity,deployment.environment=production"
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+          "value": "https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
         },
         {
           "name": "LLM_MODEL_ID",
@@ -46,6 +50,10 @@
         {
           "name": "DATABASE_URL",
           "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/database-url"
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_HEADERS",
+          "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/otel-collector-headers"
         }
       ],
       "systemControls": []
