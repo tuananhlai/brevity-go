@@ -68,6 +68,11 @@ module "ecs_ec2_sg" {
   ]
 }
 
+resource "aws_ec2_instance_connect_endpoint" "default" {
+  subnet_id          = module.vpc.private_subnets[0]
+  security_group_ids = [module.ecs_ec2_sg.security_group_id]
+}
+
 data "aws_ami" "amz_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -135,7 +140,7 @@ resource "aws_lb" "ecs" {
   load_balancer_type = "application"
   security_groups    = [module.ecs_alb_sg.security_group_id]
   subnets            = module.vpc.public_subnets
-  ip_address_type    = "dualstack-without-public-ipv4"
+  # ip_address_type    = "dualstack-without-public-ipv4"
 }
 
 resource "aws_lb_target_group" "ecs" {
@@ -177,6 +182,7 @@ resource "aws_launch_template" "ecs_lt" {
   image_id               = data.aws_ami.amz_linux_2023.id
   instance_type          = "t3a.nano"
   vpc_security_group_ids = [module.ecs_ec2_sg.security_group_id]
+  key_name               = local.ssh_key_name
 
   instance_market_options {
     market_type = "spot"
@@ -190,6 +196,9 @@ resource "aws_launch_template" "ecs_lt" {
   user_data = base64encode(<<EOF
 #!/bin/bash
 echo ECS_CLUSTER=${aws_ecs_cluster.default.name} >> /etc/ecs/ecs.config
+
+yum update -y
+yum install ec2-instance-connect -y
     EOF
   )
 
@@ -369,6 +378,11 @@ resource "aws_ecs_service" "backend" {
   deployment_controller {
     type = "ECS"
   }
+}
+
+resource "aws_cloudwatch_log_group" "brevity" {
+  name              = "/ecs/brevity"
+  retention_in_days = 90
 }
 
 output "ecr" {

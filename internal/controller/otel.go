@@ -6,4 +6,7 @@ const (
 	packageName = "github.com/tuananhlai/brevity-go/internal/controller"
 )
 
-var appTracer = otelsdk.Tracer(packageName)
+var (
+	appTracer = otelsdk.Tracer(packageName)
+	appLogger = otelsdk.Logger(packageName)
+)

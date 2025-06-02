@@ -56,7 +56,15 @@
           "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/otel-collector-headers"
         }
       ],
-      "systemControls": []
+      "systemControls": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/brevity",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
     }
   ],
   "executionRoleArn": "arn:aws:iam::969026361642:role/brevity-ecs-execution-20250527104533230800000002",

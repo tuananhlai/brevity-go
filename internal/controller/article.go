@@ -32,6 +32,8 @@ func (c *ArticleController) RegisterRoutes(router *gin.Engine) {
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
+	appLogger.Info("Processing ListPreviews request...")
+
 	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
 	defer span.End()
 
