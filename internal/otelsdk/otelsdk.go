@@ -152,7 +152,6 @@ func newMeterProvider(ctx context.Context, resource *resource.Resource,
 			sdkmetric.NewPeriodicReader(
 				metricExporter,
 				sdkmetric.WithProducer(runtimeProducer),
-				sdkmetric.WithInterval(time.Second*5),
 			),
 		),
 	)

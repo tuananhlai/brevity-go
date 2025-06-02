@@ -4,6 +4,7 @@ provider "aws" {
 
 locals {
   default_vpc_cidr = "10.0.0.0/16"
+  ssh_key_name     = "jump"
 }
 
 data "aws_availability_zones" "available" {
@@ -48,7 +49,7 @@ module "fck-nat" {
   vpc_id        = module.vpc.vpc_id
   subnet_id     = module.vpc.public_subnets[0]
   use_ssh       = true
-  ssh_key_name  = "jump"
+  ssh_key_name  = local.ssh_key_name
 
   update_route_tables = true
   route_tables_ids = {
