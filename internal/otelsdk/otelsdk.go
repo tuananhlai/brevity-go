@@ -121,6 +121,7 @@ func newLoggerProvider(ctx context.Context, resource *resource.Resource) (*sdklo
 
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
+		sdklog.WithResource(resource),
 	)
 	return loggerProvider, nil
 }
