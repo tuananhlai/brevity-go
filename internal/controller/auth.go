@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,9 +30,8 @@ func NewAuthController(authService service.AuthService) *AuthController {
 }
 
 func (c *AuthController) RegisterRoutes(router *gin.Engine) {
-	router.POST("/v1/auth/register", c.Register)
-	router.POST("/v1/auth/login", c.Login)
-	router.POST("/v1/auth/refresh", c.RefreshAccessToken)
+	router.POST("/v1/auth/sign-up", c.Register)
+	router.POST("/v1/auth/sign-in", c.Login)
 }
 
 func (c *AuthController) Login(ginCtx *gin.Context) {
@@ -127,41 +125,6 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	}
 
 	ginCtx.Status(http.StatusOK)
-}
-
-func (c *AuthController) RefreshAccessToken(ginCtx *gin.Context) {
-	ctx := ginCtx.Request.Context()
-	refreshToken, err := ginCtx.Cookie(RefreshTokenCookieName)
-	if err != nil {
-		ginCtx.JSON(http.StatusUnauthorized, ErrorResponse{
-			Code:    CodeUnauthorized,
-			Message: fmt.Sprintf("error getting refresh token from cookie: %s", err),
-		})
-		return
-	}
-
-	accessToken, err := c.authService.RefreshAccessToken(ctx, refreshToken)
-	if err != nil {
-		if errors.Is(err, service.ErrRefreshTokenNotFound) ||
-			errors.Is(err, service.ErrRefreshTokenExpired) ||
-			errors.Is(err, service.ErrRefreshTokenRevoked) {
-			ginCtx.JSON(http.StatusUnauthorized, ErrorResponse{
-				Code:    CodeUnauthorized,
-				Message: err.Error(),
-			})
-			return
-		}
-
-		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    CodeUnknown,
-			Message: err.Error(),
-		})
-		return
-	}
-
-	ginCtx.JSON(http.StatusOK, RefreshAccessTokenResponse{
-		AccessToken: accessToken,
-	})
 }
 
 type RefreshAccessTokenResponse struct {
