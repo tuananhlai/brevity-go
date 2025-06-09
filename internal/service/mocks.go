@@ -62,15 +62,26 @@ type MockArticleService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - ctx
-//   - article
+//   - ctx context.Context
+//   - article *model.Article
 func (_e *MockArticleService_Expecter) Create(ctx interface{}, article interface{}) *MockArticleService_Create_Call {
 	return &MockArticleService_Create_Call{Call: _e.mock.On("Create", ctx, article)}
 }
 
 func (_c *MockArticleService_Create_Call) Run(run func(ctx context.Context, article *model.Article)) *MockArticleService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*model.Article))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *model.Article
+		if args[1] != nil {
+			arg1 = args[1].(*model.Article)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -119,15 +130,26 @@ type MockArticleService_GetBySlug_Call struct {
 }
 
 // GetBySlug is a helper method to define mock.On call
-//   - ctx
-//   - slug
+//   - ctx context.Context
+//   - slug string
 func (_e *MockArticleService_Expecter) GetBySlug(ctx interface{}, slug interface{}) *MockArticleService_GetBySlug_Call {
 	return &MockArticleService_GetBySlug_Call{Call: _e.mock.On("GetBySlug", ctx, slug)}
 }
 
 func (_c *MockArticleService_GetBySlug_Call) Run(run func(ctx context.Context, slug string)) *MockArticleService_GetBySlug_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -188,9 +210,9 @@ type MockArticleService_ListPreviews_Call struct {
 }
 
 // ListPreviews is a helper method to define mock.On call
-//   - ctx
-//   - pageSize
-//   - opts
+//   - ctx context.Context
+//   - pageSize int
+//   - opts ...repository.ListPreviewsOption
 func (_e *MockArticleService_Expecter) ListPreviews(ctx interface{}, pageSize interface{}, opts ...interface{}) *MockArticleService_ListPreviews_Call {
 	return &MockArticleService_ListPreviews_Call{Call: _e.mock.On("ListPreviews",
 		append([]interface{}{ctx, pageSize}, opts...)...)}
@@ -198,8 +220,25 @@ func (_e *MockArticleService_Expecter) ListPreviews(ctx interface{}, pageSize in
 
 func (_c *MockArticleService_ListPreviews_Call) Run(run func(ctx context.Context, pageSize int, opts ...repository.ListPreviewsOption)) *MockArticleService_ListPreviews_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]repository.ListPreviewsOption)
-		run(args[0].(context.Context), args[1].(int), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		var arg2 []repository.ListPreviewsOption
+		var variadicArgs []repository.ListPreviewsOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]repository.ListPreviewsOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -275,16 +314,32 @@ type MockAuthService_Login_Call struct {
 }
 
 // Login is a helper method to define mock.On call
-//   - ctx
-//   - emailOrUsername
-//   - password
+//   - ctx context.Context
+//   - emailOrUsername string
+//   - password string
 func (_e *MockAuthService_Expecter) Login(ctx interface{}, emailOrUsername interface{}, password interface{}) *MockAuthService_Login_Call {
 	return &MockAuthService_Login_Call{Call: _e.mock.On("Login", ctx, emailOrUsername, password)}
 }
 
 func (_c *MockAuthService_Login_Call) Run(run func(ctx context.Context, emailOrUsername string, password string)) *MockAuthService_Login_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -295,61 +350,6 @@ func (_c *MockAuthService_Login_Call) Return(loginReturn *LoginReturn, err error
 }
 
 func (_c *MockAuthService_Login_Call) RunAndReturn(run func(ctx context.Context, emailOrUsername string, password string) (*LoginReturn, error)) *MockAuthService_Login_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// RefreshAccessToken provides a mock function for the type MockAuthService
-func (_mock *MockAuthService) RefreshAccessToken(ctx context.Context, refreshToken string) (string, error) {
-	ret := _mock.Called(ctx, refreshToken)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RefreshAccessToken")
-	}
-
-	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
-		return returnFunc(ctx, refreshToken)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = returnFunc(ctx, refreshToken)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, refreshToken)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAuthService_RefreshAccessToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RefreshAccessToken'
-type MockAuthService_RefreshAccessToken_Call struct {
-	*mock.Call
-}
-
-// RefreshAccessToken is a helper method to define mock.On call
-//   - ctx
-//   - refreshToken
-func (_e *MockAuthService_Expecter) RefreshAccessToken(ctx interface{}, refreshToken interface{}) *MockAuthService_RefreshAccessToken_Call {
-	return &MockAuthService_RefreshAccessToken_Call{Call: _e.mock.On("RefreshAccessToken", ctx, refreshToken)}
-}
-
-func (_c *MockAuthService_RefreshAccessToken_Call) Run(run func(ctx context.Context, refreshToken string)) *MockAuthService_RefreshAccessToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockAuthService_RefreshAccessToken_Call) Return(s string, err error) *MockAuthService_RefreshAccessToken_Call {
-	_c.Call.Return(s, err)
-	return _c
-}
-
-func (_c *MockAuthService_RefreshAccessToken_Call) RunAndReturn(run func(ctx context.Context, refreshToken string) (string, error)) *MockAuthService_RefreshAccessToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -377,17 +377,38 @@ type MockAuthService_Register_Call struct {
 }
 
 // Register is a helper method to define mock.On call
-//   - ctx
-//   - email
-//   - username
-//   - password
+//   - ctx context.Context
+//   - email string
+//   - username string
+//   - password string
 func (_e *MockAuthService_Expecter) Register(ctx interface{}, email interface{}, username interface{}, password interface{}) *MockAuthService_Register_Call {
 	return &MockAuthService_Register_Call{Call: _e.mock.On("Register", ctx, email, username, password)}
 }
 
 func (_c *MockAuthService_Register_Call) Run(run func(ctx context.Context, email string, username string, password string)) *MockAuthService_Register_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }

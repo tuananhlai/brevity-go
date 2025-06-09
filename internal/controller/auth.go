@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +14,9 @@ const (
 	CodeInvalidCredentials Code = "invalid_credentials"
 	CodeUserAlreadyExists  Code = "user_already_exists"
 
-	RefreshTokenCookieName   = "refresh_token"
-	RefreshTokenCookiePath   = "/"
-	RefreshTokenCookieMaxAge = 60 * 60 * 24 * 30 // 30 days
+	AccessTokenCookieName   = "access_token"
+	AccessTokenCookiePath   = "/"
+	AccessTokenCookieMaxAge = 60 * 60 * 24 * 30 // 30 days
 )
 
 type AuthController struct {
@@ -31,9 +30,8 @@ func NewAuthController(authService service.AuthService) *AuthController {
 }
 
 func (c *AuthController) RegisterRoutes(router *gin.Engine) {
-	router.POST("/v1/auth/register", c.Register)
-	router.POST("/v1/auth/login", c.Login)
-	router.POST("/v1/auth/refresh", c.RefreshAccessToken)
+	router.POST("/v1/auth/sign-up", c.Register)
+	router.POST("/v1/auth/sign-in", c.Login)
 }
 
 func (c *AuthController) Login(ginCtx *gin.Context) {
@@ -75,15 +73,14 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	}
 
 	res := LoginResponse{
-		ID:          user.ID,
-		Username:    user.Username,
-		Email:       user.Email,
-		AccessToken: user.AccessToken,
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
 	}
 
 	// TODO: See what value to be set to the domain.
-	ginCtx.SetCookie(RefreshTokenCookieName, user.RefreshToken, RefreshTokenCookieMaxAge,
-		RefreshTokenCookiePath, "", true, true)
+	ginCtx.SetCookie(AccessTokenCookieName, user.AccessToken, AccessTokenCookieMaxAge,
+		AccessTokenCookiePath, "", true, true)
 	ginCtx.JSON(http.StatusOK, res)
 }
 
@@ -129,55 +126,15 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	ginCtx.Status(http.StatusOK)
 }
 
-func (c *AuthController) RefreshAccessToken(ginCtx *gin.Context) {
-	ctx := ginCtx.Request.Context()
-	refreshToken, err := ginCtx.Cookie(RefreshTokenCookieName)
-	if err != nil {
-		ginCtx.JSON(http.StatusUnauthorized, ErrorResponse{
-			Code:    CodeUnauthorized,
-			Message: fmt.Sprintf("error getting refresh token from cookie: %s", err),
-		})
-		return
-	}
-
-	accessToken, err := c.authService.RefreshAccessToken(ctx, refreshToken)
-	if err != nil {
-		if errors.Is(err, service.ErrRefreshTokenNotFound) ||
-			errors.Is(err, service.ErrRefreshTokenExpired) ||
-			errors.Is(err, service.ErrRefreshTokenRevoked) {
-			ginCtx.JSON(http.StatusUnauthorized, ErrorResponse{
-				Code:    CodeUnauthorized,
-				Message: err.Error(),
-			})
-			return
-		}
-
-		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    CodeUnknown,
-			Message: err.Error(),
-		})
-		return
-	}
-
-	ginCtx.JSON(http.StatusOK, RefreshAccessTokenResponse{
-		AccessToken: accessToken,
-	})
-}
-
-type RefreshAccessTokenResponse struct {
-	AccessToken string `json:"accessToken"`
-}
-
 type LoginRequest struct {
 	EmailOrUsername string `json:"emailOrUsername" binding:"required"`
 	Password        string `json:"password" binding:"required"`
 }
 
 type LoginResponse struct {
-	ID          string `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	AccessToken string `json:"accessToken"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type RegisterRequest struct {

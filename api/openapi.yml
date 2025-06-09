@@ -18,12 +18,11 @@ servers:
   - url: http://127.0.0.1:8080
 
 paths:
-  /v1/auth/register:
+  /v1/auth/sign-up:
     post:
       security: []
-      summary: Register a new user
-      description: Register a new user
-      operationId: register
+      description: Create a new user account.
+      operationId: signUp
       tags:
         - auth
       requestBody:
@@ -37,6 +36,7 @@ paths:
                   format: email
                 username:
                   type: string
+                  description: "Username must be globally unique."
                 password:
                   type: string
               required:
@@ -48,12 +48,12 @@ paths:
           description: "Successfully registered."
         "400":
           description: "Invalid fields in request body."
-  /v1/auth/login:
+
+  /v1/auth/sign-in:
     post:
       security: []
-      summary: Login to the system
-      description: Login to the system
-      operationId: login
+      operationId: signIn
+      description: Log in to the system. An HttpOnly cookie will be set on the client with the access token.
       tags:
         - auth
       requestBody:
@@ -85,50 +85,12 @@ paths:
                   email:
                     type: string
                     format: email
-                  accessToken:
-                    type: string
-                    description: "An access token to be used for authenticated requests. Expires in 15 minutes. /v1/auth/refresh can be used to refresh the access token."
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
                 required:
                   - id
                   - username
                   - email
-                  - accessToken
         "400":
           description: "Invalid credentials."
-  /v1/auth/refresh:
-    post:
-      security: []
-      summary: Refresh the access token
-      description: Refresh the access token
-      operationId: refresh
-      tags:
-        - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refreshToken:
-                  type: string
-              required:
-                - refreshToken
-      responses:
-        "200":
-          description: "Successfully refreshed the access token."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                required:
-                  - accessToken
-        "400":
-          description: "Invalid request."
 
   /v1/article-previews:
     get:

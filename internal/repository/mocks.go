@@ -61,15 +61,26 @@ type MockArticleRepository_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - ctx
-//   - article
+//   - ctx context.Context
+//   - article *model.Article
 func (_e *MockArticleRepository_Expecter) Create(ctx interface{}, article interface{}) *MockArticleRepository_Create_Call {
 	return &MockArticleRepository_Create_Call{Call: _e.mock.On("Create", ctx, article)}
 }
 
 func (_c *MockArticleRepository_Create_Call) Run(run func(ctx context.Context, article *model.Article)) *MockArticleRepository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*model.Article))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *model.Article
+		if args[1] != nil {
+			arg1 = args[1].(*model.Article)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -118,15 +129,26 @@ type MockArticleRepository_GetBySlug_Call struct {
 }
 
 // GetBySlug is a helper method to define mock.On call
-//   - ctx
-//   - slug
+//   - ctx context.Context
+//   - slug string
 func (_e *MockArticleRepository_Expecter) GetBySlug(ctx interface{}, slug interface{}) *MockArticleRepository_GetBySlug_Call {
 	return &MockArticleRepository_GetBySlug_Call{Call: _e.mock.On("GetBySlug", ctx, slug)}
 }
 
 func (_c *MockArticleRepository_GetBySlug_Call) Run(run func(ctx context.Context, slug string)) *MockArticleRepository_GetBySlug_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -187,9 +209,9 @@ type MockArticleRepository_ListPreviews_Call struct {
 }
 
 // ListPreviews is a helper method to define mock.On call
-//   - ctx
-//   - pageSize
-//   - opts
+//   - ctx context.Context
+//   - pageSize int
+//   - opts ...ListPreviewsOption
 func (_e *MockArticleRepository_Expecter) ListPreviews(ctx interface{}, pageSize interface{}, opts ...interface{}) *MockArticleRepository_ListPreviews_Call {
 	return &MockArticleRepository_ListPreviews_Call{Call: _e.mock.On("ListPreviews",
 		append([]interface{}{ctx, pageSize}, opts...)...)}
@@ -197,8 +219,25 @@ func (_e *MockArticleRepository_Expecter) ListPreviews(ctx interface{}, pageSize
 
 func (_c *MockArticleRepository_ListPreviews_Call) Run(run func(ctx context.Context, pageSize int, opts ...ListPreviewsOption)) *MockArticleRepository_ListPreviews_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]ListPreviewsOption)
-		run(args[0].(context.Context), args[1].(int), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		var arg2 []ListPreviewsOption
+		var variadicArgs []ListPreviewsOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]ListPreviewsOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -240,63 +279,6 @@ func (_m *MockAuthRepository) EXPECT() *MockAuthRepository_Expecter {
 	return &MockAuthRepository_Expecter{mock: &_m.Mock}
 }
 
-// CreateRefreshToken provides a mock function for the type MockAuthRepository
-func (_mock *MockAuthRepository) CreateRefreshToken(ctx context.Context, params CreateRefreshTokenParams) (*model.RefreshToken, error) {
-	ret := _mock.Called(ctx, params)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateRefreshToken")
-	}
-
-	var r0 *model.RefreshToken
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateRefreshTokenParams) (*model.RefreshToken, error)); ok {
-		return returnFunc(ctx, params)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateRefreshTokenParams) *model.RefreshToken); ok {
-		r0 = returnFunc(ctx, params)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RefreshToken)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, CreateRefreshTokenParams) error); ok {
-		r1 = returnFunc(ctx, params)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAuthRepository_CreateRefreshToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateRefreshToken'
-type MockAuthRepository_CreateRefreshToken_Call struct {
-	*mock.Call
-}
-
-// CreateRefreshToken is a helper method to define mock.On call
-//   - ctx
-//   - params
-func (_e *MockAuthRepository_Expecter) CreateRefreshToken(ctx interface{}, params interface{}) *MockAuthRepository_CreateRefreshToken_Call {
-	return &MockAuthRepository_CreateRefreshToken_Call{Call: _e.mock.On("CreateRefreshToken", ctx, params)}
-}
-
-func (_c *MockAuthRepository_CreateRefreshToken_Call) Run(run func(ctx context.Context, params CreateRefreshTokenParams)) *MockAuthRepository_CreateRefreshToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(CreateRefreshTokenParams))
-	})
-	return _c
-}
-
-func (_c *MockAuthRepository_CreateRefreshToken_Call) Return(refreshToken *model.RefreshToken, err error) *MockAuthRepository_CreateRefreshToken_Call {
-	_c.Call.Return(refreshToken, err)
-	return _c
-}
-
-func (_c *MockAuthRepository_CreateRefreshToken_Call) RunAndReturn(run func(ctx context.Context, params CreateRefreshTokenParams) (*model.RefreshToken, error)) *MockAuthRepository_CreateRefreshToken_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateUser provides a mock function for the type MockAuthRepository
 func (_mock *MockAuthRepository) CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error) {
 	ret := _mock.Called(ctx, params)
@@ -331,15 +313,26 @@ type MockAuthRepository_CreateUser_Call struct {
 }
 
 // CreateUser is a helper method to define mock.On call
-//   - ctx
-//   - params
+//   - ctx context.Context
+//   - params CreateUserParams
 func (_e *MockAuthRepository_Expecter) CreateUser(ctx interface{}, params interface{}) *MockAuthRepository_CreateUser_Call {
 	return &MockAuthRepository_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, params)}
 }
 
 func (_c *MockAuthRepository_CreateUser_Call) Run(run func(ctx context.Context, params CreateUserParams)) *MockAuthRepository_CreateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(CreateUserParams))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateUserParams
+		if args[1] != nil {
+			arg1 = args[1].(CreateUserParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -350,63 +343,6 @@ func (_c *MockAuthRepository_CreateUser_Call) Return(authUser *model.AuthUser, e
 }
 
 func (_c *MockAuthRepository_CreateUser_Call) RunAndReturn(run func(ctx context.Context, params CreateUserParams) (*model.AuthUser, error)) *MockAuthRepository_CreateUser_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetRefreshToken provides a mock function for the type MockAuthRepository
-func (_mock *MockAuthRepository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
-	ret := _mock.Called(ctx, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetRefreshToken")
-	}
-
-	var r0 *model.RefreshToken
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
-		return returnFunc(ctx, token)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
-		r0 = returnFunc(ctx, token)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RefreshToken)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, token)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAuthRepository_GetRefreshToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRefreshToken'
-type MockAuthRepository_GetRefreshToken_Call struct {
-	*mock.Call
-}
-
-// GetRefreshToken is a helper method to define mock.On call
-//   - ctx
-//   - token
-func (_e *MockAuthRepository_Expecter) GetRefreshToken(ctx interface{}, token interface{}) *MockAuthRepository_GetRefreshToken_Call {
-	return &MockAuthRepository_GetRefreshToken_Call{Call: _e.mock.On("GetRefreshToken", ctx, token)}
-}
-
-func (_c *MockAuthRepository_GetRefreshToken_Call) Run(run func(ctx context.Context, token string)) *MockAuthRepository_GetRefreshToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockAuthRepository_GetRefreshToken_Call) Return(refreshToken *model.RefreshToken, err error) *MockAuthRepository_GetRefreshToken_Call {
-	_c.Call.Return(refreshToken, err)
-	return _c
-}
-
-func (_c *MockAuthRepository_GetRefreshToken_Call) RunAndReturn(run func(ctx context.Context, token string) (*model.RefreshToken, error)) *MockAuthRepository_GetRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -445,15 +381,26 @@ type MockAuthRepository_GetUser_Call struct {
 }
 
 // GetUser is a helper method to define mock.On call
-//   - ctx
-//   - emailOrUsername
+//   - ctx context.Context
+//   - emailOrUsername string
 func (_e *MockAuthRepository_Expecter) GetUser(ctx interface{}, emailOrUsername interface{}) *MockAuthRepository_GetUser_Call {
 	return &MockAuthRepository_GetUser_Call{Call: _e.mock.On("GetUser", ctx, emailOrUsername)}
 }
 
 func (_c *MockAuthRepository_GetUser_Call) Run(run func(ctx context.Context, emailOrUsername string)) *MockAuthRepository_GetUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

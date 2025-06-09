@@ -57,8 +57,8 @@ services:
     image: grafana/otel-lgtm:0.8.6
     ports:
       - "43000:3000" # Grafana
-      - "44317:4317" # OTLP gRPC
-      - "44318:4318" # OTLP HTTP
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
     volumes:
       - grafana_data:/data/grafana
       - prometheus_data:/data/prometheus
