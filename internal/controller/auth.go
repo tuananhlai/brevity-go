@@ -14,9 +14,9 @@ const (
 	CodeInvalidCredentials Code = "invalid_credentials"
 	CodeUserAlreadyExists  Code = "user_already_exists"
 
-	RefreshTokenCookieName   = "refresh_token"
-	RefreshTokenCookiePath   = "/"
-	RefreshTokenCookieMaxAge = 60 * 60 * 24 * 30 // 30 days
+	AccessTokenCookieName   = "access_token"
+	AccessTokenCookiePath   = "/"
+	AccessTokenCookieMaxAge = 60 * 60 * 24 * 30 // 30 days
 )
 
 type AuthController struct {
@@ -73,15 +73,14 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	}
 
 	res := LoginResponse{
-		ID:          user.ID,
-		Username:    user.Username,
-		Email:       user.Email,
-		AccessToken: user.AccessToken,
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
 	}
 
 	// TODO: See what value to be set to the domain.
-	ginCtx.SetCookie(RefreshTokenCookieName, user.RefreshToken, RefreshTokenCookieMaxAge,
-		RefreshTokenCookiePath, "", true, true)
+	ginCtx.SetCookie(AccessTokenCookieName, user.AccessToken, AccessTokenCookieMaxAge,
+		AccessTokenCookiePath, "", true, true)
 	ginCtx.JSON(http.StatusOK, res)
 }
 
@@ -127,20 +126,15 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	ginCtx.Status(http.StatusOK)
 }
 
-type RefreshAccessTokenResponse struct {
-	AccessToken string `json:"accessToken"`
-}
-
 type LoginRequest struct {
 	EmailOrUsername string `json:"emailOrUsername" binding:"required"`
 	Password        string `json:"password" binding:"required"`
 }
 
 type LoginResponse struct {
-	ID          string `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	AccessToken string `json:"accessToken"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type RegisterRequest struct {
