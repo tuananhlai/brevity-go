@@ -3,7 +3,6 @@ package service_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -82,18 +81,6 @@ func (s *AuthServiceTestSuite) TestLogin_Success() {
 		PasswordHash: hashedPassword,
 	}, nil)
 
-	s.mockRepo.On("CreateRefreshToken", ctx, mock.MatchedBy(func(
-		params repository.CreateRefreshTokenParams,
-	) bool {
-		return params.UserID == userID
-	})).Return(&model.RefreshToken{
-		ID:        uuid.New(),
-		UserID:    userID,
-		Token:     "refresh_token",
-		ExpiresAt: time.Now().Add(time.Hour * 24 * 30),
-		CreatedAt: time.Now(),
-	}, nil)
-
 	result, err := s.authService.Login(ctx, email, password)
 
 	s.Require().NoError(err)
@@ -101,7 +88,6 @@ func (s *AuthServiceTestSuite) TestLogin_Success() {
 	s.Require().Equal(userID.String(), result.ID)
 	s.Require().Equal(email, result.Email)
 	s.Require().NotEmpty(result.AccessToken)
-	s.Require().NotEmpty(result.RefreshToken)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
