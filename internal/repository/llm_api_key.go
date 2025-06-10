@@ -10,7 +10,7 @@ import (
 
 type LLMAPIKeyRepository interface {
 	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*model.LLMAPIKey, error)
-	Create(ctx context.Context, apiKey *model.LLMAPIKey) error
+	Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*model.LLMAPIKey, error)
 }
 
 type llmAPIKeyRepositoryImpl struct {
@@ -33,18 +33,21 @@ func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.
 	return apiKeys, nil
 }
 
-func (r *llmAPIKeyRepositoryImpl) Create(ctx context.Context, apiKey *model.LLMAPIKey) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO llm_api_keys (id, name, encrypted_key, user_id) VALUES ($1, $2, $3, $4)",
-		apiKey.ID, apiKey.Name, apiKey.EncryptedKey, apiKey.UserID)
+func (r *llmAPIKeyRepositoryImpl) Create(ctx context.Context, params LLMAPIKeyCreateParams) (*model.LLMAPIKey, error) {
+	apiKey := &model.LLMAPIKey{}
 
-	return err
+	err := r.db.GetContext(ctx, apiKey, `INSERT INTO llm_api_keys (name, encrypted_key, user_id)
+		VALUES ($1, $2, $3) RETURNING id, name, encrypted_key, created_at, user_id`,
+		params.Name, params.EncryptedKey, params.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiKey, nil
 }
 
-// type LLMAPIKey struct {
-// 	ID   uuid.UUID
-// 	Name string
-// 	// Value the plaintext API key.
-// 	Value     string
-// 	UserID    uuid.UUID
-// 	CreatedAt time.Time
-// }
+type LLMAPIKeyCreateParams struct {
+	Name         string
+	EncryptedKey []byte
+	UserID       uuid.UUID
+}
