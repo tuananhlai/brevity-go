@@ -25,7 +25,7 @@ func NewLLMAPIKeyRepository(db *sqlx.DB) LLMAPIKeyRepository {
 
 func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*model.LLMAPIKey, error) {
 	var apiKeys []*model.LLMAPIKey
-	err := r.db.SelectContext(ctx, &apiKeys, "SELECT id, name, encrypted_key, created_at, user_id FROM llm_api_keys WHERE user_id = ?", userID)
+	err := r.db.SelectContext(ctx, &apiKeys, "SELECT id, name, encrypted_key, created_at, user_id FROM llm_api_keys WHERE user_id = $1", userID)
 	if err != nil {
 		return nil, err
 	}
