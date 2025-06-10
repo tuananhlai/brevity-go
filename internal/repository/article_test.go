@@ -45,7 +45,7 @@ func (s *ArticleRepositoryTestSuite) TearDownSuite() {
 
 func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
-	author := mustCreateUser(s)
+	author := s.mustCreateUser()
 
 	article := &model.Article{
 		Title:    "Test Article",
@@ -58,8 +58,8 @@ func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 
 func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 	ctx := context.Background()
-	author := mustCreateUser(s)
-	newArticle := mustCreateArticle(s, author.ID)
+	author := s.mustCreateUser()
+	newArticle := s.mustCreateArticle(author.ID)
 
 	previews, _, err := s.articleRepo.ListPreviews(ctx, 100)
 
@@ -72,8 +72,8 @@ func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 
 func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
 	ctx := context.Background()
-	author := mustCreateUser(s)
-	newArticle := mustCreateArticle(s, author.ID)
+	author := s.mustCreateUser()
+	newArticle := s.mustCreateArticle(author.ID)
 
 	article, err := s.articleRepo.GetBySlug(ctx, newArticle.Slug)
 
@@ -87,7 +87,7 @@ func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
 	s.Require().Equal(author.Username, article.AuthorUsername)
 }
 
-func mustCreateUser(s *ArticleRepositoryTestSuite) *model.AuthUser {
+func (s *ArticleRepositoryTestSuite) mustCreateUser() *model.AuthUser {
 	user := repository.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
@@ -100,7 +100,7 @@ func mustCreateUser(s *ArticleRepositoryTestSuite) *model.AuthUser {
 	return createdUser
 }
 
-func mustCreateArticle(s *ArticleRepositoryTestSuite, authorID uuid.UUID) *model.Article {
+func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *model.Article {
 	article := &model.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",

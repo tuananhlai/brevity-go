@@ -35,15 +35,12 @@ func NewArticleRepository(db *sqlx.DB) ArticleRepository {
 // Create creates a new article
 func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Article) error {
 	_, err := r.db.ExecContext(ctx,
-		`INSERT INTO articles (slug, title, description, plaintext_content, 
+		`INSERT INTO articles (slug, title, description, plaintext_content,
 		content, author_id) VALUES ($1, $2, $3, $4, $5, $6)`,
 		article.Slug, article.Title, article.Description,
 		article.PlaintextContent, article.Content, article.AuthorID)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (r *articleRepositoryImpl) GetBySlug(ctx context.Context, slug string) (*model.ArticleDetails, error) {
