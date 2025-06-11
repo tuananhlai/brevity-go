@@ -55,10 +55,7 @@ func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUI
 }
 
 func (s *llmAPIKeyServiceImpl) Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error) {
-	encryptedKey, err := s.encryptionService.Encrypt([]byte(apiKey.Value))
-	if err != nil {
-		return nil, err
-	}
+	encryptedKey := s.encryptionService.Encrypt([]byte(apiKey.Value))
 
 	newAPIKey, err := s.repo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         apiKey.Name,

@@ -50,7 +50,7 @@ func (s *LLMAPIKeyRepositoryTestSuite) TestCreateLLMAPIKey_Success() {
 	expectedEncryptedKey := []byte("testencryptedkey")
 	expectedUserID := user.ID
 
-	err := s.llmAPIKeyRepo.Create(ctx, &model.LLMAPIKey{
+	_, err := s.llmAPIKeyRepo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
 		UserID:       expectedUserID,
@@ -78,7 +78,7 @@ func (s *LLMAPIKeyRepositoryTestSuite) TestListByUserID_Success() {
 	expectedEncryptedKey := []byte("testencryptedkey")
 	expectedUserID := user.ID
 
-	err := s.llmAPIKeyRepo.Create(ctx, &model.LLMAPIKey{
+	_, err := s.llmAPIKeyRepo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
 		UserID:       expectedUserID,
