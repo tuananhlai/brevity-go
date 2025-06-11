@@ -77,6 +77,7 @@ func (d *DatabaseTestUtil) DB() *sqlx.DB {
 // Reset resets the database to a clean state by truncating all tables.
 func (d *DatabaseTestUtil) Reset() error {
 	_, err := d.db.Exec(`
+	TRUNCATE TABLE llm_api_keys CASCADE;
 	TRUNCATE TABLE articles CASCADE;
 	TRUNCATE TABLE users CASCADE;
 	`)

@@ -138,6 +138,7 @@ paths:
                   - items
         "400":
           description: "Invalid request."
+
   /v1/articles/{slug}:
     get:
       security: []
@@ -162,6 +163,78 @@ paths:
                 $ref: "#/components/schemas/Article"
         "404":
           description: "Article not found."
+
+  /v1/llm-api-keys:
+    post:
+      security:
+        - bearerAuth: []
+      operationId: createLLMAPIKey
+      description: Register a new API key for the current user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "An easy-to-remember name for the API key."
+                value:
+                  type: string
+                  description: "The API key string."
+              required:
+                - name
+                - value
+      responses:
+        "200":
+          description: "Successfully created the LLM API key."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  value:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+    get:
+      security:
+        - bearerAuth: []
+      description: Get all API keys registered by the current user.
+      operationId: getLLMAPIKeys
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        valueFirstTen:
+                          type: string
+                          description: "The first 10 characters of the API key."
+                        valueLastSix:
+                          type: string
+                          description: "The last 6 characters of the API key."
+                        createdAt:
+                          type: string
+                          format: date-time
 
 components:
   securitySchemes:
