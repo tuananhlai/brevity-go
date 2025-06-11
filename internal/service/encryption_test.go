@@ -11,7 +11,7 @@ import (
 func TestNewEncryptionService_InvalidKey(t *testing.T) {
 	key := make([]byte, 1)
 	_, err := service.NewEncryptionService(key)
-	assert.ErrorIs(t, err, service.EncryptionServiceKeySizeError)
+	assert.ErrorIs(t, err, service.ErrEncryptionServiceInvalidKeySize)
 }
 
 func TestEncryptDecrypt_Success(t *testing.T) {

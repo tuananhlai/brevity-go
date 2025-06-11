@@ -8,7 +8,7 @@ import (
 
 const EncryptionServiceKeySize = 32
 
-var EncryptionServiceKeySizeError = fmt.Errorf("invalid aes key size. expecting key to have length: %d", EncryptionServiceKeySize)
+var ErrEncryptionServiceInvalidKeySize = fmt.Errorf("invalid aes key size. expecting key to have length: %d", EncryptionServiceKeySize)
 
 type EncryptionService interface {
 	Encrypt(plainText []byte) []byte
@@ -23,7 +23,7 @@ type encryptionServiceImpl struct {
 // with length of `EncryptionServiceKeySize`.
 func NewEncryptionService(key []byte) (*encryptionServiceImpl, error) {
 	if len(key) != EncryptionServiceKeySize {
-		return nil, EncryptionServiceKeySizeError
+		return nil, ErrEncryptionServiceInvalidKeySize
 	}
 
 	block, err := aes.NewCipher(key)
