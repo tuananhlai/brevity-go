@@ -1,11 +1,5 @@
 # Makefile for brevity-go project
 
-# Database connection string for PostgreSQL
-DB_URL=postgres://postgres:postgres@localhost:45432/brevity?sslmode=disable
-
-# Migration directory
-MIGRATIONS_DIR=db/migrations
-
 # Default target
 .PHONY: all
 all: help
@@ -21,18 +15,19 @@ help:
 	@echo "  make migrate-version - Show current migration version"
 	@echo "  make migrate-goto    - Migrate to specific version (requires VERSION=x)"
 	@echo "  make migrate-drop    - Drop everything in the database"
+	@echo "  make server          - Run the server with OTEL_EXPORTER_OTLP_ENDPOINT set"
 
 # Run migrations up
 .PHONY: migrate-up
 migrate-up:
 	@echo "Running migrations up..."
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
+	go run ./cmd migrate up
 
 # Run migrations down (rollback)
 .PHONY: migrate-down
 migrate-down:
 	@echo "Rolling back the last migration..."
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down 1
+	go run ./cmd migrate down
 
 # Create a new migration
 .PHONY: migrate-create
@@ -42,7 +37,7 @@ migrate-create:
 		exit 1; \
 	fi
 	@echo "Creating migration $(NAME)..."
-	migrate create -ext sql -dir $(MIGRATIONS_DIR) -format 20060102150405 $(NAME)
+	go run ./cmd migrate create $(NAME)
 
 # Force migration version
 .PHONY: migrate-force
@@ -52,13 +47,13 @@ migrate-force:
 		exit 1; \
 	fi
 	@echo "Forcing migration version to $(VERSION)..."
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" force $(VERSION)
+	go run ./cmd migrate force $(VERSION)
 
 # Show current migration version
 .PHONY: migrate-version
 migrate-version:
 	@echo "Current migration version:"
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" version
+	go run ./cmd migrate version
 
 # Migrate to a specific version
 .PHONY: migrate-goto
@@ -68,7 +63,7 @@ migrate-goto:
 		exit 1; \
 	fi
 	@echo "Migrating to version $(VERSION)..."
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" goto $(VERSION)
+	go run ./cmd migrate goto $(VERSION)
 
 # Drop everything in the database
 .PHONY: migrate-drop
@@ -78,7 +73,7 @@ migrate-drop:
 	@read -r CONFIRM; \
 	if [ "$$CONFIRM" = "y" ] || [ "$$CONFIRM" = "Y" ]; then \
 		echo "Dropping all tables..."; \
-		migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" drop -f; \
+		go run ./cmd migrate drop; \
 	else \
 		echo "Operation cancelled."; \
 	fi
@@ -98,4 +93,11 @@ restart:
 
 .PHONY: logs
 logs:
-	docker-compose logs -f 
+	docker-compose logs -f
+
+.PHONY: server
+server:
+	OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318" go run ./cmd server
+
+.PHONY: s
+s: server 

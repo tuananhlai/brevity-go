@@ -14,11 +14,8 @@ import (
 )
 
 var (
-	ErrInvalidCredentials   = errors.New("invalid credentials")
-	ErrUserAlreadyExists    = errors.New("user already exists")
-	ErrRefreshTokenNotFound = errors.New("refresh token not found")
-	ErrRefreshTokenExpired  = errors.New("refresh token expired")
-	ErrRefreshTokenRevoked  = errors.New("refresh token revoked")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 type AuthService interface {

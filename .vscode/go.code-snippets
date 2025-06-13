@@ -1,0 +1,43 @@
+{
+  "Go Repository Test Suite": {
+    "prefix": "grtest",
+    "body": [
+      "package repository_test",
+      "",
+      "import (",
+      "\t\"testing\"",
+      "",
+      "\t\"github.com/stretchr/testify/suite\"",
+      "",
+      "\t\"github.com/tuananhlai/brevity-go/internal/testutil\"",
+      ")",
+      "",
+      "func Test${1:ModelName}Repository(t *testing.T) {",
+      "\tsuite.Run(t, new(${1:ModelName}RepositoryTestSuite))",
+      "}",
+      "",
+      "type ${1:ModelName}RepositoryTestSuite struct {",
+      "\tsuite.Suite",
+      "\tdbTestUtil *testutil.DatabaseTestUtil",
+      "}",
+      "",
+      "func (s *${1:ModelName}RepositoryTestSuite) SetupSuite() {",
+      "\tvar err error",
+      "\ts.dbTestUtil, err = testutil.NewDatabaseTestUtil()",
+      "\ts.Require().NoError(err)",
+      "}",
+      "",
+      "func (s *${1:ModelName}RepositoryTestSuite) BeforeTest(suiteName, testName string) {",
+      "\terr := s.dbTestUtil.Reset()",
+      "\ts.Require().NoError(err)",
+      "}",
+      "",
+      "func (s *${1:ModelName}RepositoryTestSuite) TearDownSuite() {",
+      "\terr := s.dbTestUtil.Teardown()",
+      "\ts.Require().NoError(err)",
+      "}",
+      ""
+    ],
+    "description": "Creates a new repository test suite using testify/suite."
+  }
+}

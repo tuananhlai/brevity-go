@@ -19,6 +19,9 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/main /app/main
+# Move the SQL migration files into the Dockerfile so that
+# we can apply database migrations using the Docker container if needed.
+COPY --from=builder /app/db/migrations /app/db/migrations
 
 USER 1001
 
