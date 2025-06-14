@@ -95,14 +95,20 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	return
 }
 
+// Tracer returns a named OpenTelemetry tracer. It should only
+// be called after `Setup` has been called.
 func Tracer(name string) trace.Tracer {
 	return otel.Tracer(name)
 }
 
+// Meter returns a named OpenTelemetry meter. It should only
+// be called after `Setup` has been called.
 func Meter(name string) metric.Meter {
 	return otel.Meter(name)
 }
 
+// Logger returns a named OpenTelemetry logger. It should only
+// be called after `Setup` has been called.
 func Logger(name string) *slog.Logger {
 	return otelslog.NewLogger(name)
 }

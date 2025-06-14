@@ -25,7 +25,11 @@ func NewLLMAPIKeyRepository(db *sqlx.DB) LLMAPIKeyRepository {
 
 func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*model.LLMAPIKey, error) {
 	var apiKeys []*model.LLMAPIKey
-	err := r.db.SelectContext(ctx, &apiKeys, "SELECT id, name, encrypted_key, created_at, user_id FROM llm_api_keys WHERE user_id = $1", userID)
+	err := r.db.SelectContext(ctx, &apiKeys, `
+		SELECT id, name, encrypted_key, created_at, user_id
+		FROM llm_api_keys
+		WHERE user_id = $1
+	`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +40,10 @@ func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.
 func (r *llmAPIKeyRepositoryImpl) Create(ctx context.Context, params LLMAPIKeyCreateParams) (*model.LLMAPIKey, error) {
 	apiKey := &model.LLMAPIKey{}
 
-	err := r.db.GetContext(ctx, apiKey, `INSERT INTO llm_api_keys (name, encrypted_key, user_id)
-		VALUES ($1, $2, $3) RETURNING id, name, encrypted_key, created_at, user_id`,
+	err := r.db.GetContext(ctx, apiKey, `
+		INSERT INTO llm_api_keys (name, encrypted_key, user_id)
+		VALUES ($1, $2, $3) 
+		RETURNING id, name, encrypted_key, created_at, user_id`,
 		params.Name, params.EncryptedKey, params.UserID)
 	if err != nil {
 		return nil, err

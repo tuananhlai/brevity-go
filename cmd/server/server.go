@@ -47,6 +47,8 @@ func Run() {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
+	logger := otelsdk.Logger("github.com/tuananhlai/brevity-go/cmd/server")
+
 	// == Gin Setup ==
 	r := gin.Default()
 	r.Use(otelgin.Middleware("main-server"))
@@ -64,8 +66,10 @@ func Run() {
 	}
 
 	go func() {
+		logger.Info("Server started on port", "port", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			logger.Error("Failed to start server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -79,24 +83,24 @@ func Run() {
 		return
 	}
 
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server...")
 
 	timeoutCtx, cancel := context.WithTimeout(globalCtx, shutdownTimeout)
 	defer cancel()
 
 	if err := srv.Shutdown(timeoutCtx); err != nil {
-		log.Printf("Failed to shutdown server gracefully: %v", err)
+		logger.Warn("Failed to shutdown server gracefully", "error", err)
 	}
 
 	if err := otelShutdown(timeoutCtx); err != nil {
-		log.Printf("Failed to shutdown opentelemetry sdk: %v", err)
+		logger.Warn("Failed to shutdown opentelemetry sdk", "error", err)
 	}
 
 	// Close the database connection after the server has been shutdown to ensure in-flight requests are completed.
 	if err := db.Close(); err != nil {
-		log.Printf("Failed to close database connection gracefully: %v", err)
+		logger.Warn("Failed to close database connection gracefully", "error", err)
 	}
 
 	<-timeoutCtx.Done()
-	log.Println("Server shutdown complete.")
+	logger.Info("Server shutdown complete.")
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/tuananhlai/brevity-go/cmd/jobs"
+	"github.com/tuananhlai/brevity-go/cmd/migrate"
 	"github.com/tuananhlai/brevity-go/cmd/server"
 )
 
@@ -20,6 +21,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(generateArticleCmd)
+	rootCmd.AddCommand(migrate.GetMigrateCmd())
 }
 
 var serverCmd = &cobra.Command{
