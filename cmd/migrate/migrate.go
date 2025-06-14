@@ -155,7 +155,11 @@ var dropCmd = &cobra.Command{
 		fmt.Println("WARNING: This will drop all tables in the database.")
 		fmt.Print("Are you sure? [y/N] ")
 		var confirm string
-		fmt.Scanln(&confirm)
+		_, err := fmt.Scanln(&confirm)
+		if err != nil {
+			fmt.Println("Failed to read input:", err)
+			os.Exit(1)
+		}
 		if confirm != "y" && confirm != "Y" {
 			fmt.Println("Operation cancelled.")
 			return

@@ -33,7 +33,8 @@ func TestEncryptDecrypt_Success(t *testing.T) {
 func TestEncryptDecrypt_InvalidKey(t *testing.T) {
 	key1 := make([]byte, service.EncryptionServiceKeySize)
 	key2 := make([]byte, service.EncryptionServiceKeySize)
-	rand.Read(key2)
+	_, err := rand.Read(key2)
+	require.NoError(t, err)
 
 	s1, err := service.NewEncryptionService(key1)
 	require.NoError(t, err)
