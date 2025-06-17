@@ -61,7 +61,6 @@ func Run() {
 	// == Gin Setup ==
 	r := gin.Default()
 	r.Use(otelgin.Middleware("main-server"))
-	// TODO: Reconfigure CORs before production deployment.
 	r.Use(cors.Default())
 
 	// == Routes ==
@@ -71,6 +70,7 @@ func Run() {
 	r.GET("/v1/article-previews", articleController.ListPreviews)
 	r.GET("/v1/articles/:slug", articleController.GetBySlug)
 	r.POST("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.CreateLLMAPIKey)
+	r.GET("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.ListLLMAPIKeys)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),
