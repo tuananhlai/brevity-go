@@ -23,12 +23,12 @@ type LLMAPIKeyServiceTestSuite struct {
 	suite.Suite
 	service        service.LLMAPIKeyService
 	mockRepo       *repository.MockLLMAPIKeyRepository
-	mockEncryption *service.MockEncryptionService
+	mockEncryption *service.MockCrypter
 }
 
 func (s *LLMAPIKeyServiceTestSuite) SetupTest() {
 	s.mockRepo = repository.NewMockLLMAPIKeyRepository(s.T())
-	s.mockEncryption = service.NewMockEncryptionService(s.T())
+	s.mockEncryption = service.NewMockCrypter(s.T())
 	s.service = service.NewLLMAPIKeyService(s.mockRepo, s.mockEncryption)
 }
 
