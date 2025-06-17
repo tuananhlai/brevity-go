@@ -15,6 +15,7 @@ require (
 	github.com/k3a/html2text v1.2.1
 	github.com/lib/pq v1.10.9
 	github.com/openai/openai-go v0.1.0-beta.9
+	github.com/samber/lo v1.51.0
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.36.0

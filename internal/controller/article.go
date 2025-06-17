@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 
@@ -48,7 +49,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	span.SetAttributes(attribute.Int("page_size", req.PageSize),
 		attribute.String("page_token", req.PageToken))
 
-	req.PageSize = shared.Clamp(req.PageSize, 1, 100)
+	req.PageSize = lo.Clamp(req.PageSize, 1, 100)
 
 	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
 		req.PageSize, repository.WithPageToken(req.PageToken))

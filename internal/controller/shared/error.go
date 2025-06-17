@@ -16,14 +16,3 @@ const (
 	CodeBindingRequestError Code = "binding_request_error"
 	CodeUnauthorized        Code = "unauthorized"
 )
-
-// Clamp returns value if it is between min and max, otherwise returns min or max.
-func Clamp(value, min, max int) int {
-	if value < min {
-		return min
-	}
-	if value > max {
-		return max
-	}
-	return value
-}
