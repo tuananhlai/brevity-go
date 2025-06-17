@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/repository"
@@ -36,10 +35,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 
 	var req ListPreviewsRequest
 	if err := ginCtx.ShouldBindQuery(&req); err != nil {
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeBindingRequestError,
-			Message: err.Error(),
-		})
+		shared.WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -51,13 +47,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
 		req.PageSize, repository.WithPageToken(req.PageToken))
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to list previews")
-		span.RecordError(err)
-
-		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: err.Error(),
-		})
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -85,29 +75,30 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 }
 
 func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
+	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.GetBySlug")
+	defer span.End()
+
 	var req GetBySlugRequest
 	if err := ginCtx.ShouldBindUri(&req); err != nil {
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeBindingRequestError,
-			Message: err.Error(),
-		})
+		shared.WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
-	article, err := c.articleService.GetBySlug(ginCtx.Request.Context(), req.Slug)
+	article, err := c.articleService.GetBySlug(ctx, req.Slug)
 	if err != nil {
 		if errors.Is(err, service.ErrArticleNotFound) {
-			ginCtx.JSON(http.StatusNotFound, shared.ErrorResponse{
-				Code:    CodeArticleNotFound,
-				Message: err.Error(),
+			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+				Body: shared.ErrorResponse{
+					Code:    CodeArticleNotFound,
+					Message: err.Error(),
+				},
+				Span: span,
+				Err:  err,
 			})
 			return
 		}
 
-		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: err.Error(),
-		})
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 

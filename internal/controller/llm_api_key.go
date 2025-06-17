@@ -1,13 +1,12 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/service"
@@ -39,9 +38,13 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 
 	userID, err := shared.GetContextUserID(ginCtx)
 	if err != nil {
-		ginCtx.JSON(http.StatusUnauthorized, shared.ErrorResponse{
-			Code:    shared.CodeUnauthorized,
-			Message: "error getting userID from context",
+		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+			Body: shared.ErrorResponse{
+				Code:    shared.CodeUnauthorized,
+				Message: "error getting userID from context",
+			},
+			Span: span,
+			Err:  err,
 		})
 		return
 	}
@@ -49,13 +52,7 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 
 	llmAPIKeys, err := c.llmAPIKeyService.ListByUserID(ctx, userID)
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to list llm api keys")
-		span.RecordError(err)
-
-		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: fmt.Sprintf("error listing llm api keys: %s", err.Error()),
-		})
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -87,24 +84,25 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		CreatedAt     time.Time `json:"createdAt"`
 	}
 
+	ctx, span := appTracer.Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
+	defer span.End()
+
 	userID, err := shared.GetContextUserID(ginCtx)
 	if err != nil {
-		ginCtx.JSON(http.StatusUnauthorized, shared.ErrorResponse{
-			Code:    shared.CodeUnauthorized,
-			Message: "error getting userID from context",
+		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+			Body: shared.ErrorResponse{
+				Code:    shared.CodeUnauthorized,
+				Message: "error getting userID from context",
+			},
+			Span: span,
+			Err:  err,
 		})
 		return
 	}
 
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
-	defer span.End()
-
 	var req request
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeBindingRequestError,
-			Message: fmt.Sprintf("error binding request: %s", err.Error()),
-		})
+		shared.WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -114,13 +112,8 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		UserID: userID,
 	})
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to create llm api key")
-		span.RecordError(err)
-
-		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: fmt.Sprintf("error creating llm api key: %s", err.Error()),
-		})
+		shared.WriteUnknownErrorResponse(ginCtx, span,
+			errors.Wrap(err, "failed to create llm api key"))
 		return
 	}
 

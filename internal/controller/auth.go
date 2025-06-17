@@ -8,7 +8,6 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/service"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 )
 
 const (
@@ -32,12 +31,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 
 	var req LoginRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		span.SetStatus(codes.Error, "failed to bind request")
-		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeBindingRequestError,
-			Message: err.Error(),
-		})
+		shared.WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -47,20 +41,19 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 
 	user, err := c.authService.Login(ctx, req.EmailOrUsername, req.Password)
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to login")
-		span.RecordError(err)
-
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-				Code:    CodeInvalidCredentials,
-				Message: err.Error(),
+			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+				Body: shared.ErrorResponse{
+					Code:    CodeInvalidCredentials,
+					Message: err.Error(),
+				},
+				Span: span,
+				Err:  err,
 			})
 			return
 		}
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: err.Error(),
-		})
+
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -80,12 +73,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	var req RegisterRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		span.SetStatus(codes.Error, "failed to bind request")
-		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeBindingRequestError,
-			Message: err.Error(),
-		})
+		shared.WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -96,20 +84,19 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	err := c.authService.Register(ctx, req.Email, req.Username, req.Password)
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to register user")
-		span.RecordError(err)
-
 		if errors.Is(err, service.ErrUserAlreadyExists) {
-			ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-				Code:    CodeUserAlreadyExists,
-				Message: err.Error(),
+			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+				Body: shared.ErrorResponse{
+					Code:    CodeUserAlreadyExists,
+					Message: err.Error(),
+				},
+				Span: span,
+				Err:  err,
 			})
 			return
 		}
-		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
-			Code:    shared.CodeUnknown,
-			Message: err.Error(),
-		})
+
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
