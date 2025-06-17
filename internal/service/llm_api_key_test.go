@@ -46,7 +46,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestListByUserID_Success() {
 		CreatedAt:    createdAt,
 	}
 
-	s.mockRepo.On("ListByUserID", ctx, userID).Return([]*model.LLMAPIKey{mockModel}, nil)
+	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return([]*model.LLMAPIKey{mockModel}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return([]byte(plainKey), nil)
 
 	result, err := s.service.ListByUserID(ctx, userID.String())
@@ -65,7 +65,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestListByUserID_Success() {
 func (s *LLMAPIKeyServiceTestSuite) TestListByUserID_RepoError() {
 	ctx := context.Background()
 	userID := uuid.New()
-	s.mockRepo.On("ListByUserID", ctx, userID).Return(nil, assert.AnError)
+	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return(nil, assert.AnError)
 
 	result, err := s.service.ListByUserID(ctx, userID.String())
 
@@ -86,7 +86,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestListByUserID_DecryptError() {
 		CreatedAt:    time.Now(),
 	}
 
-	s.mockRepo.On("ListByUserID", ctx, userID).Return([]*model.LLMAPIKey{mockModel}, nil)
+	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return([]*model.LLMAPIKey{mockModel}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return(nil, assert.AnError)
 
 	result, err := s.service.ListByUserID(ctx, userID.String())
