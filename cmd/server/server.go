@@ -37,15 +37,15 @@ func Run() {
 	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
-	articleController := InitializeArticleController(db)
-	authService := InitializeAuthService(db, cfg.Auth.TokenSecret)
+	articleController := initializeArticleController(db)
+	authService := initializeAuthService(db, cfg.Auth.TokenSecret)
 	authController := controller.NewAuthController(authService)
 	healthController := controller.NewHealthController()
 	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
 	if err != nil {
 		log.Fatalf("error initializing encryption service: %s", err)
 	}
-	llmAPIKeyController := InitializeLLMAPIKeyController(db, encryptionService)
+	llmAPIKeyController := initializeLLMAPIKeyController(db, encryptionService)
 	authMiddleware := middleware.AuthMiddleware(authService)
 
 	// == Otel Setup ==
