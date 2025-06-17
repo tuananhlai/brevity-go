@@ -7,20 +7,20 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
-func InitializeArticleController(db *sqlx.DB) *controller.ArticleController {
+func initializeArticleController(db *sqlx.DB) *controller.ArticleController {
 	articleRepository := repository.NewArticleRepository(db)
 	articleService := service.NewArticleService(articleRepository)
 	articleController := controller.NewArticleController(articleService)
 	return articleController
 }
 
-func InitializeAuthService(db *sqlx.DB, tokenSecret string) service.AuthService {
+func initializeAuthService(db *sqlx.DB, tokenSecret string) service.AuthService {
 	authRepository := repository.NewAuthRepository(db)
 	authService := service.NewAuthService(authRepository, tokenSecret)
 	return authService
 }
 
-func InitializeLLMAPIKeyController(db *sqlx.DB, crypter service.Crypter) *controller.LLMAPIKeyController {
+func initializeLLMAPIKeyController(db *sqlx.DB, crypter service.Crypter) *controller.LLMAPIKeyController {
 	llmapiKeyRepository := repository.NewLLMAPIKeyRepository(db)
 	llmapiKeyService := service.NewLLMAPIKeyService(llmapiKeyRepository, crypter)
 	llmapiKeyController := controller.NewLLMAPIKeyController(llmapiKeyService)

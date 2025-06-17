@@ -85,7 +85,7 @@ func (s *LLMAPIKeyRepositoryTestSuite) TestListByUserID_Success() {
 	})
 	s.Require().NoError(err)
 
-	keys, err := s.llmAPIKeyRepo.ListByUserID(ctx, expectedUserID)
+	keys, err := s.llmAPIKeyRepo.ListByUserID(ctx, expectedUserID.String())
 	s.Require().NoError(err)
 
 	s.Len(keys, 1)

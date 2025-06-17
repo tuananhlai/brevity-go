@@ -3,13 +3,13 @@ package repository
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/tuananhlai/brevity-go/internal/model"
 )
 
 type LLMAPIKeyRepository interface {
-	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*model.LLMAPIKey, error)
+	ListByUserID(ctx context.Context, userID string) ([]*model.LLMAPIKey, error)
 	Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*model.LLMAPIKey, error)
 }
 
@@ -23,7 +23,7 @@ func NewLLMAPIKeyRepository(db *sqlx.DB) LLMAPIKeyRepository {
 	}
 }
 
-func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*model.LLMAPIKey, error) {
+func (r *llmAPIKeyRepositoryImpl) ListByUserID(ctx context.Context, userID string) ([]*model.LLMAPIKey, error) {
 	var apiKeys []*model.LLMAPIKey
 	err := r.db.SelectContext(ctx, &apiKeys, `
 		SELECT id, name, encrypted_key, created_at, user_id

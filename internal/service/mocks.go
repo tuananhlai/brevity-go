@@ -7,7 +7,6 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuananhlai/brevity-go/internal/model"
 	"github.com/tuananhlai/brevity-go/internal/repository"
@@ -728,7 +727,7 @@ func (_c *MockLLMAPIKeyService_Create_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // ListByUserID provides a mock function for the type MockLLMAPIKeyService
-func (_mock *MockLLMAPIKeyService) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*LLMAPIKey, error) {
+func (_mock *MockLLMAPIKeyService) ListByUserID(ctx context.Context, userID string) ([]*LLMAPIKey, error) {
 	ret := _mock.Called(ctx, userID)
 
 	if len(ret) == 0 {
@@ -737,17 +736,17 @@ func (_mock *MockLLMAPIKeyService) ListByUserID(ctx context.Context, userID uuid
 
 	var r0 []*LLMAPIKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]*LLMAPIKey, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*LLMAPIKey, error)); ok {
 		return returnFunc(ctx, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []*LLMAPIKey); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*LLMAPIKey); ok {
 		r0 = returnFunc(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*LLMAPIKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = returnFunc(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
@@ -762,20 +761,20 @@ type MockLLMAPIKeyService_ListByUserID_Call struct {
 
 // ListByUserID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID uuid.UUID
+//   - userID string
 func (_e *MockLLMAPIKeyService_Expecter) ListByUserID(ctx interface{}, userID interface{}) *MockLLMAPIKeyService_ListByUserID_Call {
 	return &MockLLMAPIKeyService_ListByUserID_Call{Call: _e.mock.On("ListByUserID", ctx, userID)}
 }
 
-func (_c *MockLLMAPIKeyService_ListByUserID_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockLLMAPIKeyService_ListByUserID_Call {
+func (_c *MockLLMAPIKeyService_ListByUserID_Call) Run(run func(ctx context.Context, userID string)) *MockLLMAPIKeyService_ListByUserID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 uuid.UUID
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(uuid.UUID)
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
@@ -790,7 +789,7 @@ func (_c *MockLLMAPIKeyService_ListByUserID_Call) Return(lLMAPIKeys []*LLMAPIKey
 	return _c
 }
 
-func (_c *MockLLMAPIKeyService_ListByUserID_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) ([]*LLMAPIKey, error)) *MockLLMAPIKeyService_ListByUserID_Call {
+func (_c *MockLLMAPIKeyService_ListByUserID_Call) RunAndReturn(run func(ctx context.Context, userID string) ([]*LLMAPIKey, error)) *MockLLMAPIKeyService_ListByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

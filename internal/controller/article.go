@@ -36,9 +36,6 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 
 	var req ListPreviewsRequest
 	if err := ginCtx.ShouldBindQuery(&req); err != nil {
-		span.SetStatus(codes.Error, "failed to bind request")
-		span.RecordError(err)
-
 		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
 			Code:    shared.CodeBindingRequestError,
 			Message: err.Error(),

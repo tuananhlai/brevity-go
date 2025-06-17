@@ -15,7 +15,7 @@ type Crypter interface {
 }
 
 type LLMAPIKeyService interface {
-	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*LLMAPIKey, error)
+	ListByUserID(ctx context.Context, userID string) ([]*LLMAPIKey, error)
 	Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error)
 }
 
@@ -31,7 +31,7 @@ func NewLLMAPIKeyService(repo repository.LLMAPIKeyRepository, crypter Crypter) L
 	}
 }
 
-func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*LLMAPIKey, error) {
+func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID string) ([]*LLMAPIKey, error) {
 	results, err := s.repo.ListByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
