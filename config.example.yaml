@@ -10,3 +10,6 @@ llm:
 
 otel:
   collector_grpc_url: "http://localhost:44317"
+
+encryption:
+  key: "MO9bZ88kRNR23Yy6qIRfLqrA5R43cP0u"

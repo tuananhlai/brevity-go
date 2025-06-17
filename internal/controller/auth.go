@@ -5,18 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/service"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 )
 
 const (
-	CodeInvalidCredentials Code = "invalid_credentials"
-	CodeUserAlreadyExists  Code = "user_already_exists"
-
-	AccessTokenCookieName   = "access_token"
-	AccessTokenCookiePath   = "/"
-	AccessTokenCookieMaxAge = 60 * 60 * 24 * 30 // 30 days
+	CodeInvalidCredentials shared.Code = "invalid_credentials"
+	CodeUserAlreadyExists  shared.Code = "user_already_exists"
 )
 
 type AuthController struct {
@@ -29,11 +26,6 @@ func NewAuthController(authService service.AuthService) *AuthController {
 	}
 }
 
-func (c *AuthController) RegisterRoutes(router *gin.Engine) {
-	router.POST("/v1/auth/sign-up", c.Register)
-	router.POST("/v1/auth/sign-in", c.Login)
-}
-
 func (c *AuthController) Login(ginCtx *gin.Context) {
 	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.Login")
 	defer span.End()
@@ -42,8 +34,8 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
 		span.SetStatus(codes.Error, "failed to bind request")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeBindingRequestError,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeBindingRequestError,
 			Message: err.Error(),
 		})
 		return
@@ -59,14 +51,14 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 		span.RecordError(err)
 
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
 				Code:    CodeInvalidCredentials,
 				Message: err.Error(),
 			})
 			return
 		}
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeUnknown,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeUnknown,
 			Message: err.Error(),
 		})
 		return
@@ -78,9 +70,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 		Email:    user.Email,
 	}
 
-	// TODO: See what value to be set to the domain.
-	ginCtx.SetCookie(AccessTokenCookieName, user.AccessToken, AccessTokenCookieMaxAge,
-		AccessTokenCookiePath, "", true, true)
+	shared.SetAccessTokenCookie(ginCtx, user.AccessToken)
 	ginCtx.JSON(http.StatusOK, res)
 }
 
@@ -92,8 +82,8 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
 		span.SetStatus(codes.Error, "failed to bind request")
 		span.RecordError(err)
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeBindingRequestError,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeBindingRequestError,
 			Message: err.Error(),
 		})
 		return
@@ -110,14 +100,14 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 		span.RecordError(err)
 
 		if errors.Is(err, service.ErrUserAlreadyExists) {
-			ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
+			ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
 				Code:    CodeUserAlreadyExists,
 				Message: err.Error(),
 			})
 			return
 		}
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeUnknown,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeUnknown,
 			Message: err.Error(),
 		})
 		return

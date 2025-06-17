@@ -35,9 +35,9 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
 	s.mockService = service.NewMockArticleService(s.T())
 	s.router = gin.Default()
-
 	controller := controller.NewArticleController(s.mockService)
-	controller.RegisterRoutes(s.router)
+	s.router.GET("/v1/article-previews", controller.ListPreviews)
+	s.router.GET("/v1/articles/:slug", controller.GetBySlug)
 }
 
 func (s *ArticleControllerTestSuite) TestListPreviews_Success() {

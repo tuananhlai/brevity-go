@@ -28,6 +28,12 @@ type AppConfig struct {
 		APIKey  string `yaml:"api_key" env:"LLM_API_KEY"`
 		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID"`
 	}
+	Encryption struct {
+		Key string `yaml:"key" env:"ENCRYPTION_KEY"`
+	}
+	Auth struct {
+		TokenSecret string `yaml:"token_secret" env:"AUTH_TOKEN_SECRET" env-default:"secret"`
+	}
 }
 
 func LoadConfig() (*AppConfig, error) {

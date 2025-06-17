@@ -10,12 +10,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 
+	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 const (
-	CodeArticleNotFound Code = "article_not_found"
+	CodeArticleNotFound shared.Code = "article_not_found"
 )
 
 type ArticleController struct {
@@ -24,11 +25,6 @@ type ArticleController struct {
 
 func NewArticleController(articleService service.ArticleService) *ArticleController {
 	return &ArticleController{articleService: articleService}
-}
-
-func (c *ArticleController) RegisterRoutes(router *gin.Engine) {
-	router.GET("/v1/article-previews", c.ListPreviews)
-	router.GET("/v1/articles/:slug", c.GetBySlug)
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
@@ -42,8 +38,8 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 		span.SetStatus(codes.Error, "failed to bind request")
 		span.RecordError(err)
 
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeBindingRequestError,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeBindingRequestError,
 			Message: err.Error(),
 		})
 		return
@@ -52,7 +48,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	span.SetAttributes(attribute.Int("page_size", req.PageSize),
 		attribute.String("page_token", req.PageToken))
 
-	req.PageSize = clamp(req.PageSize, 1, 100)
+	req.PageSize = shared.Clamp(req.PageSize, 1, 100)
 
 	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
 		req.PageSize, repository.WithPageToken(req.PageToken))
@@ -60,8 +56,8 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 		span.SetStatus(codes.Error, "failed to list previews")
 		span.RecordError(err)
 
-		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    CodeUnknown,
+		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
+			Code:    shared.CodeUnknown,
 			Message: err.Error(),
 		})
 		return
@@ -93,8 +89,8 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 	var req GetBySlugRequest
 	if err := ginCtx.ShouldBindUri(&req); err != nil {
-		ginCtx.JSON(http.StatusBadRequest, ErrorResponse{
-			Code:    CodeBindingRequestError,
+		ginCtx.JSON(http.StatusBadRequest, shared.ErrorResponse{
+			Code:    shared.CodeBindingRequestError,
 			Message: err.Error(),
 		})
 		return
@@ -103,15 +99,15 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 	article, err := c.articleService.GetBySlug(ginCtx.Request.Context(), req.Slug)
 	if err != nil {
 		if errors.Is(err, service.ErrArticleNotFound) {
-			ginCtx.JSON(http.StatusNotFound, ErrorResponse{
+			ginCtx.JSON(http.StatusNotFound, shared.ErrorResponse{
 				Code:    CodeArticleNotFound,
 				Message: err.Error(),
 			})
 			return
 		}
 
-		ginCtx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    CodeUnknown,
+		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
+			Code:    shared.CodeUnknown,
 			Message: err.Error(),
 		})
 		return

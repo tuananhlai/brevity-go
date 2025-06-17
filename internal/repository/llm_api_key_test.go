@@ -53,7 +53,7 @@ func (s *LLMAPIKeyRepositoryTestSuite) TestCreateLLMAPIKey_Success() {
 	_, err := s.llmAPIKeyRepo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
-		UserID:       expectedUserID,
+		UserID:       expectedUserID.String(),
 	})
 	s.Require().NoError(err)
 
@@ -81,7 +81,7 @@ func (s *LLMAPIKeyRepositoryTestSuite) TestListByUserID_Success() {
 	_, err := s.llmAPIKeyRepo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
-		UserID:       expectedUserID,
+		UserID:       expectedUserID.String(),
 	})
 	s.Require().NoError(err)
 
