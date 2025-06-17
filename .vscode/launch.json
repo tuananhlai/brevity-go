@@ -9,10 +9,11 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            "program": "cmd/main.go",
             "args": [
                 "server"
-            ]
+            ],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

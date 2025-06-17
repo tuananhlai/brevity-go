@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/service"
@@ -48,6 +49,9 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 
 	llmAPIKeys, err := c.llmAPIKeyService.ListByUserID(ctx, userID)
 	if err != nil {
+		span.SetStatus(codes.Error, "failed to list llm api keys")
+		span.RecordError(err)
+
 		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
 			Code:    shared.CodeUnknown,
 			Message: fmt.Sprintf("error listing llm api keys: %s", err.Error()),
@@ -64,7 +68,6 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 			ValueLastSix:  llmAPIKey.ValueLastSix,
 			CreatedAt:     llmAPIKey.CreatedAt,
 		})
-		return
 	}
 
 	ginCtx.JSON(http.StatusOK, res)
@@ -111,6 +114,9 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		UserID: userID,
 	})
 	if err != nil {
+		span.SetStatus(codes.Error, "failed to create llm api key")
+		span.RecordError(err)
+
 		ginCtx.JSON(http.StatusInternalServerError, shared.ErrorResponse{
 			Code:    shared.CodeUnknown,
 			Message: fmt.Sprintf("error creating llm api key: %s", err.Error()),
