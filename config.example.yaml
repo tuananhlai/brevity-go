@@ -13,3 +13,6 @@ otel:
 
 encryption:
   key: "MO9bZ88kRNR23Yy6qIRfLqrA5R43cP0u"
+
+auth:
+  token_secret: "token_secret"

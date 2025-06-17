@@ -54,6 +54,14 @@
         {
           "name": "OTEL_EXPORTER_OTLP_HEADERS",
           "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/otel-collector-headers"
+        },
+        {
+          "name": "ENCRYPTION_KEY",
+          "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/encryption-key"
+        },
+        {
+          "name": "AUTH_TOKEN_SECRET",
+          "valueFrom": "arn:aws:ssm:us-east-1:969026361642:parameter/brevity/auth-token-secret"
         }
       ],
       "systemControls": [],
