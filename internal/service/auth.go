@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"time"
@@ -21,56 +20,24 @@ var (
 type AuthService interface {
 	Register(ctx context.Context, email, username, password string) error
 	Login(ctx context.Context, emailOrUsername, password string) (*LoginReturn, error)
-}
-
-type TokenGenerationConfig struct {
-	Secret string
-	Expiry time.Duration
+	VerifyAccessToken(ctx context.Context, accessToken string) (string, error)
 }
 
 type authServiceImpl struct {
-	authRepo repository.AuthRepository
-	// accessTokenConfig is the configuration used for creating access tokens.
-	accessTokenConfig TokenGenerationConfig
+	authRepo          repository.AuthRepository
+	accessTokenSecret string
+	accessTokenExpiry time.Duration
 	// bcryptCost is the cost of the bcrypt hash. The larger this value, the more secure
 	// the hash is, but the slower it is to generate.
 	bcryptCost int
 }
 
-type AuthServiceOption func(*authServiceImpl)
-
-func WithAccessTokenSecret(secret string) AuthServiceOption {
-	return func(s *authServiceImpl) {
-		s.accessTokenConfig.Secret = secret
-	}
-}
-
-func WithAccessTokenExpiry(expiry time.Duration) AuthServiceOption {
-	return func(s *authServiceImpl) {
-		s.accessTokenConfig.Expiry = expiry
-	}
-}
-
-func WithBcryptCost(cost int) AuthServiceOption {
-	return func(s *authServiceImpl) {
-		s.bcryptCost = cost
-	}
-}
-
-func NewAuthService(authRepo repository.AuthRepository, opts ...AuthServiceOption) AuthService {
-	defaultAccessTokenConfig := TokenGenerationConfig{
-		// TODO: Replace with static secret.
-		Secret: rand.Text(),
-		Expiry: time.Hour * 24 * 30,
-	}
-
+func NewAuthService(authRepo repository.AuthRepository, accessTokenSecret string) AuthService {
 	service := &authServiceImpl{
-		authRepo:          authRepo,
-		accessTokenConfig: defaultAccessTokenConfig,
 		bcryptCost:        bcrypt.DefaultCost,
-	}
-	for _, opt := range opts {
-		opt(service)
+		accessTokenExpiry: time.Hour * 24 * 30,
+		authRepo:          authRepo,
+		accessTokenSecret: accessTokenSecret,
 	}
 
 	return service
@@ -125,6 +92,22 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 	}, nil
 }
 
+func (s *authServiceImpl) VerifyAccessToken(ctx context.Context, accessToken string) (string, error) {
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (any, error) {
+		return []byte(s.accessTokenSecret), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", fmt.Errorf("invalid token claims")
+	}
+
+	return claims["sub"].(string), nil
+}
+
 func (s *authServiceImpl) generateToken(userID string, secret string, expiry time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
@@ -135,7 +118,7 @@ func (s *authServiceImpl) generateToken(userID string, secret string, expiry tim
 }
 
 func (s *authServiceImpl) generateAccessToken(userID string) (string, error) {
-	return s.generateToken(userID, s.accessTokenConfig.Secret, s.accessTokenConfig.Expiry)
+	return s.generateToken(userID, s.accessTokenSecret, s.accessTokenExpiry)
 }
 
 type LoginReturn struct {

@@ -9,13 +9,13 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/google/uuid v1.6.0
-	github.com/google/wire v0.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/k3a/html2text v1.2.1
 	github.com/lib/pq v1.10.9
 	github.com/openai/openai-go v0.1.0-beta.9
+	github.com/samber/lo v1.51.0
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.36.0
@@ -29,6 +29,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.12.2
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.36.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.19.0
+	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.12.2
 	go.opentelemetry.io/otel/log v0.12.2
 	go.opentelemetry.io/otel/metric v1.36.0
 	go.opentelemetry.io/otel/sdk v1.36.0

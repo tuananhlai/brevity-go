@@ -55,5 +55,5 @@ func (r *llmAPIKeyRepositoryImpl) Create(ctx context.Context, params LLMAPIKeyCr
 type LLMAPIKeyCreateParams struct {
 	Name         string
 	EncryptedKey []byte
-	UserID       uuid.UUID
+	UserID       string
 }

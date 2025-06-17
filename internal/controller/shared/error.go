@@ -1,4 +1,4 @@
-package controller
+package shared
 
 type ErrorResponse struct {
 	// Code is a short error code. Examples: "invalid_credentials", "user_already_exists".
@@ -8,6 +8,7 @@ type ErrorResponse struct {
 	Details any    `json:"details,omitempty"`
 }
 
+// Code is a string representing a type of server error.
 type Code string
 
 const (
@@ -15,13 +16,3 @@ const (
 	CodeBindingRequestError Code = "binding_request_error"
 	CodeUnauthorized        Code = "unauthorized"
 )
-
-func clamp(value, min, max int) int {
-	if value < min {
-		return min
-	}
-	if value > max {
-		return max
-	}
-	return value
-}

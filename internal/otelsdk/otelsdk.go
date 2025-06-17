@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
@@ -21,12 +22,11 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/tuananhlai/brevity-go/internal/config"
 )
 
 type SetupConfig struct {
-	Mode config.Mode
+	// Debug customizes the OpenTelemetry SDK behavior for better debugging experience when the value is true.
+	Debug bool
 }
 
 // Setup bootstraps the OpenTelemetry pipeline.
@@ -58,7 +58,7 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	}
 
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx, resource)
+	loggerProvider, err := newLoggerProvider(ctx, resource, cfg.Debug)
 	if err != nil {
 		handleErr(err)
 		return
@@ -122,8 +122,15 @@ func newResource() (*resource.Resource, error) {
 	)
 }
 
-func newLoggerProvider(ctx context.Context, resource *resource.Resource) (*sdklog.LoggerProvider, error) {
-	logExporter, err := otlploghttp.New(ctx)
+func newLoggerProvider(ctx context.Context, resource *resource.Resource, dev bool) (*sdklog.LoggerProvider, error) {
+	var logExporter sdklog.Exporter
+	var err error
+
+	if dev {
+		logExporter, err = stdoutlog.New()
+	} else {
+		logExporter, err = otlploghttp.New(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}

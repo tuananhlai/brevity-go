@@ -9,20 +9,25 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
+type Crypter interface {
+	Encrypt(plainText []byte) []byte
+	Decrypt(cipherText []byte) ([]byte, error)
+}
+
 type LLMAPIKeyService interface {
 	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*LLMAPIKey, error)
 	Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error)
 }
 
 type llmAPIKeyServiceImpl struct {
-	repo              repository.LLMAPIKeyRepository
-	encryptionService EncryptionService
+	repo    repository.LLMAPIKeyRepository
+	crypter Crypter
 }
 
-func NewLLMAPIKeyService(repo repository.LLMAPIKeyRepository, encryptionService EncryptionService) LLMAPIKeyService {
+func NewLLMAPIKeyService(repo repository.LLMAPIKeyRepository, crypter Crypter) LLMAPIKeyService {
 	return &llmAPIKeyServiceImpl{
-		repo:              repo,
-		encryptionService: encryptionService,
+		repo:    repo,
+		crypter: crypter,
 	}
 }
 
@@ -34,7 +39,7 @@ func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUI
 
 	res := make([]*LLMAPIKey, 0, len(results))
 	for _, result := range results {
-		apiKeyBytes, err := s.encryptionService.Decrypt(result.EncryptedKey)
+		apiKeyBytes, err := s.crypter.Decrypt(result.EncryptedKey)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +60,7 @@ func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUI
 }
 
 func (s *llmAPIKeyServiceImpl) Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error) {
-	encryptedKey := s.encryptionService.Encrypt([]byte(apiKey.Value))
+	encryptedKey := s.crypter.Encrypt([]byte(apiKey.Value))
 
 	newAPIKey, err := s.repo.Create(ctx, repository.LLMAPIKeyCreateParams{
 		Name:         apiKey.Name,
@@ -91,5 +96,5 @@ type LLMAPIKeyCreateParams struct {
 	Name string
 	// Value is the plaintext API key string.
 	Value  string
-	UserID uuid.UUID
+	UserID string
 }

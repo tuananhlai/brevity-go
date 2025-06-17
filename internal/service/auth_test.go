@@ -28,7 +28,7 @@ type AuthServiceTestSuite struct {
 
 func (s *AuthServiceTestSuite) SetupTest() {
 	s.mockRepo = repository.NewMockAuthRepository(s.T())
-	s.authService = service.NewAuthService(s.mockRepo)
+	s.authService = service.NewAuthService(s.mockRepo, "test-secret")
 }
 
 func (s *AuthServiceTestSuite) TestRegister_Success() {

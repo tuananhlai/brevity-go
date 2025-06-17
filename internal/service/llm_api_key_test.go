@@ -106,7 +106,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestCreate_Success() {
 	params := service.LLMAPIKeyCreateParams{
 		Name:   "Test Key",
 		Value:  plainKey,
-		UserID: userID,
+		UserID: userID.String(),
 	}
 	mockModel := &model.LLMAPIKey{
 		ID:           uuid.New(),
@@ -118,7 +118,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestCreate_Success() {
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)
 	s.mockRepo.On("Create", ctx, mock.MatchedBy(func(p repository.LLMAPIKeyCreateParams) bool {
-		return p.Name == params.Name && string(p.EncryptedKey) == string(encKey) && p.UserID == userID
+		return p.Name == params.Name && string(p.EncryptedKey) == string(encKey) && p.UserID == userID.String()
 	})).Return(mockModel, nil)
 
 	result, err := s.service.Create(ctx, params)
@@ -143,7 +143,7 @@ func (s *LLMAPIKeyServiceTestSuite) TestCreate_RepoError() {
 	params := service.LLMAPIKeyCreateParams{
 		Name:   "Test Key",
 		Value:  plainKey,
-		UserID: userID,
+		UserID: userID.String(),
 	}
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)

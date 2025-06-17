@@ -29,3 +29,8 @@ brew install mockery
 
 mockery --name=ArticleService
 ```
+
+## Notes
+
+- `shared` packages must not depend on any other packages in the project.
+- Within `internal` folder, only `controller`, `service` and `repository` packages are allowed to depend on other packages in the same project.

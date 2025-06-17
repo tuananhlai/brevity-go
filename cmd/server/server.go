@@ -18,6 +18,8 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/controller"
+	"github.com/tuananhlai/brevity-go/internal/controller/middleware"
+	"github.com/tuananhlai/brevity-go/internal/encryption"
 	"github.com/tuananhlai/brevity-go/internal/otelsdk"
 )
 
@@ -36,12 +38,19 @@ func Run() {
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
 	articleController := InitializeArticleController(db)
-	authController := InitializeAuthController(db)
+	authService := InitializeAuthService(db, cfg.Auth.TokenSecret)
+	authController := controller.NewAuthController(authService)
 	healthController := controller.NewHealthController()
+	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
+	if err != nil {
+		log.Fatalf("error initializing encryption service: %s", err)
+	}
+	llmAPIKeyController := InitializeLLMAPIKeyController(db, encryptionService)
+	authMiddleware := middleware.AuthMiddleware(authService)
 
 	// == Otel Setup ==
 	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
-		Mode: cfg.Mode,
+		Debug: cfg.Mode == config.ModeDev,
 	})
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
@@ -56,9 +65,12 @@ func Run() {
 	r.Use(cors.Default())
 
 	// == Routes ==
-	articleController.RegisterRoutes(r)
-	authController.RegisterRoutes(r)
-	healthController.RegisterRoutes(r)
+	r.GET("/health/liveness", healthController.CheckLiveness)
+	r.POST("/v1/auth/sign-up", authController.Register)
+	r.POST("/v1/auth/sign-in", authController.Login)
+	r.GET("/v1/article-previews", articleController.ListPreviews)
+	r.GET("/v1/articles/:slug", articleController.GetBySlug)
+	r.POST("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.CreateLLMAPIKey)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),
