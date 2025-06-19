@@ -275,6 +275,34 @@ module "ecs_task_execution_role" {
   ]
 }
 
+module "ecs_task_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version = "~> 5.0"
+
+  create_role      = true
+  role_name_prefix = "brevity-ecs-task-"
+
+  create_custom_role_trust_policy = true
+  custom_role_trust_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  // TODO: Make the policy more restrictive.
+  custom_role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+  ]
+}
+
+
 module "ecs_service_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 5.0"
@@ -351,7 +379,8 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 1
   // TODO: Remove when the application is running stably on production.
-  force_delete = true
+  force_delete           = true
+  enable_execute_command = true
 
   network_configuration {
     subnets         = module.vpc.public_subnets
@@ -402,5 +431,6 @@ output "alb" {
 output "ecs" {
   value = {
     task_execution_role = module.ecs_task_execution_role.iam_role_arn
+    task_role           = module.ecs_task_role.iam_role_arn
   }
 }

@@ -76,6 +76,7 @@
     }
   ],
   "executionRoleArn": "arn:aws:iam::969026361642:role/brevity-ecs-execution-20250527104533230800000002",
+  "taskRoleArn": "arn:aws:iam::969026361642:role/brevity-ecs-task-20250619125511582700000001",
   "networkMode": "awsvpc",
   "volumes": [],
   "placementConstraints": []
