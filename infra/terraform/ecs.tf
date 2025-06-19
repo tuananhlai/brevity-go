@@ -270,9 +270,30 @@ module "ecs_task_execution_role" {
 
   custom_role_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
-    // Allow Github Actions to read secrets from the SSM parameter store.
+    // Allow ECS tasks to read secrets from the SSM parameter store.
     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
   ]
+}
+
+resource "aws_iam_policy" "ecs_exec_policy" {
+  name_prefix = "brevity-ecs-exec-policy-"
+  description = "Allows ECS tasks to be accessed via ECS Exec for debugging."
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 module "ecs_task_role" {
@@ -296,9 +317,8 @@ module "ecs_task_role" {
     ]
   })
 
-  // TODO: Make the policy more restrictive.
   custom_role_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+    aws_iam_policy.ecs_exec_policy.arn
   ]
 }
 
@@ -345,6 +365,7 @@ resource "aws_ecs_task_definition" "backend" {
   family             = "brevity"
   network_mode       = "awsvpc"
   execution_role_arn = module.ecs_task_execution_role.iam_role_arn
+  task_role_arn      = module.ecs_task_role.iam_role_arn
 
   // NOTE: The task definition will be updated using CI/CD, so we
   // don't want terraform to override the latest version.
