@@ -191,22 +191,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  name:
-                    type: string
-                  valueFirstTen:
-                    type: string
-                    description: "The first 10 characters of the API key."
-                  valueLastSix:
-                    type: string
-                    description: "The last 6 characters of the API key."
-                  createdAt:
-                    type: string
-                    format: date-time
+                $ref: "#/components/schemas/LLMAPIKey"
     get:
       security:
         - bearerAuth: []
@@ -223,22 +208,7 @@ paths:
                   items:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        name:
-                          type: string
-                        valueFirstTen:
-                          type: string
-                          description: "The first 10 characters of the API key."
-                        valueLastSix:
-                          type: string
-                          description: "The last 6 characters of the API key."
-                        createdAt:
-                          type: string
-                          format: date-time
+                      $ref: "#/components/schemas/LLMAPIKey"
 
 components:
   securitySchemes:
@@ -341,3 +311,25 @@ components:
         - author
         - createdAt
         - updatedAt
+
+  LLMAPIKey:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      valueFirstTen:
+        type: string
+      valueLastSix:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      required:
+        - id
+        - name
+        - valueFirstTen
+        - valueLastSix
+        - createdAt
