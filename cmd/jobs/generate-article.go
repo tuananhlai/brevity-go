@@ -69,13 +69,14 @@ func RunGenerateArticle() {
 					description: string;
 					// The content of the article as valid, standard, unstyled HTML. Only these HTML tags are allowed: h2, h3, h4, p, a, img, strong, b, em, i, del,
 					// strike, blockquote, pre, code, ul, ol, li, hr, br, table, thead, tbody, tr, th, td. Do not include newlines unless absolute necessary. Article should be 800 - 1500 words.
+					// Keep in mind that an h1 tag with the title will be prepended afterward.
 					content: string;
 				}
 				`),
 			openai.UserMessage("Choose an unique and interesting topic and write an article about it."),
 		},
 		Model:       openai.ChatModel(cfg.LLM.ModelID),
-		Temperature: openai.Float(1.7),
+		Temperature: openai.Float(2),
 		MaxTokens:   openai.Int(8192),
 		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
 			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
