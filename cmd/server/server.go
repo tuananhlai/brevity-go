@@ -120,7 +120,7 @@ func Run() {
 
 func getCorsConfig() cors.Config {
 	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"http://localhost:3000", "https://brevity-next.vercel.app/"}
+	cfg.AllowOrigins = []string{"http://localhost:3000", "https://brevity-next.vercel.app"}
 	cfg.AllowCredentials = true
 	return cfg
 }
