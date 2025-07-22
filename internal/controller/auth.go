@@ -103,6 +103,38 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	ginCtx.Status(http.StatusOK)
 }
 
+func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
+	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
+	defer span.End()
+
+	userID, err := shared.GetContextUserID(ginCtx)
+	if err != nil {
+		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
+			Body: shared.ErrorResponse{
+				Code:    shared.CodeUnauthorized,
+				Message: err.Error(),
+			},
+			Span: span,
+			Err:  err,
+		})
+		return
+	}
+
+	user, err := c.authService.GetCurrentUser(ctx, userID)
+	if err != nil {
+		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		return
+	}
+
+	res := GetCurrentUserResponse{
+		ID:       user.ID.String(),
+		Username: user.Username,
+		Email:    user.Email,
+	}
+
+	ginCtx.JSON(http.StatusOK, res)
+}
+
 type LoginRequest struct {
 	EmailOrUsername string `json:"emailOrUsername" binding:"required"`
 	Password        string `json:"password" binding:"required"`
@@ -118,4 +150,10 @@ type RegisterRequest struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+type GetCurrentUserResponse struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }

@@ -69,6 +69,7 @@ func Run() {
 	r.POST("/v1/auth/sign-in", authController.Login)
 	r.GET("/v1/article-previews", articleController.ListPreviews)
 	r.GET("/v1/articles/:slug", articleController.GetBySlug)
+	r.GET("/v1/auth/me", authMiddleware, authController.GetCurrentUser)
 	r.POST("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.CreateLLMAPIKey)
 	r.GET("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.ListLLMAPIKeys)
 

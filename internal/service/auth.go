@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/tuananhlai/brevity-go/internal/model"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
@@ -21,6 +22,7 @@ type AuthService interface {
 	Register(ctx context.Context, email, username, password string) error
 	Login(ctx context.Context, emailOrUsername, password string) (*LoginReturn, error)
 	VerifyAccessToken(ctx context.Context, accessToken string) (string, error)
+	GetCurrentUser(ctx context.Context, userID string) (*model.AuthUser, error)
 }
 
 type authServiceImpl struct {
@@ -90,6 +92,14 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 		Email:       user.Email,
 		AccessToken: accessToken,
 	}, nil
+}
+
+func (s *authServiceImpl) GetCurrentUser(ctx context.Context, userID string) (*model.AuthUser, error) {
+	user, err := s.authRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *authServiceImpl) VerifyAccessToken(ctx context.Context, accessToken string) (string, error) {

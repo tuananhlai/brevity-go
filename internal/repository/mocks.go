@@ -415,6 +415,74 @@ func (_c *MockAuthRepository_GetUser_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// GetUserByID provides a mock function for the type MockAuthRepository
+func (_mock *MockAuthRepository) GetUserByID(ctx context.Context, userID string) (*model.AuthUser, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByID")
+	}
+
+	var r0 *model.AuthUser
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*model.AuthUser, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *model.AuthUser); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AuthUser)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthRepository_GetUserByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserByID'
+type MockAuthRepository_GetUserByID_Call struct {
+	*mock.Call
+}
+
+// GetUserByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *MockAuthRepository_Expecter) GetUserByID(ctx interface{}, userID interface{}) *MockAuthRepository_GetUserByID_Call {
+	return &MockAuthRepository_GetUserByID_Call{Call: _e.mock.On("GetUserByID", ctx, userID)}
+}
+
+func (_c *MockAuthRepository_GetUserByID_Call) Run(run func(ctx context.Context, userID string)) *MockAuthRepository_GetUserByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthRepository_GetUserByID_Call) Return(authUser *model.AuthUser, err error) *MockAuthRepository_GetUserByID_Call {
+	_c.Call.Return(authUser, err)
+	return _c
+}
+
+func (_c *MockAuthRepository_GetUserByID_Call) RunAndReturn(run func(ctx context.Context, userID string) (*model.AuthUser, error)) *MockAuthRepository_GetUserByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockLLMAPIKeyRepository creates a new instance of MockLLMAPIKeyRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockLLMAPIKeyRepository(t interface {

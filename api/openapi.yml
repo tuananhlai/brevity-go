@@ -92,6 +92,37 @@ paths:
         "400":
           description: "Invalid credentials."
 
+  /v1/auth/me:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getCurrentUser
+      description: Get the current user's information.
+      tags:
+        - auth
+      responses:
+        "200":
+          description: "Successfully retrieved the current user."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  username:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                required:
+                  - id
+                  - username
+                  - email
+        "401":
+          description: "Unauthorized."
+
   /v1/article-previews:
     get:
       security: []

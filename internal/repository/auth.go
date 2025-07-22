@@ -21,6 +21,8 @@ type AuthRepository interface {
 	GetUser(ctx context.Context, emailOrUsername string) (*model.AuthUser, error)
 	// CreateUser creates a new user and returns the created user.
 	CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error)
+	// GetUserByID returns the user with the given ID.
+	GetUserByID(ctx context.Context, userID string) (*model.AuthUser, error)
 }
 
 type authRepositoryImpl struct {
@@ -72,6 +74,22 @@ func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserPa
 	}
 
 	return user, nil
+}
+
+func (r *authRepositoryImpl) GetUserByID(ctx context.Context, userID string) (*model.AuthUser, error) {
+	var user model.AuthUser
+	err := r.db.GetContext(ctx, &user,
+		`SELECT id, username, email, password_hash
+		FROM users 
+		WHERE id = $1`,
+		userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
 }
 
 type CreateUserParams struct {
