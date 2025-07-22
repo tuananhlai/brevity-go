@@ -61,7 +61,7 @@ func Run() {
 	// == Gin Setup ==
 	r := gin.Default()
 	r.Use(otelgin.Middleware("main-server"))
-	r.Use(cors.Default())
+	r.Use(cors.New(getCorsConfig()))
 
 	// == Routes ==
 	r.GET("/health/liveness", healthController.CheckLiveness)
@@ -115,4 +115,11 @@ func Run() {
 
 	<-timeoutCtx.Done()
 	logger.Info("Server shutdown complete.")
+}
+
+func getCorsConfig() cors.Config {
+	cfg := cors.DefaultConfig()
+	cfg.AllowOrigins = []string{"http://localhost:3000", "https://brevity-next.vercel.app/"}
+	cfg.AllowCredentials = true
+	return cfg
 }
