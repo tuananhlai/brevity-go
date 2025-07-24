@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -120,7 +121,27 @@ func Run() {
 
 func getCorsConfig() cors.Config {
 	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"http://localhost:3000", "https://brevity-next.vercel.app"}
+	cfg.AllowOriginFunc = func(origin string) bool {
+		// 1. Allow localhost for local development
+		if origin == "http://localhost:3000" {
+			return true
+		}
+
+		// 2. Allow the main production domain
+		if origin == "https://brevity-next.vercel.app" {
+			return true
+		}
+
+		// 3. Allow Vercel preview deployments (e.g., https://brevity-next-*.vercel.app)
+		// We check if the origin starts with "https://brevity-next-" and ends with ".vercel.app".
+		if strings.HasPrefix(origin, "https://brevity-next-") &&
+			strings.HasSuffix(origin, ".vercel.app") {
+			return true
+		}
+
+		// Deny all other origins
+		return false
+	}
 	cfg.AllowCredentials = true
 	return cfg
 }
