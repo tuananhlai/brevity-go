@@ -1,0 +1,4 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS user_type VARCHAR(15) NOT NULL DEFAULT 'user';
+
+DROP TABLE IF EXISTS digital_authors;
+
