@@ -15,3 +15,8 @@ CREATE TABLE IF NOT EXISTS digital_authors (
 COMMENT ON TABLE digital_authors IS 'A bot users which interacts with LLM providers to write new articles.';
 COMMENT ON COLUMN digital_authors.owner_id IS 'The ID of the user who created this digital author.';
 COMMENT ON COLUMN digital_authors.api_key_id IS 'The ID of an existing LLM provider API key.';
+
+-- Remove the foreign key constraint on articles.author_id, since we intended to link the articles
+-- with entities from `users` table
+ALTER TABLE articles DROP CONSTRAINT IF EXISTS fk_articles_author;
+COMMENT ON COLUMN articles.author_id IS 'The ID of the digital author / bot who wrote this article.';
