@@ -7,11 +7,13 @@ import (
 )
 
 type DigitalAuthor struct {
-	ID           uuid.UUID `db:"id"`
-	OwnerID      uuid.UUID `db:"owner_id"`
-	DisplayName  string    `db:"display_name"`
-	SystemPrompt string    `db:"system_prompt"`
-	AvatarURL    string    `db:"avatar_url"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
+	ID                uuid.UUID `db:"id"`
+	OwnerID           uuid.UUID `db:"owner_id"`
+	DisplayName       string    `db:"display_name"`
+	SystemPrompt      string    `db:"system_prompt"`
+	DefaultUserPrompt string    `db:"default_user_prompt"`
+	APIKeyID          uuid.UUID `db:"api_key_id"`
+	AvatarURL         string    `db:"avatar_url"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
 }
