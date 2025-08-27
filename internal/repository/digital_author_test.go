@@ -81,6 +81,32 @@ func (s *DigitalAuthorRepositoryTestSuite) TestCreateDigitalAuthor_Success() {
 	s.Equal(user.ID, digitalAuthor.OwnerID)
 }
 
+func (s *DigitalAuthorRepositoryTestSuite) TestListByUserID_Success() {
+	ctx := context.Background()
+	user := s.mustCreateUser()
+	apiKey := s.mustCreateLLMAPIKey(user.ID.String())
+
+	expectedDisplayName := "testdisplayname"
+	expectedSystemPrompt := "testsystemprompt"
+	expectedDefaultUserPrompt := "testdefaultuserprompt"
+	expectedAvatarURL := "testavatarurl"
+
+	expectedDigitalAuthor, err := s.digitalAuthorRepo.Create(ctx, repository.DigitalAuthorCreateParams{
+		OwnerID:           user.ID.String(),
+		DisplayName:       expectedDisplayName,
+		SystemPrompt:      expectedSystemPrompt,
+		DefaultUserPrompt: expectedDefaultUserPrompt,
+		APIKeyID:          apiKey.ID.String(),
+		AvatarURL:         expectedAvatarURL,
+	})
+	s.Require().NoError(err)
+
+	digitalAuthors, err := s.digitalAuthorRepo.ListByUserID(ctx, user.ID.String())
+	s.Require().NoError(err)
+
+	s.Equal(expectedDigitalAuthor, digitalAuthors[0])
+}
+
 func (s *DigitalAuthorRepositoryTestSuite) mustCreateUser() *model.AuthUser {
 	user := repository.CreateUserParams{
 		Username:     "testuser",

@@ -25,7 +25,7 @@ func NewDigitalAuthorRepository(db *sqlx.DB) DigitalAuthorRepository {
 // ListByUserID implements DigitalAuthorRepository.
 func (d *digitalAuthorRepositoryImpl) ListByUserID(ctx context.Context, userID string) ([]*model.DigitalAuthor, error) {
 	query := `
-		SELECT id, owner_id, display_name, system_prompt, avatar_url, created_at, updated_at
+		SELECT id, owner_id, display_name, system_prompt, default_user_prompt, api_key_id, avatar_url, created_at, updated_at
 		FROM digital_authors
 		WHERE owner_id = $1
 	`
