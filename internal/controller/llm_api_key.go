@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
