@@ -12,7 +12,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
@@ -58,7 +57,7 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	}
 
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx, resource, cfg.Debug)
+	loggerProvider, err := newLoggerProvider(ctx, resource)
 	if err != nil {
 		handleErr(err)
 		return
@@ -122,15 +121,8 @@ func newResource() (*resource.Resource, error) {
 	)
 }
 
-func newLoggerProvider(ctx context.Context, resource *resource.Resource, dev bool) (*sdklog.LoggerProvider, error) {
-	var logExporter sdklog.Exporter
-	var err error
-
-	if dev {
-		logExporter, err = stdoutlog.New()
-	} else {
-		logExporter, err = otlploghttp.New(ctx)
-	}
+func newLoggerProvider(ctx context.Context, resource *resource.Resource) (*sdklog.LoggerProvider, error) {
+	logExporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}

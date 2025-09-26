@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
@@ -113,7 +113,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 	})
 	if err != nil {
 		shared.WriteUnknownErrorResponse(ginCtx, span,
-			errors.Wrap(err, "failed to create llm api key"))
+			fmt.Errorf("failed to create llm api key: %w", err))
 		return
 	}
 

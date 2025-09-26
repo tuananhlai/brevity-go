@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"time"
 
@@ -119,21 +120,22 @@ func Run() {
 	logger.Info("Server shutdown complete.")
 }
 
+var allowedOrigins = []string{
+	// Local development
+	"http://localhost:3000",
+	// Production environments
+	"https://brevity-next.vercel.app",
+	"https://brevity.laituananh.com",
+}
+
 func getCorsConfig() cors.Config {
 	cfg := cors.DefaultConfig()
 	cfg.AllowOriginFunc = func(origin string) bool {
-		// 1. Allow localhost for local development
-		if origin == "http://localhost:3000" {
+		if slices.Contains(allowedOrigins, origin) {
 			return true
 		}
 
-		// 2. Allow the main production domain
-		if origin == "https://brevity-next.vercel.app" {
-			return true
-		}
-
-		// 3. Allow Vercel preview deployments (e.g., https://brevity-next-*.vercel.app)
-		// We check if the origin starts with "https://brevity-next-" and ends with ".vercel.app".
+		// Allow Vercel preview deployments (e.g., https://brevity-next-*.vercel.app)
 		if strings.HasPrefix(origin, "https://brevity-next-") &&
 			strings.HasSuffix(origin, ".vercel.app") {
 			return true

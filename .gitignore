@@ -68,3 +68,5 @@ terraform.rc
 
 # HTTP Request test files
 *.http
+
+tmp/
