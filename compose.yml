@@ -56,9 +56,10 @@ services:
   lgtm:
     image: grafana/otel-lgtm:0.8.6
     ports:
-      - "43000:3000" # Grafana
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
+      # For some reason, port 43000 doesn't work on my machine.
+      - "43001:3000" # Grafana
+      - "44317:4317" # OTLP gRPC
+      - "44318:4318" # OTLP HTTP
     volumes:
       - grafana_data:/data/grafana
       - prometheus_data:/data/prometheus
