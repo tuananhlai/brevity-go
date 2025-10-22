@@ -50,6 +50,9 @@ module "fck-nat" {
   subnet_id     = module.vpc.public_subnets[0]
   use_ssh       = true
   ssh_key_name  = local.ssh_key_name
+  ssh_cidr_blocks = {
+    ipv4 = ["0.0.0.0/0"]
+  }
 
   update_route_tables = true
   route_tables_ids = {
