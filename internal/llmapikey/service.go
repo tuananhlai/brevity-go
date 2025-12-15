@@ -1,12 +1,10 @@
-package service
+package llmapikey
 
 import (
 	"context"
 	"time"
 
 	"github.com/google/uuid"
-
-	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 type Crypter interface {
@@ -14,30 +12,31 @@ type Crypter interface {
 	Decrypt(cipherText []byte) ([]byte, error)
 }
 
-type LLMAPIKeyService interface {
-	ListByUserID(ctx context.Context, userID string) ([]*LLMAPIKey, error)
-	Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error)
+// Service defines business logic for managing LLM API keys.
+type Service interface {
+	ListByUserID(ctx context.Context, userID string) ([]*APIKey, error)
+	Create(ctx context.Context, apiKey CreateInput) (*APIKey, error)
 }
 
-type llmAPIKeyServiceImpl struct {
-	repo    repository.LLMAPIKeyRepository
+type serviceImpl struct {
+	repo    Repository
 	crypter Crypter
 }
 
-func NewLLMAPIKeyService(repo repository.LLMAPIKeyRepository, crypter Crypter) LLMAPIKeyService {
-	return &llmAPIKeyServiceImpl{
+func NewService(repo Repository, crypter Crypter) Service {
+	return &serviceImpl{
 		repo:    repo,
 		crypter: crypter,
 	}
 }
 
-func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID string) ([]*LLMAPIKey, error) {
+func (s *serviceImpl) ListByUserID(ctx context.Context, userID string) ([]*APIKey, error) {
 	results, err := s.repo.ListByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]*LLMAPIKey, 0, len(results))
+	res := make([]*APIKey, 0, len(results))
 	for _, result := range results {
 		apiKeyBytes, err := s.crypter.Decrypt(result.EncryptedKey)
 		if err != nil {
@@ -46,7 +45,7 @@ func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID string) 
 
 		apiKey := string(apiKeyBytes)
 
-		res = append(res, &LLMAPIKey{
+		res = append(res, &APIKey{
 			ID:            result.ID,
 			Name:          result.Name,
 			ValueFirstTen: apiKey[:10],
@@ -59,10 +58,10 @@ func (s *llmAPIKeyServiceImpl) ListByUserID(ctx context.Context, userID string) 
 	return res, nil
 }
 
-func (s *llmAPIKeyServiceImpl) Create(ctx context.Context, apiKey LLMAPIKeyCreateParams) (*LLMAPIKey, error) {
+func (s *serviceImpl) Create(ctx context.Context, apiKey CreateInput) (*APIKey, error) {
 	encryptedKey := s.crypter.Encrypt([]byte(apiKey.Value))
 
-	newAPIKey, err := s.repo.Create(ctx, repository.LLMAPIKeyCreateParams{
+	newAPIKey, err := s.repo.Create(ctx, CreateParams{
 		Name:         apiKey.Name,
 		EncryptedKey: encryptedKey,
 		UserID:       apiKey.UserID,
@@ -71,7 +70,7 @@ func (s *llmAPIKeyServiceImpl) Create(ctx context.Context, apiKey LLMAPIKeyCreat
 		return nil, err
 	}
 
-	return &LLMAPIKey{
+	return &APIKey{
 		ID:            newAPIKey.ID,
 		Name:          newAPIKey.Name,
 		ValueFirstTen: apiKey.Value[:10],
@@ -81,7 +80,8 @@ func (s *llmAPIKeyServiceImpl) Create(ctx context.Context, apiKey LLMAPIKeyCreat
 	}, nil
 }
 
-type LLMAPIKey struct {
+// APIKey is the DTO returned by the service layer.
+type APIKey struct {
 	ID   uuid.UUID
 	Name string
 	// ValueFirstTen is the first ten characters of the API key.
@@ -92,7 +92,7 @@ type LLMAPIKey struct {
 	CreatedAt    time.Time
 }
 
-type LLMAPIKeyCreateParams struct {
+type CreateInput struct {
 	Name string
 	// Value is the plaintext API key string.
 	Value  string

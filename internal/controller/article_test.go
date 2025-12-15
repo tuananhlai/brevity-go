@@ -12,10 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/tidwall/gjson"
-
+	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller"
-	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 func TestArticleController(t *testing.T) {
@@ -24,7 +22,7 @@ func TestArticleController(t *testing.T) {
 
 type ArticleControllerTestSuite struct {
 	suite.Suite
-	mockService *service.MockArticleService
+	mockService *articles.MockService
 	router      *gin.Engine
 }
 
@@ -33,7 +31,7 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 }
 
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
-	s.mockService = service.NewMockArticleService(s.T())
+	s.mockService = articles.NewMockService(s.T())
 	s.router = gin.Default()
 	controller := controller.NewArticleController(s.mockService)
 	s.router.GET("/v1/article-previews", controller.ListPreviews)
@@ -44,7 +42,7 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 	articleID := uuid.New()
 	authorID := uuid.New()
 	date := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
-	previews := []model.ArticlePreview{
+	previews := []articles.ArticlePreview{
 		{
 			ID:                articleID,
 			Slug:              "test-article",

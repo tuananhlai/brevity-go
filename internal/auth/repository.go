@@ -1,4 +1,4 @@
-package repository
+package auth
 
 import (
 	"context"
@@ -6,35 +6,33 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-
-	"github.com/tuananhlai/brevity-go/internal/model"
 )
 
 var (
-	ErrUserNotFound         = errors.New("user not found")
-	ErrUserAlreadyExists    = errors.New("user already exists")
-	ErrRefreshTokenNotFound = errors.New("refresh token not found")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
-type AuthRepository interface {
+// Repository defines the read/write operations for users.
+type Repository interface {
 	// GetUser returns the user with the given email or username.
-	GetUser(ctx context.Context, emailOrUsername string) (*model.AuthUser, error)
+	GetUser(ctx context.Context, emailOrUsername string) (*User, error)
 	// CreateUser creates a new user and returns the created user.
-	CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error)
+	CreateUser(ctx context.Context, params CreateUserParams) (*User, error)
 	// GetUserByID returns the user with the given ID.
-	GetUserByID(ctx context.Context, userID string) (*model.AuthUser, error)
+	GetUserByID(ctx context.Context, userID string) (*User, error)
 }
 
-type authRepositoryImpl struct {
+type repositoryImpl struct {
 	db *sqlx.DB
 }
 
-func NewAuthRepository(db *sqlx.DB) AuthRepository {
-	return &authRepositoryImpl{db: db}
+func NewRepository(db *sqlx.DB) Repository {
+	return &repositoryImpl{db: db}
 }
 
-func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string) (*model.AuthUser, error) {
-	var user model.AuthUser
+func (r *repositoryImpl) GetUser(ctx context.Context, emailOrUsername string) (*User, error) {
+	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash
 		FROM users 
@@ -42,7 +40,7 @@ func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string
 		emailOrUsername,
 		emailOrUsername)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
 		}
 		return nil, err
@@ -51,8 +49,8 @@ func (r *authRepositoryImpl) GetUser(ctx context.Context, emailOrUsername string
 	return &user, nil
 }
 
-func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserParams) (*model.AuthUser, error) {
-	user := &model.AuthUser{
+func (r *repositoryImpl) CreateUser(ctx context.Context, params CreateUserParams) (*User, error) {
+	user := &User{
 		Email:    params.Email,
 		Username: params.Username,
 	}
@@ -76,15 +74,15 @@ func (r *authRepositoryImpl) CreateUser(ctx context.Context, params CreateUserPa
 	return user, nil
 }
 
-func (r *authRepositoryImpl) GetUserByID(ctx context.Context, userID string) (*model.AuthUser, error) {
-	var user model.AuthUser
+func (r *repositoryImpl) GetUserByID(ctx context.Context, userID string) (*User, error) {
+	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash
 		FROM users 
 		WHERE id = $1`,
 		userID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
 		}
 		return nil, err

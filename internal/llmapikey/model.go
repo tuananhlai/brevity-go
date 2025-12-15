@@ -1,4 +1,4 @@
-package model
+package llmapikey
 
 import (
 	"time"
@@ -6,7 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type LLMAPIKey struct {
+// StoredAPIKey represents the persisted API key with encrypted value.
+type StoredAPIKey struct {
 	ID           uuid.UUID `db:"id"`
 	Name         string    `db:"name"`
 	EncryptedKey []byte    `db:"encrypted_key"`

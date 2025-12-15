@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	"github.com/tuananhlai/brevity-go/internal/service"
 	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/tuananhlai/brevity-go/internal/auth"
+	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 )
 
 const (
@@ -16,10 +17,10 @@ const (
 )
 
 type AuthController struct {
-	authService service.AuthService
+	authService auth.Service
 }
 
-func NewAuthController(authService service.AuthService) *AuthController {
+func NewAuthController(authService auth.Service) *AuthController {
 	return &AuthController{
 		authService: authService,
 	}
@@ -41,7 +42,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 
 	user, err := c.authService.Login(ctx, req.EmailOrUsername, req.Password)
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidCredentials) {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
 			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
 				Body: shared.ErrorResponse{
 					Code:    CodeInvalidCredentials,
@@ -84,7 +85,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	err := c.authService.Register(ctx, req.Email, req.Username, req.Password)
 	if err != nil {
-		if errors.Is(err, service.ErrUserAlreadyExists) {
+		if errors.Is(err, auth.ErrUserAlreadyExists) {
 			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
 				Body: shared.ErrorResponse{
 					Code:    CodeUserAlreadyExists,

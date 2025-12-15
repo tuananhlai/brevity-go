@@ -1,4 +1,4 @@
-package service_test
+package auth_test
 
 import (
 	"context"
@@ -8,38 +8,36 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/repository"
-	"github.com/tuananhlai/brevity-go/internal/service"
+	"github.com/tuananhlai/brevity-go/internal/auth"
 )
 
 // hashed value of "password"
 var hashedPassword = []byte("$2a$12$lyFRcGsCGdIPv87lZzPn/egx1Nj1xIz6AL628t6auYxHGB9YYYxqW")
 
 func TestAuthService(t *testing.T) {
-	suite.Run(t, new(AuthServiceTestSuite))
+	suite.Run(t, new(ServiceTestSuite))
 }
 
-type AuthServiceTestSuite struct {
+type ServiceTestSuite struct {
 	suite.Suite
-	authService service.AuthService
-	mockRepo    *repository.MockAuthRepository
+	authService auth.Service
+	mockRepo    *auth.MockRepository
 }
 
-func (s *AuthServiceTestSuite) SetupTest() {
-	s.mockRepo = repository.NewMockAuthRepository(s.T())
-	s.authService = service.NewAuthService(s.mockRepo, "test-secret")
+func (s *ServiceTestSuite) SetupTest() {
+	s.mockRepo = auth.NewMockRepository(s.T())
+	s.authService = auth.NewService(s.mockRepo, "test-secret")
 }
 
-func (s *AuthServiceTestSuite) TestRegister_Success() {
+func (s *ServiceTestSuite) TestRegister_Success() {
 	ctx := context.Background()
 	email := "test@example.com"
 	username := "testuser"
 	password := "password123"
 
-	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params repository.CreateUserParams) bool {
+	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params auth.CreateUserParams) bool {
 		return params.Email == email && params.Username == username
-	})).Return(&model.AuthUser{
+	})).Return(&auth.User{
 		ID:       uuid.New(),
 		Email:    email,
 		Username: username,
@@ -51,30 +49,30 @@ func (s *AuthServiceTestSuite) TestRegister_Success() {
 	s.mockRepo.AssertExpectations(s.T())
 }
 
-func (s *AuthServiceTestSuite) TestRegister_RepositoryError() {
+func (s *ServiceTestSuite) TestRegister_RepositoryError() {
 	ctx := context.Background()
 	email := "test@example.com"
 	username := "testuser"
 	password := "password123"
 
-	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params repository.CreateUserParams) bool {
+	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params auth.CreateUserParams) bool {
 		return params.Email == email && params.Username == username
-	})).Return(nil, repository.ErrUserAlreadyExists)
+	})).Return(nil, auth.ErrUserAlreadyExists)
 
 	err := s.authService.Register(ctx, email, username, password)
 
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, service.ErrUserAlreadyExists)
+	s.Require().ErrorIs(err, auth.ErrUserAlreadyExists)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
-func (s *AuthServiceTestSuite) TestLogin_Success() {
+func (s *ServiceTestSuite) TestLogin_Success() {
 	ctx := context.Background()
 	email := "test@example.com"
 	password := "password"
 	userID := uuid.New()
 
-	s.mockRepo.On("GetUser", ctx, email).Return(&model.AuthUser{
+	s.mockRepo.On("GetUser", ctx, email).Return(&auth.User{
 		ID:           userID,
 		Email:        email,
 		Username:     "testuser",
@@ -91,27 +89,27 @@ func (s *AuthServiceTestSuite) TestLogin_Success() {
 	s.mockRepo.AssertExpectations(s.T())
 }
 
-func (s *AuthServiceTestSuite) TestLogin_UserNotFound() {
+func (s *ServiceTestSuite) TestLogin_UserNotFound() {
 	ctx := context.Background()
 	email := "nonexistent@example.com"
 	password := "password123"
 
-	s.mockRepo.On("GetUser", ctx, email).Return(nil, repository.ErrUserNotFound)
+	s.mockRepo.On("GetUser", ctx, email).Return(nil, auth.ErrUserNotFound)
 
 	result, err := s.authService.Login(ctx, email, password)
 
 	s.Require().Error(err)
 	s.Require().Nil(result)
-	s.Require().ErrorIs(err, service.ErrInvalidCredentials)
+	s.Require().ErrorIs(err, auth.ErrInvalidCredentials)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
-func (s *AuthServiceTestSuite) TestLogin_InvalidPassword() {
+func (s *ServiceTestSuite) TestLogin_InvalidPassword() {
 	ctx := context.Background()
 	email := "test@example.com"
 	password := "wrongpassword"
 
-	s.mockRepo.On("GetUser", ctx, email).Return(&model.AuthUser{
+	s.mockRepo.On("GetUser", ctx, email).Return(&auth.User{
 		ID:           uuid.New(),
 		Email:        email,
 		Username:     "testuser",

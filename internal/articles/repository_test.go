@@ -1,4 +1,4 @@
-package repository_test
+package articles_test
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/articles"
+	"github.com/tuananhlai/brevity-go/internal/auth"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
@@ -20,8 +20,8 @@ func TestArticleRepository(t *testing.T) {
 type ArticleRepositoryTestSuite struct {
 	suite.Suite
 	dbTestUtil  *testutil.DatabaseTestUtil
-	authRepo    repository.AuthRepository
-	articleRepo repository.ArticleRepository
+	authRepo    auth.Repository
+	articleRepo articles.Repository
 }
 
 func (s *ArticleRepositoryTestSuite) SetupSuite() {
@@ -29,8 +29,8 @@ func (s *ArticleRepositoryTestSuite) SetupSuite() {
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.authRepo = repository.NewAuthRepository(s.dbTestUtil.DB())
-	s.articleRepo = repository.NewArticleRepository(s.dbTestUtil.DB())
+	s.authRepo = auth.NewRepository(s.dbTestUtil.DB())
+	s.articleRepo = articles.NewRepository(s.dbTestUtil.DB())
 }
 
 func (s *ArticleRepositoryTestSuite) BeforeTest(suiteName, testName string) {
@@ -47,7 +47,7 @@ func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 
-	article := &model.Article{
+	article := &articles.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: author.ID,
@@ -87,8 +87,8 @@ func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
 	s.Require().Equal(author.Username, article.AuthorUsername)
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateUser() *model.AuthUser {
-	user := repository.CreateUserParams{
+func (s *ArticleRepositoryTestSuite) mustCreateUser() *auth.User {
+	user := auth.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
 		PasswordHash: []byte("passwordHash"),
@@ -100,8 +100,8 @@ func (s *ArticleRepositoryTestSuite) mustCreateUser() *model.AuthUser {
 	return createdUser
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *model.Article {
-	article := &model.Article{
+func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *articles.Article {
+	article := &articles.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: authorID,

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -10,20 +11,26 @@ import (
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	"github.com/tuananhlai/brevity-go/internal/repository"
-	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 const (
 	CodeArticleNotFound shared.Code = "article_not_found"
 )
 
-type ArticleController struct {
-	articleService service.ArticleService
+// ArticleService defines the interface for article business logic
+type ArticleService interface {
+	Create(ctx context.Context, article *articles.Article) error
+	ListPreviews(ctx context.Context, pageSize int, opts ...articles.ListPreviewsOption) ([]articles.ArticlePreview, string, error)
+	GetBySlug(ctx context.Context, slug string) (*articles.ArticleDetails, error)
 }
 
-func NewArticleController(articleService service.ArticleService) *ArticleController {
+type ArticleController struct {
+	articleService ArticleService
+}
+
+func NewArticleController(articleService ArticleService) *ArticleController {
 	return &ArticleController{articleService: articleService}
 }
 
@@ -45,7 +52,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	req.PageSize = lo.Clamp(req.PageSize, 1, 100)
 
 	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
-		req.PageSize, repository.WithPageToken(req.PageToken))
+		req.PageSize, articles.WithPageToken(req.PageToken))
 	if err != nil {
 		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
@@ -86,7 +93,7 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 
 	article, err := c.articleService.GetBySlug(ctx, req.Slug)
 	if err != nil {
-		if errors.Is(err, service.ErrArticleNotFound) {
+		if errors.Is(err, articles.ErrArticleNotFound) {
 			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
 				Body: shared.ErrorResponse{
 					Code:    CodeArticleNotFound,

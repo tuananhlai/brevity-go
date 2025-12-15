@@ -1,4 +1,4 @@
-package service
+package auth
 
 import (
 	"context"
@@ -8,56 +8,47 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
-var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserAlreadyExists  = errors.New("user already exists")
-)
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
-type AuthService interface {
+// Service defines authentication business logic.
+type Service interface {
 	Register(ctx context.Context, email, username, password string) error
-	Login(ctx context.Context, emailOrUsername, password string) (*LoginReturn, error)
+	Login(ctx context.Context, emailOrUsername, password string) (*LoginResult, error)
 	VerifyAccessToken(ctx context.Context, accessToken string) (string, error)
-	GetCurrentUser(ctx context.Context, userID string) (*model.AuthUser, error)
+	GetCurrentUser(ctx context.Context, userID string) (*User, error)
 }
 
-type authServiceImpl struct {
-	authRepo          repository.AuthRepository
+type serviceImpl struct {
+	authRepo          Repository
 	accessTokenSecret string
 	accessTokenExpiry time.Duration
-	// bcryptCost is the cost of the bcrypt hash. The larger this value, the more secure
-	// the hash is, but the slower it is to generate.
-	bcryptCost int
+	bcryptCost        int
 }
 
-func NewAuthService(authRepo repository.AuthRepository, accessTokenSecret string) AuthService {
-	service := &authServiceImpl{
+func NewService(authRepo Repository, accessTokenSecret string) Service {
+	return &serviceImpl{
 		bcryptCost:        bcrypt.DefaultCost,
 		accessTokenExpiry: time.Hour * 24 * 30,
 		authRepo:          authRepo,
 		accessTokenSecret: accessTokenSecret,
 	}
-
-	return service
 }
 
-func (s *authServiceImpl) Register(ctx context.Context, email, username, password string) error {
+func (s *serviceImpl) Register(ctx context.Context, email, username, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), s.bcryptCost)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.authRepo.CreateUser(ctx, repository.CreateUserParams{
+	_, err = s.authRepo.CreateUser(ctx, CreateUserParams{
 		Email:        email,
 		Username:     username,
 		PasswordHash: hashedPassword,
 	})
 	if err != nil {
-		if errors.Is(err, repository.ErrUserAlreadyExists) {
+		if errors.Is(err, ErrUserAlreadyExists) {
 			return fmt.Errorf("%w: %s", ErrUserAlreadyExists, err)
 		}
 		return err
@@ -67,10 +58,10 @@ func (s *authServiceImpl) Register(ctx context.Context, email, username, passwor
 }
 
 // Login logs in a user and returns a JWT token.
-func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, password string) (*LoginReturn, error) {
+func (s *serviceImpl) Login(ctx context.Context, emailOrUsername string, password string) (*LoginResult, error) {
 	user, err := s.authRepo.GetUser(ctx, emailOrUsername)
 	if err != nil {
-		if errors.Is(err, repository.ErrUserNotFound) {
+		if errors.Is(err, ErrUserNotFound) {
 			return nil, fmt.Errorf("%w: %s", ErrInvalidCredentials, err)
 		}
 		return nil, err
@@ -86,7 +77,7 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 		return nil, err
 	}
 
-	return &LoginReturn{
+	return &LoginResult{
 		ID:          user.ID.String(),
 		Username:    user.Username,
 		Email:       user.Email,
@@ -94,7 +85,7 @@ func (s *authServiceImpl) Login(ctx context.Context, emailOrUsername string, pas
 	}, nil
 }
 
-func (s *authServiceImpl) GetCurrentUser(ctx context.Context, userID string) (*model.AuthUser, error) {
+func (s *serviceImpl) GetCurrentUser(ctx context.Context, userID string) (*User, error) {
 	user, err := s.authRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -102,7 +93,7 @@ func (s *authServiceImpl) GetCurrentUser(ctx context.Context, userID string) (*m
 	return user, nil
 }
 
-func (s *authServiceImpl) VerifyAccessToken(ctx context.Context, accessToken string) (string, error) {
+func (s *serviceImpl) VerifyAccessToken(ctx context.Context, accessToken string) (string, error) {
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (any, error) {
 		return []byte(s.accessTokenSecret), nil
 	})
@@ -115,10 +106,15 @@ func (s *authServiceImpl) VerifyAccessToken(ctx context.Context, accessToken str
 		return "", fmt.Errorf("invalid token claims")
 	}
 
-	return claims["sub"].(string), nil
+	subject, ok := claims["sub"].(string)
+	if !ok {
+		return "", fmt.Errorf("missing token subject")
+	}
+
+	return subject, nil
 }
 
-func (s *authServiceImpl) generateToken(userID string, secret string, expiry time.Duration) (string, error) {
+func (s *serviceImpl) generateToken(userID string, secret string, expiry time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(expiry).Unix(),
@@ -127,11 +123,11 @@ func (s *authServiceImpl) generateToken(userID string, secret string, expiry tim
 	return token.SignedString([]byte(secret))
 }
 
-func (s *authServiceImpl) generateAccessToken(userID string) (string, error) {
+func (s *serviceImpl) generateAccessToken(userID string) (string, error) {
 	return s.generateToken(userID, s.accessTokenSecret, s.accessTokenExpiry)
 }
 
-type LoginReturn struct {
+type LoginResult struct {
 	ID          string
 	Username    string
 	Email       string

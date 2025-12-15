@@ -9,14 +9,14 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	"github.com/tuananhlai/brevity-go/internal/service"
+	"github.com/tuananhlai/brevity-go/internal/llmapikey"
 )
 
 type LLMAPIKeyController struct {
-	llmAPIKeyService service.LLMAPIKeyService
+	llmAPIKeyService llmapikey.Service
 }
 
-func NewLLMAPIKeyController(llmAPIKeyService service.LLMAPIKeyService) *LLMAPIKeyController {
+func NewLLMAPIKeyController(llmAPIKeyService llmapikey.Service) *LLMAPIKeyController {
 	return &LLMAPIKeyController{llmAPIKeyService: llmAPIKeyService}
 }
 
@@ -106,7 +106,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		return
 	}
 
-	llmAPIKey, err := c.llmAPIKeyService.Create(ctx, service.LLMAPIKeyCreateParams{
+	llmAPIKey, err := c.llmAPIKeyService.Create(ctx, llmapikey.CreateInput{
 		Name:   req.Name,
 		Value:  req.Value,
 		UserID: userID,

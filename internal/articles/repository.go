@@ -1,4 +1,4 @@
-package repository
+package articles
 
 import (
 	"context"
@@ -10,30 +10,29 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/tuananhlai/brevity-go/internal/model"
+	"github.com/tuananhlai/brevity-go/internal/utils"
 )
 
 var ErrArticleNotFound = errors.New("article not found")
 
-// ArticleRepository defines the interface for article data access
-type ArticleRepository interface {
-	Create(ctx context.Context, article *model.Article) error
+type Repository interface {
+	Create(ctx context.Context, article *Article) error
 	ListPreviews(ctx context.Context, pageSize int, opts ...ListPreviewsOption) (
-		results []model.ArticlePreview, nextPageToken string, err error)
-	GetBySlug(ctx context.Context, slug string) (*model.ArticleDetails, error)
+		results []ArticlePreview, nextPageToken string, err error)
+	GetBySlug(ctx context.Context, slug string) (*ArticleDetails, error)
 }
 
-type articleRepositoryImpl struct {
+type repositoryImpl struct {
 	db *sqlx.DB
 }
 
-// NewArticleRepository creates a new article repository
-func NewArticleRepository(db *sqlx.DB) ArticleRepository {
-	return &articleRepositoryImpl{db: db}
+// NewRepository creates a new article repository
+func NewRepository(db *sqlx.DB) *repositoryImpl {
+	return &repositoryImpl{db: db}
 }
 
 // Create creates a new article
-func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Article) error {
+func (r *repositoryImpl) Create(ctx context.Context, article *Article) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content,
 		content, author_id) VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -43,8 +42,8 @@ func (r *articleRepositoryImpl) Create(ctx context.Context, article *model.Artic
 	return err
 }
 
-func (r *articleRepositoryImpl) GetBySlug(ctx context.Context, slug string) (*model.ArticleDetails, error) {
-	article := model.ArticleDetails{}
+func (r *repositoryImpl) GetBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
+	article := ArticleDetails{}
 	err := r.db.GetContext(ctx, &article, `
 		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
 			u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url
@@ -62,9 +61,9 @@ func (r *articleRepositoryImpl) GetBySlug(ctx context.Context, slug string) (*mo
 }
 
 // ListPreviews lists articles with basic information
-func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
+func (r *repositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 	opts ...ListPreviewsOption,
-) ([]model.ArticlePreview, string, error) {
+) ([]ArticlePreview, string, error) {
 	options := &listPreviewsOptions{}
 	for _, opt := range opts {
 		opt(options)
@@ -73,13 +72,13 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 	var token *ListPreviewsPageToken
 	if options.pageToken != "" {
 		token = &ListPreviewsPageToken{}
-		err := parsePageToken(options.pageToken, token)
+		err := utils.ParsePageToken(options.pageToken, token)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to parse page token: %w", err)
 		}
 	}
 
-	articles := []model.ArticlePreview{}
+	articles := []ArticlePreview{}
 
 	queryBuilder := squirrel.Select(
 		"a.id", "a.slug", "a.title", "a.description", "a.author_id", "a.created_at", "a.updated_at",
@@ -107,7 +106,7 @@ func (r *articleRepositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 
 	var nextPageToken string
 	if len(articles) > 0 {
-		nextPageToken, err = generatePageToken(ListPreviewsPageToken{
+		nextPageToken, err = utils.GeneratePageToken(ListPreviewsPageToken{
 			ArticleID: articles[len(articles)-1].ID.String(),
 			CreatedAt: articles[len(articles)-1].CreatedAt,
 		})

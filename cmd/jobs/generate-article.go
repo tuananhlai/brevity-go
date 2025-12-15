@@ -13,9 +13,8 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 
+	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/config"
-	"github.com/tuananhlai/brevity-go/internal/model"
-	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 type LLMOutput struct {
@@ -98,13 +97,13 @@ func RunGenerateArticle() {
 
 	// Connect to database
 	db := sqlx.MustConnect("postgres", cfg.Database.URL)
-	articleRepo := repository.NewArticleRepository(db)
+	articleRepo := articles.NewRepository(db)
 
 	// Use a fixed author ID for now
 	authorID := uuid.MustParse("2bc5d7c4-5702-4ac7-b951-c8ed0921896e")
 
 	// Create the article
-	err = articleRepo.Create(globalCtx, &model.Article{
+	err = articleRepo.Create(globalCtx, &articles.Article{
 		Slug:             output.Slug,
 		Title:            output.Title,
 		Description:      output.Description,

@@ -6,12 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/tuananhlai/brevity-go/internal/auth"
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	"github.com/tuananhlai/brevity-go/internal/service"
 )
 
 // AuthMiddleware stops HTTP requests that do not have a valid access token from reaching the HTTP handler.
-func AuthMiddleware(authService service.AuthService) gin.HandlerFunc {
+func AuthMiddleware(authService auth.Service) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		token, ok := shared.ExtractAccessTokenFromRequest(ginCtx)
 		if !ok {
