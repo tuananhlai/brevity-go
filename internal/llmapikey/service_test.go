@@ -37,7 +37,7 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 	plainKey := "sk-1234567890abcdef"
 	encKey := []byte("encrypted")
 	createdAt := time.Now()
-	mockModel := &repository.StoredAPIKey{
+	mockModel := &repository.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -45,7 +45,7 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 		CreatedAt:    createdAt,
 	}
 
-	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.StoredAPIKey{
+	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.OpenRouterAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return([]byte(plainKey), nil)
@@ -79,7 +79,7 @@ func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
 	ctx := context.Background()
 	userID := uuid.New()
 	encKey := []byte("encrypted")
-	mockModel := &repository.StoredAPIKey{
+	mockModel := &repository.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -87,7 +87,7 @@ func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
 		CreatedAt:    time.Now(),
 	}
 
-	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.StoredAPIKey{
+	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.OpenRouterAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return(nil, assert.AnError)
@@ -111,7 +111,7 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 		Value:  plainKey,
 		UserID: userID.String(),
 	}
-	mockModel := &repository.StoredAPIKey{
+	mockModel := &repository.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         params.Name,
 		EncryptedKey: encKey,

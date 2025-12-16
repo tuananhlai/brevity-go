@@ -95,23 +95,23 @@ func (_c *MockRepository_CreateArticle_Call) RunAndReturn(run func(ctx context.C
 }
 
 // CreateLLMAPIKey provides a mock function for the type MockRepository
-func (_mock *MockRepository) CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*StoredAPIKey, error) {
+func (_mock *MockRepository) CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error) {
 	ret := _mock.Called(ctx, apiKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateLLMAPIKey")
 	}
 
-	var r0 *StoredAPIKey
+	var r0 *OpenRouterAPIKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateLLMAPIKeyParams) (*StoredAPIKey, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error)); ok {
 		return returnFunc(ctx, apiKey)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateLLMAPIKeyParams) *StoredAPIKey); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateLLMAPIKeyParams) *OpenRouterAPIKey); ok {
 		r0 = returnFunc(ctx, apiKey)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*StoredAPIKey)
+			r0 = ret.Get(0).(*OpenRouterAPIKey)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, CreateLLMAPIKeyParams) error); ok {
@@ -152,12 +152,12 @@ func (_c *MockRepository_CreateLLMAPIKey_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockRepository_CreateLLMAPIKey_Call) Return(storedAPIKey *StoredAPIKey, err error) *MockRepository_CreateLLMAPIKey_Call {
+func (_c *MockRepository_CreateLLMAPIKey_Call) Return(storedAPIKey *OpenRouterAPIKey, err error) *MockRepository_CreateLLMAPIKey_Call {
 	_c.Call.Return(storedAPIKey, err)
 	return _c
 }
 
-func (_c *MockRepository_CreateLLMAPIKey_Call) RunAndReturn(run func(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*StoredAPIKey, error)) *MockRepository_CreateLLMAPIKey_Call {
+func (_c *MockRepository_CreateLLMAPIKey_Call) RunAndReturn(run func(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error)) *MockRepository_CreateLLMAPIKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -524,23 +524,23 @@ func (_c *MockRepository_ListArticlesPreviews_Call) RunAndReturn(run func(ctx co
 }
 
 // ListLLMAPIKeysByUserID provides a mock function for the type MockRepository
-func (_mock *MockRepository) ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*StoredAPIKey, error) {
+func (_mock *MockRepository) ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error) {
 	ret := _mock.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListLLMAPIKeysByUserID")
 	}
 
-	var r0 []*StoredAPIKey
+	var r0 []*OpenRouterAPIKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*StoredAPIKey, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*OpenRouterAPIKey, error)); ok {
 		return returnFunc(ctx, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*StoredAPIKey); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*OpenRouterAPIKey); ok {
 		r0 = returnFunc(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*StoredAPIKey)
+			r0 = ret.Get(0).([]*OpenRouterAPIKey)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -581,12 +581,12 @@ func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Run(run func(ctx context.C
 	return _c
 }
 
-func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Return(storedAPIKeys []*StoredAPIKey, err error) *MockRepository_ListLLMAPIKeysByUserID_Call {
+func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Return(storedAPIKeys []*OpenRouterAPIKey, err error) *MockRepository_ListLLMAPIKeysByUserID_Call {
 	_c.Call.Return(storedAPIKeys, err)
 	return _c
 }
 
-func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) RunAndReturn(run func(ctx context.Context, userID string) ([]*StoredAPIKey, error)) *MockRepository_ListLLMAPIKeysByUserID_Call {
+func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) RunAndReturn(run func(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error)) *MockRepository_ListLLMAPIKeysByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

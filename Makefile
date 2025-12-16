@@ -20,13 +20,11 @@ help:
 # Run migrations up
 .PHONY: migrate-up
 migrate-up:
-	@echo "Running migrations up..."
 	go run ./cmd migrate up
 
 # Run migrations down (rollback)
 .PHONY: migrate-down
 migrate-down:
-	@echo "Rolling back the last migration..."
 	go run ./cmd migrate down
 
 # Create a new migration
@@ -36,7 +34,6 @@ migrate-create:
 		echo "Error: NAME is required. Use 'make migrate-create NAME=migration_name'"; \
 		exit 1; \
 	fi
-	@echo "Creating migration $(NAME)..."
 	go run ./cmd migrate create $(NAME)
 
 # Force migration version
@@ -46,13 +43,11 @@ migrate-force:
 		echo "Error: VERSION is required. Use 'make migrate-force VERSION=x'"; \
 		exit 1; \
 	fi
-	@echo "Forcing migration version to $(VERSION)..."
 	go run ./cmd migrate force $(VERSION)
 
 # Show current migration version
 .PHONY: migrate-version
 migrate-version:
-	@echo "Current migration version:"
 	go run ./cmd migrate version
 
 # Migrate to a specific version
@@ -62,21 +57,12 @@ migrate-goto:
 		echo "Error: VERSION is required. Use 'make migrate-goto VERSION=x'"; \
 		exit 1; \
 	fi
-	@echo "Migrating to version $(VERSION)..."
 	go run ./cmd migrate goto $(VERSION)
 
 # Drop everything in the database
 .PHONY: migrate-drop
 migrate-drop:
-	@echo "WARNING: This will drop all tables in the database."
-	@echo "Are you sure? [y/N]"
-	@read -r CONFIRM; \
-	if [ "$$CONFIRM" = "y" ] || [ "$$CONFIRM" = "Y" ]; then \
-		echo "Dropping all tables..."; \
-		go run ./cmd migrate drop; \
-	else \
-		echo "Operation cancelled."; \
-	fi
+	go run ./cmd migrate drop; \
 
 # Docker compose commands
 .PHONY: up

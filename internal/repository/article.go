@@ -5,8 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"github.com/Masterminds/squirrel"
+	"time"
 
 	"github.com/tuananhlai/brevity-go/internal/utils"
 )
@@ -41,7 +40,7 @@ func (r *Postgres) GetArticleBySlug(ctx context.Context, slug string) (*ArticleD
 }
 
 // ListArticlesPreviews lists articles with basic information
-func (r *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
+func (p *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
 	opts ...ListArticlesPreviewsOption,
 ) ([]ArticlePreview, string, error) {
 	options := &listArticlesPreviewsOptions{}
@@ -60,7 +59,7 @@ func (r *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
 
 	articles := []ArticlePreview{}
 
-	queryBuilder := squirrel.Select(
+	queryBuilder := p.qb.Select(
 		"a.id", "a.slug", "a.title", "a.description", "a.author_id", "a.created_at", "a.updated_at",
 		"u.username AS author_username", "u.display_name AS author_display_name", "u.avatar_url AS author_avatar_url",
 	).
@@ -79,7 +78,7 @@ func (r *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
 		return nil, "", fmt.Errorf("failed to build SQL query: %w", err)
 	}
 
-	err = r.db.SelectContext(ctx, &articles, query, args...)
+	err = p.db.SelectContext(ctx, &articles, query, args...)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to execute SQL query: %w", err)
 	}
@@ -96,4 +95,21 @@ func (r *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
 	}
 
 	return articles, nextPageToken, nil
+}
+
+type ListArticlesPreviewsPageToken struct {
+	ArticleID string    `json:"article_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type listArticlesPreviewsOptions struct {
+	pageToken string
+}
+
+type ListArticlesPreviewsOption func(*listArticlesPreviewsOptions)
+
+func WithPageToken(pageToken string) ListArticlesPreviewsOption {
+	return func(o *listArticlesPreviewsOptions) {
+		o.pageToken = pageToken
+	}
 }
