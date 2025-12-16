@@ -1,38 +1,18 @@
-package articles
+package repository
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/jmoiron/sqlx"
 
 	"github.com/tuananhlai/brevity-go/internal/utils"
 )
 
-var ErrArticleNotFound = errors.New("article not found")
-
-type Repository interface {
-	Create(ctx context.Context, article *Article) error
-	ListPreviews(ctx context.Context, pageSize int, opts ...ListPreviewsOption) (
-		results []ArticlePreview, nextPageToken string, err error)
-	GetBySlug(ctx context.Context, slug string) (*ArticleDetails, error)
-}
-
-type repositoryImpl struct {
-	db *sqlx.DB
-}
-
-// NewRepository creates a new article repository
-func NewRepository(db *sqlx.DB) *repositoryImpl {
-	return &repositoryImpl{db: db}
-}
-
-// Create creates a new article
-func (r *repositoryImpl) Create(ctx context.Context, article *Article) error {
+// CreateArticle creates a new article
+func (r *Postgres) CreateArticle(ctx context.Context, article *Article) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content,
 		content, author_id) VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -42,7 +22,7 @@ func (r *repositoryImpl) Create(ctx context.Context, article *Article) error {
 	return err
 }
 
-func (r *repositoryImpl) GetBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
+func (r *Postgres) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
 	article := ArticleDetails{}
 	err := r.db.GetContext(ctx, &article, `
 		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
@@ -60,18 +40,18 @@ func (r *repositoryImpl) GetBySlug(ctx context.Context, slug string) (*ArticleDe
 	return &article, nil
 }
 
-// ListPreviews lists articles with basic information
-func (r *repositoryImpl) ListPreviews(ctx context.Context, pageSize int,
-	opts ...ListPreviewsOption,
+// ListArticlesPreviews lists articles with basic information
+func (r *Postgres) ListArticlesPreviews(ctx context.Context, pageSize int,
+	opts ...ListArticlesPreviewsOption,
 ) ([]ArticlePreview, string, error) {
-	options := &listPreviewsOptions{}
+	options := &listArticlesPreviewsOptions{}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	var token *ListPreviewsPageToken
+	var token *ListArticlesPreviewsPageToken
 	if options.pageToken != "" {
-		token = &ListPreviewsPageToken{}
+		token = &ListArticlesPreviewsPageToken{}
 		err := utils.ParsePageToken(options.pageToken, token)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to parse page token: %w", err)
@@ -106,7 +86,7 @@ func (r *repositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 
 	var nextPageToken string
 	if len(articles) > 0 {
-		nextPageToken, err = utils.GeneratePageToken(ListPreviewsPageToken{
+		nextPageToken, err = utils.GeneratePageToken(ListArticlesPreviewsPageToken{
 			ArticleID: articles[len(articles)-1].ID.String(),
 			CreatedAt: articles[len(articles)-1].CreatedAt,
 		})
@@ -116,21 +96,4 @@ func (r *repositoryImpl) ListPreviews(ctx context.Context, pageSize int,
 	}
 
 	return articles, nextPageToken, nil
-}
-
-type ListPreviewsPageToken struct {
-	ArticleID string    `json:"article_id"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type listPreviewsOptions struct {
-	pageToken string
-}
-
-type ListPreviewsOption func(*listPreviewsOptions)
-
-func WithPageToken(pageToken string) ListPreviewsOption {
-	return func(o *listPreviewsOptions) {
-		o.pageToken = pageToken
-	}
 }

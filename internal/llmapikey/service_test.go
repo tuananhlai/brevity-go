@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tuananhlai/brevity-go/internal/llmapikey"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 func TestService(t *testing.T) {
@@ -20,12 +21,12 @@ func TestService(t *testing.T) {
 type ServiceTestSuite struct {
 	suite.Suite
 	service        llmapikey.Service
-	mockRepo       *llmapikey.MockRepository
+	mockRepo       *repository.MockRepository
 	mockEncryption *llmapikey.MockCrypter
 }
 
 func (s *ServiceTestSuite) SetupTest() {
-	s.mockRepo = llmapikey.NewMockRepository(s.T())
+	s.mockRepo = repository.NewMockRepository(s.T())
 	s.mockEncryption = llmapikey.NewMockCrypter(s.T())
 	s.service = llmapikey.NewService(s.mockRepo, s.mockEncryption)
 }
@@ -36,7 +37,7 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 	plainKey := "sk-1234567890abcdef"
 	encKey := []byte("encrypted")
 	createdAt := time.Now()
-	mockModel := &llmapikey.StoredAPIKey{
+	mockModel := &repository.StoredAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -44,7 +45,7 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 		CreatedAt:    createdAt,
 	}
 
-	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return([]*llmapikey.StoredAPIKey{
+	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.StoredAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return([]byte(plainKey), nil)
@@ -65,7 +66,7 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 func (s *ServiceTestSuite) TestListByUserID_RepoError() {
 	ctx := context.Background()
 	userID := uuid.New()
-	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return(nil, assert.AnError)
+	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return(nil, assert.AnError)
 
 	result, err := s.service.ListByUserID(ctx, userID.String())
 
@@ -78,7 +79,7 @@ func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
 	ctx := context.Background()
 	userID := uuid.New()
 	encKey := []byte("encrypted")
-	mockModel := &llmapikey.StoredAPIKey{
+	mockModel := &repository.StoredAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -86,7 +87,7 @@ func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
 		CreatedAt:    time.Now(),
 	}
 
-	s.mockRepo.On("ListByUserID", ctx, userID.String()).Return([]*llmapikey.StoredAPIKey{
+	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.StoredAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return(nil, assert.AnError)
@@ -110,7 +111,7 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 		Value:  plainKey,
 		UserID: userID.String(),
 	}
-	mockModel := &llmapikey.StoredAPIKey{
+	mockModel := &repository.StoredAPIKey{
 		ID:           uuid.New(),
 		Name:         params.Name,
 		EncryptedKey: encKey,
@@ -119,7 +120,9 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 	}
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)
-	s.mockRepo.On("Create", ctx, mock.MatchedBy(func(p llmapikey.CreateParams) bool {
+	s.mockRepo.On("CreateLLMAPIKey", ctx, mock.MatchedBy(func(
+		p repository.CreateLLMAPIKeyParams,
+	) bool {
 		return p.Name == params.Name && string(p.EncryptedKey) == string(encKey) && p.UserID == userID.String()
 	})).Return(mockModel, nil)
 
@@ -149,7 +152,7 @@ func (s *ServiceTestSuite) TestCreate_RepoError() {
 	}
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)
-	s.mockRepo.On("Create", ctx, mock.Anything).Return(nil, assert.AnError)
+	s.mockRepo.On("CreateLLMAPIKey", ctx, mock.Anything).Return(nil, assert.AnError)
 
 	result, err := s.service.Create(ctx, params)
 

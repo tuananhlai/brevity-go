@@ -1,30 +1,26 @@
 package server
 
 import (
-	"github.com/jmoiron/sqlx"
-
 	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/auth"
 	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/llmapikey"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
-func initializeArticleController(db *sqlx.DB) *controller.ArticleController {
-	articleRepository := articles.NewRepository(db)
-	articleService := articles.NewService(articleRepository)
+func initializeArticleController(repo *repository.Postgres) *controller.ArticleController {
+	articleService := articles.NewService(repo)
 	articleController := controller.NewArticleController(articleService)
 	return articleController
 }
 
-func initializeAuthService(db *sqlx.DB, tokenSecret string) auth.Service {
-	authRepository := auth.NewRepository(db)
-	authService := auth.NewService(authRepository, tokenSecret)
+func initializeAuthService(repo *repository.Postgres, tokenSecret string) auth.Service {
+	authService := auth.NewService(repo, tokenSecret)
 	return authService
 }
 
-func initializeLLMAPIKeyController(db *sqlx.DB, crypter llmapikey.Crypter) *controller.LLMAPIKeyController {
-	llmapiKeyRepository := llmapikey.NewRepository(db)
-	llmapiKeyService := llmapikey.NewService(llmapiKeyRepository, crypter)
+func initializeLLMAPIKeyController(repo *repository.Postgres, crypter llmapikey.Crypter) *controller.LLMAPIKeyController {
+	llmapiKeyService := llmapikey.NewService(repo, crypter)
 	llmapiKeyController := controller.NewLLMAPIKeyController(llmapiKeyService)
 	return llmapiKeyController
 }

@@ -1,4 +1,4 @@
-package auth_test
+package repository_test
 
 import (
 	"context"
@@ -7,46 +7,46 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/auth"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
 func TestAuthRepository(t *testing.T) {
-	suite.Run(t, new(RepositoryTestSuite))
+	suite.Run(t, new(AuthRepositoryTestSuite))
 }
 
-type RepositoryTestSuite struct {
+type AuthRepositoryTestSuite struct {
 	suite.Suite
 	dbTestUtil *testutil.DatabaseTestUtil
-	authRepo   auth.Repository
+	repo       *repository.Postgres
 }
 
-func (s *RepositoryTestSuite) SetupSuite() {
+func (s *AuthRepositoryTestSuite) SetupSuite() {
 	var err error
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.authRepo = auth.NewRepository(s.dbTestUtil.DB())
+	s.repo = repository.NewPostgres(s.dbTestUtil.DB())
 }
 
-func (s *RepositoryTestSuite) BeforeTest(suiteName, testName string) {
+func (s *AuthRepositoryTestSuite) BeforeTest(suiteName, testName string) {
 	err := s.dbTestUtil.Reset()
 	s.Require().NoError(err)
 }
 
-func (s *RepositoryTestSuite) TearDownSuite() {
+func (s *AuthRepositoryTestSuite) TearDownSuite() {
 	err := s.dbTestUtil.Teardown()
 	if err != nil {
 		fmt.Println("failed to teardown database: ", err)
 	}
 }
 
-func (s *RepositoryTestSuite) TestCreateUser_Success() {
+func (s *AuthRepositoryTestSuite) TestCreateUser_Success() {
 	email := "test@test.com"
 	passwordHash := []byte("passwordHash")
 	username := "test"
 
-	newUser, err := s.authRepo.CreateUser(context.Background(), auth.CreateUserParams{
+	newUser, err := s.repo.CreateUser(context.Background(), repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: passwordHash,
 		Username:     username,
@@ -58,55 +58,55 @@ func (s *RepositoryTestSuite) TestCreateUser_Success() {
 	s.Require().Equal(username, newUser.Username)
 }
 
-func (s *RepositoryTestSuite) TestCreateUser_DuplicateEmail() {
+func (s *AuthRepositoryTestSuite) TestCreateUser_DuplicateEmail() {
 	var err error
 
 	email := "test@test.com"
 	passwordHash := []byte("passwordHash")
 	username := "test"
 
-	_, err = s.authRepo.CreateUser(context.Background(), auth.CreateUserParams{
+	_, err = s.repo.CreateUser(context.Background(), repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: passwordHash,
 		Username:     username,
 	})
 	s.Require().NoError(err)
 
-	_, err = s.authRepo.CreateUser(context.Background(), auth.CreateUserParams{
+	_, err = s.repo.CreateUser(context.Background(), repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: []byte("differentPasswordHash"),
 		Username:     "differentUsername",
 	})
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, auth.ErrUserAlreadyExists)
+	s.Require().ErrorIs(err, repository.ErrUserAlreadyExists)
 }
 
-func (s *RepositoryTestSuite) TestCreateUser_DuplicateUsername() {
+func (s *AuthRepositoryTestSuite) TestCreateUser_DuplicateUsername() {
 	username := "test"
 
-	_, err := s.authRepo.CreateUser(context.Background(), auth.CreateUserParams{
+	_, err := s.repo.CreateUser(context.Background(), repository.CreateUserParams{
 		Email:        "test@test.com",
 		PasswordHash: []byte("passwordHash"),
 		Username:     username,
 	})
 	s.Require().NoError(err)
 
-	_, err = s.authRepo.CreateUser(context.Background(), auth.CreateUserParams{
+	_, err = s.repo.CreateUser(context.Background(), repository.CreateUserParams{
 		Email:        "differentEmail@test.com",
 		PasswordHash: []byte("differentPasswordHash"),
 		Username:     username,
 	})
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, auth.ErrUserAlreadyExists)
+	s.Require().ErrorIs(err, repository.ErrUserAlreadyExists)
 }
 
-func (s *RepositoryTestSuite) TestGetUser() {
+func (s *AuthRepositoryTestSuite) TestGetUser() {
 	email := "test@test.com"
 	passwordHash := []byte("passwordHash")
 	username := "test"
 	ctx := context.Background()
 
-	_, err := s.authRepo.CreateUser(ctx, auth.CreateUserParams{
+	_, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: passwordHash,
 		Username:     username,
@@ -135,13 +135,13 @@ func (s *RepositoryTestSuite) TestGetUser() {
 		{
 			name:            "get user by email that does not exist",
 			emailOrUsername: "nonexistent@test.com",
-			expectedError:   auth.ErrUserNotFound,
+			expectedError:   repository.ErrUserNotFound,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			user, err := s.authRepo.GetUser(ctx, tc.emailOrUsername)
+			user, err := s.repo.GetUser(ctx, tc.emailOrUsername)
 			if tc.expectedError != nil {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expectedError)

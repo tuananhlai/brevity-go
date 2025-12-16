@@ -23,6 +23,7 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/controller/middleware"
 	"github.com/tuananhlai/brevity-go/internal/encryption"
 	"github.com/tuananhlai/brevity-go/internal/otelsdk"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 const (
@@ -39,15 +40,16 @@ func Run() {
 	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
-	articleController := initializeArticleController(db)
-	authService := initializeAuthService(db, cfg.Auth.TokenSecret)
+	repo := repository.NewPostgres(db)
+	articleController := initializeArticleController(repo)
+	authService := initializeAuthService(repo, cfg.Auth.TokenSecret)
 	authController := controller.NewAuthController(authService)
 	healthController := controller.NewHealthController()
 	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
 	if err != nil {
 		log.Fatalf("error initializing encryption service: %s", err)
 	}
-	llmAPIKeyController := initializeLLMAPIKeyController(db, encryptionService)
+	llmAPIKeyController := initializeLLMAPIKeyController(repo, encryptionService)
 	authMiddleware := middleware.AuthMiddleware(authService)
 
 	// == Otel Setup ==

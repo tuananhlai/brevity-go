@@ -1,4 +1,4 @@
-package llmapikey_test
+package repository_test
 
 import (
 	"context"
@@ -7,42 +7,39 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/auth"
-	"github.com/tuananhlai/brevity-go/internal/llmapikey"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
-func TestRepositoryTestSuite(t *testing.T) {
-	suite.Run(t, new(RepositoryTestSuite))
+func TestLLMAPIKeyRepository(t *testing.T) {
+	suite.Run(t, new(LLMAPIKeyRepositoryTestSuite))
 }
 
-type RepositoryTestSuite struct {
+type LLMAPIKeyRepositoryTestSuite struct {
 	suite.Suite
-	dbTestUtil    *testutil.DatabaseTestUtil
-	authRepo      auth.Repository
-	llmAPIKeyRepo llmapikey.Repository
+	dbTestUtil *testutil.DatabaseTestUtil
+	repo       *repository.Postgres
 }
 
-func (s *RepositoryTestSuite) SetupSuite() {
+func (s *LLMAPIKeyRepositoryTestSuite) SetupSuite() {
 	var err error
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.authRepo = auth.NewRepository(s.dbTestUtil.DB())
-	s.llmAPIKeyRepo = llmapikey.NewRepository(s.dbTestUtil.DB())
+	s.repo = repository.NewPostgres(s.dbTestUtil.DB())
 }
 
-func (s *RepositoryTestSuite) BeforeTest(suiteName, testName string) {
+func (s *LLMAPIKeyRepositoryTestSuite) BeforeTest(suiteName, testName string) {
 	err := s.dbTestUtil.Reset()
 	s.Require().NoError(err)
 }
 
-func (s *RepositoryTestSuite) TearDownSuite() {
+func (s *LLMAPIKeyRepositoryTestSuite) TearDownSuite() {
 	err := s.dbTestUtil.Teardown()
 	s.Require().NoError(err)
 }
 
-func (s *RepositoryTestSuite) TestCreateLLMAPIKey_Success() {
+func (s *LLMAPIKeyRepositoryTestSuite) TestCreateLLMAPIKey_Success() {
 	ctx := context.Background()
 	user := s.mustCreateUser()
 
@@ -50,7 +47,7 @@ func (s *RepositoryTestSuite) TestCreateLLMAPIKey_Success() {
 	expectedEncryptedKey := []byte("testencryptedkey")
 	expectedUserID := user.ID
 
-	_, err := s.llmAPIKeyRepo.Create(ctx, llmapikey.CreateParams{
+	_, err := s.repo.CreateLLMAPIKey(ctx, repository.CreateLLMAPIKeyParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
 		UserID:       expectedUserID.String(),
@@ -70,7 +67,7 @@ func (s *RepositoryTestSuite) TestCreateLLMAPIKey_Success() {
 	s.Equal(expectedUserID, actualUserID)
 }
 
-func (s *RepositoryTestSuite) TestListByUserID_Success() {
+func (s *LLMAPIKeyRepositoryTestSuite) TestListLLMAPIKeysByUserID_Success() {
 	ctx := context.Background()
 	user := s.mustCreateUser()
 
@@ -78,14 +75,14 @@ func (s *RepositoryTestSuite) TestListByUserID_Success() {
 	expectedEncryptedKey := []byte("testencryptedkey")
 	expectedUserID := user.ID
 
-	_, err := s.llmAPIKeyRepo.Create(ctx, llmapikey.CreateParams{
+	_, err := s.repo.CreateLLMAPIKey(ctx, repository.CreateLLMAPIKeyParams{
 		Name:         expectedName,
 		EncryptedKey: expectedEncryptedKey,
 		UserID:       expectedUserID.String(),
 	})
 	s.Require().NoError(err)
 
-	keys, err := s.llmAPIKeyRepo.ListByUserID(ctx, expectedUserID.String())
+	keys, err := s.repo.ListLLMAPIKeysByUserID(ctx, expectedUserID.String())
 	s.Require().NoError(err)
 
 	s.Len(keys, 1)
@@ -94,14 +91,14 @@ func (s *RepositoryTestSuite) TestListByUserID_Success() {
 	s.Equal(expectedUserID, keys[0].UserID)
 }
 
-func (s *RepositoryTestSuite) mustCreateUser() *auth.User {
-	user := auth.CreateUserParams{
+func (s *LLMAPIKeyRepositoryTestSuite) mustCreateUser() *repository.User {
+	user := repository.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
 		PasswordHash: []byte("passwordHash"),
 	}
 
-	createdUser, err := s.authRepo.CreateUser(context.Background(), user)
+	createdUser, err := s.repo.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
 
 	return createdUser

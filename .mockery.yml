@@ -20,3 +20,6 @@ packages:
   github.com/tuananhlai/brevity-go/internal/llmapikey:
     config:
       all: true
+  github.com/tuananhlai/brevity-go/internal/repository:
+    config:
+      all: true

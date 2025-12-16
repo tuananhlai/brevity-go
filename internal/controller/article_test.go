@@ -14,6 +14,7 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller"
+	store "github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 func TestArticleController(t *testing.T) {
@@ -42,7 +43,7 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 	articleID := uuid.New()
 	authorID := uuid.New()
 	date := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
-	previews := []articles.ArticlePreview{
+	previews := []store.ArticlePreview{
 		{
 			ID:                articleID,
 			Slug:              "test-article",

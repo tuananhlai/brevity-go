@@ -8,6 +8,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
@@ -17,17 +19,17 @@ type Service interface {
 	Register(ctx context.Context, email, username, password string) error
 	Login(ctx context.Context, emailOrUsername, password string) (*LoginResult, error)
 	VerifyAccessToken(ctx context.Context, accessToken string) (string, error)
-	GetCurrentUser(ctx context.Context, userID string) (*User, error)
+	GetCurrentUser(ctx context.Context, userID string) (*repository.User, error)
 }
 
 type serviceImpl struct {
-	authRepo          Repository
+	authRepo          repository.Repository
 	accessTokenSecret string
 	accessTokenExpiry time.Duration
 	bcryptCost        int
 }
 
-func NewService(authRepo Repository, accessTokenSecret string) Service {
+func NewService(authRepo repository.Repository, accessTokenSecret string) Service {
 	return &serviceImpl{
 		bcryptCost:        bcrypt.DefaultCost,
 		accessTokenExpiry: time.Hour * 24 * 30,
@@ -42,14 +44,14 @@ func (s *serviceImpl) Register(ctx context.Context, email, username, password st
 		return err
 	}
 
-	_, err = s.authRepo.CreateUser(ctx, CreateUserParams{
+	_, err = s.authRepo.CreateUser(ctx, repository.CreateUserParams{
 		Email:        email,
 		Username:     username,
 		PasswordHash: hashedPassword,
 	})
 	if err != nil {
-		if errors.Is(err, ErrUserAlreadyExists) {
-			return fmt.Errorf("%w: %s", ErrUserAlreadyExists, err)
+		if errors.Is(err, repository.ErrUserAlreadyExists) {
+			return fmt.Errorf("%w: %s", repository.ErrUserAlreadyExists, err)
 		}
 		return err
 	}
@@ -61,7 +63,7 @@ func (s *serviceImpl) Register(ctx context.Context, email, username, password st
 func (s *serviceImpl) Login(ctx context.Context, emailOrUsername string, password string) (*LoginResult, error) {
 	user, err := s.authRepo.GetUser(ctx, emailOrUsername)
 	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return nil, fmt.Errorf("%w: %s", ErrInvalidCredentials, err)
 		}
 		return nil, err
@@ -85,7 +87,7 @@ func (s *serviceImpl) Login(ctx context.Context, emailOrUsername string, passwor
 	}, nil
 }
 
-func (s *serviceImpl) GetCurrentUser(ctx context.Context, userID string) (*User, error) {
+func (s *serviceImpl) GetCurrentUser(ctx context.Context, userID string) (*repository.User, error) {
 	user, err := s.authRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err

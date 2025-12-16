@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tuananhlai/brevity-go/internal/auth"
+	store "github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 // hashed value of "password"
@@ -21,11 +22,11 @@ func TestAuthService(t *testing.T) {
 type ServiceTestSuite struct {
 	suite.Suite
 	authService auth.Service
-	mockRepo    *auth.MockRepository
+	mockRepo    *store.MockRepository
 }
 
 func (s *ServiceTestSuite) SetupTest() {
-	s.mockRepo = auth.NewMockRepository(s.T())
+	s.mockRepo = store.NewMockRepository(s.T())
 	s.authService = auth.NewService(s.mockRepo, "test-secret")
 }
 
@@ -35,9 +36,9 @@ func (s *ServiceTestSuite) TestRegister_Success() {
 	username := "testuser"
 	password := "password123"
 
-	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params auth.CreateUserParams) bool {
+	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params store.CreateUserParams) bool {
 		return params.Email == email && params.Username == username
-	})).Return(&auth.User{
+	})).Return(&store.User{
 		ID:       uuid.New(),
 		Email:    email,
 		Username: username,
@@ -55,14 +56,14 @@ func (s *ServiceTestSuite) TestRegister_RepositoryError() {
 	username := "testuser"
 	password := "password123"
 
-	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params auth.CreateUserParams) bool {
+	s.mockRepo.On("CreateUser", ctx, mock.MatchedBy(func(params store.CreateUserParams) bool {
 		return params.Email == email && params.Username == username
-	})).Return(nil, auth.ErrUserAlreadyExists)
+	})).Return(nil, store.ErrUserAlreadyExists)
 
 	err := s.authService.Register(ctx, email, username, password)
 
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, auth.ErrUserAlreadyExists)
+	s.Require().ErrorIs(err, store.ErrUserAlreadyExists)
 	s.mockRepo.AssertExpectations(s.T())
 }
 
@@ -72,7 +73,7 @@ func (s *ServiceTestSuite) TestLogin_Success() {
 	password := "password"
 	userID := uuid.New()
 
-	s.mockRepo.On("GetUser", ctx, email).Return(&auth.User{
+	s.mockRepo.On("GetUser", ctx, email).Return(&store.User{
 		ID:           userID,
 		Email:        email,
 		Username:     "testuser",
@@ -94,7 +95,7 @@ func (s *ServiceTestSuite) TestLogin_UserNotFound() {
 	email := "nonexistent@example.com"
 	password := "password123"
 
-	s.mockRepo.On("GetUser", ctx, email).Return(nil, auth.ErrUserNotFound)
+	s.mockRepo.On("GetUser", ctx, email).Return(nil, store.ErrUserNotFound)
 
 	result, err := s.authService.Login(ctx, email, password)
 
@@ -109,8 +110,8 @@ func (s *ServiceTestSuite) TestLogin_InvalidPassword() {
 	email := "test@example.com"
 	password := "wrongpassword"
 
-	s.mockRepo.On("GetUser", ctx, email).Return(&auth.User{
-		ID:           uuid.New(),
+	s.mockRepo.On("GetUser", ctx, email).Return(&store.User{
+		ID:           userID,
 		Email:        email,
 		Username:     "testuser",
 		PasswordHash: hashedPassword,
@@ -122,3 +123,5 @@ func (s *ServiceTestSuite) TestLogin_InvalidPassword() {
 	s.Require().Nil(result)
 	s.mockRepo.AssertExpectations(s.T())
 }
+
+var userID = uuid.New()

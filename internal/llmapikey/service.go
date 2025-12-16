@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 type Crypter interface {
@@ -19,11 +20,11 @@ type Service interface {
 }
 
 type serviceImpl struct {
-	repo    Repository
+	repo    repository.Repository
 	crypter Crypter
 }
 
-func NewService(repo Repository, crypter Crypter) Service {
+func NewService(repo repository.Repository, crypter Crypter) Service {
 	return &serviceImpl{
 		repo:    repo,
 		crypter: crypter,
@@ -31,7 +32,7 @@ func NewService(repo Repository, crypter Crypter) Service {
 }
 
 func (s *serviceImpl) ListByUserID(ctx context.Context, userID string) ([]*APIKey, error) {
-	results, err := s.repo.ListByUserID(ctx, userID)
+	results, err := s.repo.ListLLMAPIKeysByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (s *serviceImpl) ListByUserID(ctx context.Context, userID string) ([]*APIKe
 func (s *serviceImpl) Create(ctx context.Context, apiKey CreateInput) (*APIKey, error) {
 	encryptedKey := s.crypter.Encrypt([]byte(apiKey.Value))
 
-	newAPIKey, err := s.repo.Create(ctx, CreateParams{
+	newAPIKey, err := s.repo.CreateLLMAPIKey(ctx, repository.CreateLLMAPIKeyParams{
 		Name:         apiKey.Name,
 		EncryptedKey: encryptedKey,
 		UserID:       apiKey.UserID,

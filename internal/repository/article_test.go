@@ -1,4 +1,4 @@
-package articles_test
+package repository_test
 
 import (
 	"context"
@@ -8,8 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/articles"
-	"github.com/tuananhlai/brevity-go/internal/auth"
+	"github.com/tuananhlai/brevity-go/internal/repository"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
@@ -19,9 +18,8 @@ func TestArticleRepository(t *testing.T) {
 
 type ArticleRepositoryTestSuite struct {
 	suite.Suite
-	dbTestUtil  *testutil.DatabaseTestUtil
-	authRepo    auth.Repository
-	articleRepo articles.Repository
+	dbTestUtil *testutil.DatabaseTestUtil
+	repo       *repository.Postgres
 }
 
 func (s *ArticleRepositoryTestSuite) SetupSuite() {
@@ -29,8 +27,7 @@ func (s *ArticleRepositoryTestSuite) SetupSuite() {
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.authRepo = auth.NewRepository(s.dbTestUtil.DB())
-	s.articleRepo = articles.NewRepository(s.dbTestUtil.DB())
+	s.repo = repository.NewPostgres(s.dbTestUtil.DB())
 }
 
 func (s *ArticleRepositoryTestSuite) BeforeTest(suiteName, testName string) {
@@ -47,21 +44,21 @@ func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 
-	article := &articles.Article{
+	article := &repository.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: author.ID,
 	}
-	err := s.articleRepo.Create(ctx, article)
+	err := s.repo.CreateArticle(ctx, article)
 	s.Require().NoError(err)
 }
 
-func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
+func (s *ArticleRepositoryTestSuite) TestListArticlesPreviews_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 	newArticle := s.mustCreateArticle(author.ID)
 
-	previews, _, err := s.articleRepo.ListPreviews(ctx, 100)
+	previews, _, err := s.repo.ListArticlesPreviews(ctx, 100)
 
 	s.Require().NoError(err)
 	s.Require().Len(previews, 1)
@@ -70,12 +67,12 @@ func (s *ArticleRepositoryTestSuite) TestListPreviews_Success() {
 	s.Require().Equal(newArticle.AuthorID, previews[0].AuthorID)
 }
 
-func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
+func (s *ArticleRepositoryTestSuite) TestGetArticleBySlug_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 	newArticle := s.mustCreateArticle(author.ID)
 
-	article, err := s.articleRepo.GetBySlug(ctx, newArticle.Slug)
+	article, err := s.repo.GetArticleBySlug(ctx, newArticle.Slug)
 
 	s.Require().NoError(err)
 	s.Require().Equal(newArticle.Slug, article.Slug)
@@ -87,27 +84,27 @@ func (s *ArticleRepositoryTestSuite) TestGetBySlug_Success() {
 	s.Require().Equal(author.Username, article.AuthorUsername)
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateUser() *auth.User {
-	user := auth.CreateUserParams{
+func (s *ArticleRepositoryTestSuite) mustCreateUser() *repository.User {
+	user := repository.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
 		PasswordHash: []byte("passwordHash"),
 	}
 
-	createdUser, err := s.authRepo.CreateUser(context.Background(), user)
+	createdUser, err := s.repo.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
 
 	return createdUser
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *articles.Article {
-	article := &articles.Article{
+func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *repository.Article {
+	article := &repository.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: authorID,
 	}
 
-	err := s.articleRepo.Create(context.Background(), article)
+	err := s.repo.CreateArticle(context.Background(), article)
 	s.Require().NoError(err)
 
 	err = s.dbTestUtil.DB().GetContext(context.Background(), article, `

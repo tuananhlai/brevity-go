@@ -9,6 +9,7 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/auth"
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
+	store "github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 const (
@@ -85,7 +86,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	err := c.authService.Register(ctx, req.Email, req.Username, req.Password)
 	if err != nil {
-		if errors.Is(err, auth.ErrUserAlreadyExists) {
+		if errors.Is(err, store.ErrUserAlreadyExists) {
 			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
 				Body: shared.ErrorResponse{
 					Code:    CodeUserAlreadyExists,

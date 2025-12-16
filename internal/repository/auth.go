@@ -1,37 +1,12 @@
-package auth
+package repository
 
 import (
 	"context"
 	"database/sql"
 	"errors"
-
-	"github.com/jmoiron/sqlx"
 )
 
-var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user already exists")
-)
-
-// Repository defines the read/write operations for users.
-type Repository interface {
-	// GetUser returns the user with the given email or username.
-	GetUser(ctx context.Context, emailOrUsername string) (*User, error)
-	// CreateUser creates a new user and returns the created user.
-	CreateUser(ctx context.Context, params CreateUserParams) (*User, error)
-	// GetUserByID returns the user with the given ID.
-	GetUserByID(ctx context.Context, userID string) (*User, error)
-}
-
-type repositoryImpl struct {
-	db *sqlx.DB
-}
-
-func NewRepository(db *sqlx.DB) Repository {
-	return &repositoryImpl{db: db}
-}
-
-func (r *repositoryImpl) GetUser(ctx context.Context, emailOrUsername string) (*User, error) {
+func (r *Postgres) GetUser(ctx context.Context, emailOrUsername string) (*User, error) {
 	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash
@@ -49,7 +24,7 @@ func (r *repositoryImpl) GetUser(ctx context.Context, emailOrUsername string) (*
 	return &user, nil
 }
 
-func (r *repositoryImpl) CreateUser(ctx context.Context, params CreateUserParams) (*User, error) {
+func (r *Postgres) CreateUser(ctx context.Context, params CreateUserParams) (*User, error) {
 	user := &User{
 		Email:    params.Email,
 		Username: params.Username,
@@ -74,7 +49,7 @@ func (r *repositoryImpl) CreateUser(ctx context.Context, params CreateUserParams
 	return user, nil
 }
 
-func (r *repositoryImpl) GetUserByID(ctx context.Context, userID string) (*User, error) {
+func (r *Postgres) GetUserByID(ctx context.Context, userID string) (*User, error) {
 	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash
@@ -88,10 +63,4 @@ func (r *repositoryImpl) GetUserByID(ctx context.Context, userID string) (*User,
 		return nil, err
 	}
 	return &user, nil
-}
-
-type CreateUserParams struct {
-	Email        string
-	PasswordHash []byte
-	Username     string
 }

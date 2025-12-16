@@ -13,6 +13,7 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
+	store "github.com/tuananhlai/brevity-go/internal/repository"
 )
 
 const (
@@ -21,9 +22,9 @@ const (
 
 // ArticleService defines the interface for article business logic
 type ArticleService interface {
-	Create(ctx context.Context, article *articles.Article) error
-	ListPreviews(ctx context.Context, pageSize int, opts ...articles.ListPreviewsOption) ([]articles.ArticlePreview, string, error)
-	GetBySlug(ctx context.Context, slug string) (*articles.ArticleDetails, error)
+	Create(ctx context.Context, article *store.Article) error
+	ListPreviews(ctx context.Context, pageSize int, opts ...store.ListArticlesPreviewsOption) ([]store.ArticlePreview, string, error)
+	GetBySlug(ctx context.Context, slug string) (*store.ArticleDetails, error)
 }
 
 type ArticleController struct {
@@ -52,7 +53,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	req.PageSize = lo.Clamp(req.PageSize, 1, 100)
 
 	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
-		req.PageSize, articles.WithPageToken(req.PageToken))
+		req.PageSize, store.WithPageToken(req.PageToken))
 	if err != nil {
 		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
