@@ -214,7 +214,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
   name_prefix         = "brevity-ecs-asg-"
   vpc_zone_identifier = module.vpc.private_subnets
   min_size            = 0
-  desired_capacity    = 2
+  desired_capacity    = 0
   max_size            = 3
 
   launch_template {
@@ -398,7 +398,7 @@ resource "aws_ecs_service" "backend" {
   name            = "brevity-backend-service"
   cluster         = aws_ecs_cluster.default.id
   task_definition = aws_ecs_task_definition.backend.arn
-  desired_count   = 1
+  desired_count   = 0
   // TODO: Remove when the application is running stably on production.
   force_delete           = true
   enable_execute_command = true
