@@ -52,27 +52,27 @@ resource "aws_db_subnet_group" "primary" {
   subnet_ids  = module.vpc.private_subnets
 }
 
-resource "aws_db_instance" "primary" {
-  identifier_prefix      = "brevity-"
-  engine                 = "postgres"
-  engine_version         = "17.4"
-  instance_class         = "db.t4g.micro"
-  allocated_storage      = 20
-  db_name                = "brevity"
-  username               = "postgres"
-  password               = random_password.db_password.result
-  apply_immediately      = true
-  skip_final_snapshot    = true
-  vpc_security_group_ids = [module.db_sg.security_group_id]
-  db_subnet_group_name   = aws_db_subnet_group.primary.name
-  # network_type           = "DUAL"
-}
+# resource "aws_db_instance" "primary" {
+#   identifier_prefix      = "brevity-"
+#   engine                 = "postgres"
+#   engine_version         = "17.4"
+#   instance_class         = "db.t4g.micro"
+#   allocated_storage      = 20
+#   db_name                = "brevity"
+#   username               = "postgres"
+#   password               = random_password.db_password.result
+#   apply_immediately      = true
+#   skip_final_snapshot    = true
+#   vpc_security_group_ids = [module.db_sg.security_group_id]
+#   db_subnet_group_name   = aws_db_subnet_group.primary.name
+#   # network_type           = "DUAL"
+# }
 
 output "primary_db" {
   value = {
-    password = nonsensitive(random_password.db_password.result),
-    username = aws_db_instance.primary.username
-    host     = aws_db_instance.primary.address
-    port     = aws_db_instance.primary.port
+    password = nonsensitive(random_password.db_password.result)
+    # username = aws_db_instance.primary.username
+    # host     = aws_db_instance.primary.address
+    # port     = aws_db_instance.primary.port
   }
 }

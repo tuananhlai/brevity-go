@@ -42,7 +42,7 @@ module "vpc" {
 // > dig AAAA +short ecs.us-east-1.amazonaws.com
 module "fck-nat" {
   source  = "RaJiska/fck-nat/aws"
-  version = "~> 1.0"
+  version = "1.3.0"
 
   instance_type = "t2.micro"
   name          = "brevity-fck-nat-instance"
