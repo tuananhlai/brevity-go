@@ -411,8 +411,9 @@ resource "aws_ecs_service" "backend" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs.arn
-    container_name   = "nginx"
-    container_port   = 80
+    # TODO: this container is for the brevity backend server. Change container name to prevent misunderstanding.
+    container_name = "nginx"
+    container_port = 80
   }
 
   capacity_provider_strategy {
