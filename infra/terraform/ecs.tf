@@ -136,13 +136,13 @@ module "ecs_alb_sg" {
   ]
 }
 
-# resource "aws_lb" "ecs" {
-#   load_balancer_type = "application"
-#   security_groups    = [module.ecs_alb_sg.security_group_id]
-#   subnets            = module.vpc.public_subnets
-#   name               = "brevity-ecs-alb-8712"
-#   # ip_address_type    = "dualstack-without-public-ipv4"
-# }
+resource "aws_lb" "ecs" {
+  load_balancer_type = "application"
+  security_groups    = [module.ecs_alb_sg.security_group_id]
+  subnets            = module.vpc.public_subnets
+  name               = "brevity-ecs-alb-8712"
+  ip_address_type    = "dualstack-without-public-ipv4"
+}
 
 resource "aws_lb_target_group" "ecs" {
   port        = 80
@@ -155,28 +155,28 @@ resource "aws_lb_target_group" "ecs" {
   }
 }
 
-# resource "aws_lb_listener" "ecs" {
-#   port              = 80
-#   protocol          = "HTTP"
-#   load_balancer_arn = aws_lb.ecs.arn
+resource "aws_lb_listener" "ecs" {
+  port              = 80
+  protocol          = "HTTP"
+  load_balancer_arn = aws_lb.ecs.arn
 
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.ecs.arn
-#   }
-# }
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
+  }
+}
 
-# resource "aws_lb_listener" "ecs_https" {
-#   port              = 443
-#   protocol          = "HTTPS"
-#   load_balancer_arn = aws_lb.ecs.arn
-#   certificate_arn   = data.aws_acm_certificate.api_brevity.arn
+resource "aws_lb_listener" "ecs_https" {
+  port              = 443
+  protocol          = "HTTPS"
+  load_balancer_arn = aws_lb.ecs.arn
+  certificate_arn   = data.aws_acm_certificate.api_brevity.arn
 
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.ecs.arn
-#   }
-# }
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs.arn
+  }
+}
 
 resource "aws_launch_template" "ecs_lt" {
   name_prefix            = "brevity-ecs-lt-"
