@@ -9,7 +9,7 @@
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"configureZshAsDefaultShell": true
 		},
-		// for installing addtional tools. chosen because it has a large catalog of tools and is easy to use, unlike apt.
+		// for installing additional tools. chosen because it has a large catalog of tools and is easy to use, unlike apt.
 		"ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -23,12 +23,13 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"hashicorp.terraform",
 				"humao.rest-client",
 				"golang.go",
 				"redocly.openapi-vs-code",
 				"redhat.vscode-yaml",
-				"openai.chatgpt"
+				"openai.chatgpt",
+				"opentofu.vscode-opentofu",
+				"ms-vscode.makefile-tools"
 			]
 		}
 	}
