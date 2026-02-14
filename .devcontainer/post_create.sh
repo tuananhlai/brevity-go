@@ -1,4 +1,6 @@
 #!/bin/bash
 
-brew install golang-migrate mockery
+brew install golang-migrate mockery opentofu
+# golangci-lint **should not** be installed via brew since it can cause brew to install a different version
+# of Go
 curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.9.0

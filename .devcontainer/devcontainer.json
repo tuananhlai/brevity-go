@@ -5,13 +5,16 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
 	"features": {
+		// install zsh, oh-my-zsh and set zsh as default shell. 
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"configureZshAsDefaultShell": true
 		},
-		"ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {},
+		// for installing addtional tools. chosen because it has a large catalog of tools and is easy to use, unlike apt.
+		"ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
+		// server port
 		48080
 	],
 	// Use 'postCreateCommand' to run commands after the container is created.
