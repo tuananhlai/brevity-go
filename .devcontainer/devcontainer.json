@@ -1,0 +1,38 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go .
+{
+	"name": "Go",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
+	"features": {
+		// install zsh, oh-my-zsh and set zsh as default shell. 
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"configureZshAsDefaultShell": true
+		},
+		// for installing additional tools. chosen because it has a large catalog of tools and is easy to use, unlike apt.
+		"ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {},
+		// for starting other services like databases inside compose.yml
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		// server port
+		48080
+	],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "bash .devcontainer/post_create.sh",
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"humao.rest-client",
+				"golang.go",
+				"redocly.openapi-vs-code",
+				"redhat.vscode-yaml",
+				"openai.chatgpt",
+				"opentofu.vscode-opentofu",
+				"ms-vscode.makefile-tools"
+			]
+		}
+	}
+}
