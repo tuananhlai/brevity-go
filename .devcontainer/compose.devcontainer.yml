@@ -1,0 +1,6 @@
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/go:1.25-bookworm
+    command: sleep infinity
+    volumes:
+      - .:/workspaces/brevity-go:cached
