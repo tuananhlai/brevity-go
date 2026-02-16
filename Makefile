@@ -83,7 +83,7 @@ logs:
 
 .PHONY: server
 server:
-	OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:44318" go run ./cmd server
+	OTEL_EXPORTER_OTLP_ENDPOINT="http://lgtm:4318" go run ./cmd server
 
 .PHONY: s
 s: server 
