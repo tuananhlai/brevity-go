@@ -23,8 +23,9 @@
 		// server port
 		48080
 	],
+	"workspaceFolder": "/workspaces/brevity-go",
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash .devcontainer/post_create.sh",
+	"postCreateCommand": "bash /workspaces/brevity-go/.devcontainer/post_create.sh",
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
