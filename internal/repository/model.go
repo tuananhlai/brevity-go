@@ -59,11 +59,20 @@ type User struct {
 	PasswordHash []byte    `db:"password_hash"`
 }
 
-// StoredAPIKey represents the persisted API key with encrypted value.
-type StoredAPIKey struct {
+// OpenRouterAPIKey are user-provided API keys for OpenRouter.
+type OpenRouterAPIKey struct {
 	ID           uuid.UUID `db:"id"`
 	Name         string    `db:"name"`
 	EncryptedKey []byte    `db:"encrypted_key"`
 	UserID       uuid.UUID `db:"user_id"`
 	CreatedAt    time.Time `db:"created_at"`
+}
+
+type DigitalAuthor struct {
+	ID                   uuid.UUID `db:"id"`
+	DisplayName          string    `db:"display_name"`
+	SystemPrompt         string    `db:"system_prompt"`
+	APIKeyID             uuid.UUID `db:"api_key_id"`
+	APIKeyEncryptedValue []byte    `db:"api_key_encrypted_value"`
+	CreatedAt            time.Time `db:"created_at"`
 }

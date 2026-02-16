@@ -241,6 +241,116 @@ paths:
                     items:
                       $ref: "#/components/schemas/LLMAPIKey"
 
+  /v1/digital-authors:
+    post:
+      operationId: createDigitalAuthor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - displayName
+                - apiKeyID
+                - systemPrompt
+              properties:
+                displayName:
+                  type: string
+                apiKeyID:
+                  type: string
+                  format: uuid
+                systemPrompt:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - displayName
+                  - apiKeyID
+                  - systemPrompt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  displayName:
+                    type: string
+                  apiKeyID:
+                    type: string
+                    format: uuid
+                  systemPrompt:
+                    type: string
+    get:
+      operationId: listDigitalAuthors
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: number
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: number
+            default: 50
+            maximum: 100
+            minimum: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - page
+                  - pageSize
+                  - totalPage
+                  - totalItems
+                properties:
+                  page:
+                    type: number
+                  pageSize:
+                    type: number
+                  totalPage:
+                    type: number
+                  totalItems:
+                    type: number
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - displayName
+                        - systemPrompt
+                        - apiKeyID
+                        - apiKeyFirstFour
+                        - apiKeyLastFour
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        displayName:
+                          type: string
+                        systemPrompt:
+                          type: string
+                        apiKeyID:
+                          type: string
+                          format: uuid
+                        apiKeyFirstFour:
+                          type: string
+                          maxLength: 4
+                        apiKeyLastFour:
+                          type: string
+                          maxLength: 6
+
 components:
   securitySchemes:
     bearerAuth:

@@ -68,12 +68,12 @@ services:
       - GF_PATHS_DATA=/data/grafana
 
   redis:
-    image: redis:7
+    image: valkey/valkey:9
     ports:
       - "46379:6379"
     volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
+      - valkey_data:/data
+    command: valkey-server --appendonly yes
 
 volumes:
   postgres_data:
@@ -81,6 +81,6 @@ volumes:
   grafana_data:
   prometheus_data:
   loki_data:
-  redis_data:
+  valkey_data:
   elasticsearch_data:
   kibana_data:

@@ -64,3 +64,9 @@ func (r *Postgres) GetUserByID(ctx context.Context, userID string) (*User, error
 	}
 	return &user, nil
 }
+
+type CreateUserParams struct {
+	Email        string
+	PasswordHash []byte
+	Username     string
+}
