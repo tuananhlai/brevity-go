@@ -9,7 +9,7 @@
 	],
 	"service": "devcontainer",
 	"features": {
-		// install zsh, oh-my-zsh and set zsh as default shell. 
+		// install zsh, oh-my-zsh and set zsh as default shell.
 		"ghcr.io/devcontainers/features/common-utils:2": {
 			"configureZshAsDefaultShell": true
 		},

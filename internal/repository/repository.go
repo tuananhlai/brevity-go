@@ -28,4 +28,6 @@ type Repository interface {
 	// ListLLMAPIKeysByUserID returns the list of LLM API keys belonging to the given user.
 	ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error)
 	CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error)
+
+	ListAllDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error)
 }

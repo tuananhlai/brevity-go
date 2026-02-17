@@ -4,3 +4,8 @@ services:
     command: sleep infinity
     volumes:
       - .:/workspaces/brevity-go:cached
+      # Homebrew caches
+      - brew-download-cache:/home/linuxbrew/.cache/Homebrew
+
+volumes:
+  brew-download-cache:

@@ -69,10 +69,7 @@ type OpenRouterAPIKey struct {
 }
 
 type DigitalAuthor struct {
-	ID                   uuid.UUID `db:"id"`
-	DisplayName          string    `db:"display_name"`
-	SystemPrompt         string    `db:"system_prompt"`
-	APIKeyID             uuid.UUID `db:"api_key_id"`
-	APIKeyEncryptedValue []byte    `db:"api_key_encrypted_value"`
-	CreatedAt            time.Time `db:"created_at"`
+	ID           uuid.UUID `db:"id"`
+	DisplayName  string    `db:"display_name"`
+	SystemPrompt string    `db:"system_prompt"`
 }

@@ -152,8 +152,8 @@ func (_c *MockRepository_CreateLLMAPIKey_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockRepository_CreateLLMAPIKey_Call) Return(storedAPIKey *OpenRouterAPIKey, err error) *MockRepository_CreateLLMAPIKey_Call {
-	_c.Call.Return(storedAPIKey, err)
+func (_c *MockRepository_CreateLLMAPIKey_Call) Return(openRouterAPIKey *OpenRouterAPIKey, err error) *MockRepository_CreateLLMAPIKey_Call {
+	_c.Call.Return(openRouterAPIKey, err)
 	return _c
 }
 
@@ -434,6 +434,68 @@ func (_c *MockRepository_GetUserByID_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// ListAllDigitalAuthors provides a mock function for the type MockRepository
+func (_mock *MockRepository) ListAllDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllDigitalAuthors")
+	}
+
+	var r0 []*DigitalAuthor
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*DigitalAuthor, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*DigitalAuthor); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*DigitalAuthor)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_ListAllDigitalAuthors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllDigitalAuthors'
+type MockRepository_ListAllDigitalAuthors_Call struct {
+	*mock.Call
+}
+
+// ListAllDigitalAuthors is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockRepository_Expecter) ListAllDigitalAuthors(ctx interface{}) *MockRepository_ListAllDigitalAuthors_Call {
+	return &MockRepository_ListAllDigitalAuthors_Call{Call: _e.mock.On("ListAllDigitalAuthors", ctx)}
+}
+
+func (_c *MockRepository_ListAllDigitalAuthors_Call) Run(run func(ctx context.Context)) *MockRepository_ListAllDigitalAuthors_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_ListAllDigitalAuthors_Call) Return(digitalAuthors []*DigitalAuthor, err error) *MockRepository_ListAllDigitalAuthors_Call {
+	_c.Call.Return(digitalAuthors, err)
+	return _c
+}
+
+func (_c *MockRepository_ListAllDigitalAuthors_Call) RunAndReturn(run func(ctx context.Context) ([]*DigitalAuthor, error)) *MockRepository_ListAllDigitalAuthors_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListArticlesPreviews provides a mock function for the type MockRepository
 func (_mock *MockRepository) ListArticlesPreviews(ctx context.Context, pageSize int, opts ...ListArticlesPreviewsOption) ([]ArticlePreview, string, error) {
 	var tmpRet mock.Arguments
@@ -581,8 +643,8 @@ func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Run(run func(ctx context.C
 	return _c
 }
 
-func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Return(storedAPIKeys []*OpenRouterAPIKey, err error) *MockRepository_ListLLMAPIKeysByUserID_Call {
-	_c.Call.Return(storedAPIKeys, err)
+func (_c *MockRepository_ListLLMAPIKeysByUserID_Call) Return(openRouterAPIKeys []*OpenRouterAPIKey, err error) *MockRepository_ListLLMAPIKeysByUserID_Call {
+	_c.Call.Return(openRouterAPIKeys, err)
 	return _c
 }
 

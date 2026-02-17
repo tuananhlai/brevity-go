@@ -1,6 +1,6 @@
 module github.com/tuananhlai/brevity-go
 
-go 1.24.1
+go 1.25.6
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -12,7 +12,6 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/k3a/html2text v1.2.1
 	github.com/lib/pq v1.10.9
 	github.com/openai/openai-go v0.1.0-beta.9
 	github.com/samber/lo v1.51.0
