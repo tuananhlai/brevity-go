@@ -434,68 +434,6 @@ func (_c *MockRepository_GetUserByID_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
-// ListAllDigitalAuthors provides a mock function for the type MockRepository
-func (_mock *MockRepository) ListAllDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListAllDigitalAuthors")
-	}
-
-	var r0 []*DigitalAuthor
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*DigitalAuthor, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []*DigitalAuthor); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*DigitalAuthor)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockRepository_ListAllDigitalAuthors_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllDigitalAuthors'
-type MockRepository_ListAllDigitalAuthors_Call struct {
-	*mock.Call
-}
-
-// ListAllDigitalAuthors is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockRepository_Expecter) ListAllDigitalAuthors(ctx interface{}) *MockRepository_ListAllDigitalAuthors_Call {
-	return &MockRepository_ListAllDigitalAuthors_Call{Call: _e.mock.On("ListAllDigitalAuthors", ctx)}
-}
-
-func (_c *MockRepository_ListAllDigitalAuthors_Call) Run(run func(ctx context.Context)) *MockRepository_ListAllDigitalAuthors_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockRepository_ListAllDigitalAuthors_Call) Return(digitalAuthors []*DigitalAuthor, err error) *MockRepository_ListAllDigitalAuthors_Call {
-	_c.Call.Return(digitalAuthors, err)
-	return _c
-}
-
-func (_c *MockRepository_ListAllDigitalAuthors_Call) RunAndReturn(run func(ctx context.Context) ([]*DigitalAuthor, error)) *MockRepository_ListAllDigitalAuthors_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListArticlesPreviews provides a mock function for the type MockRepository
 func (_mock *MockRepository) ListArticlesPreviews(ctx context.Context, pageSize int, opts ...ListArticlesPreviewsOption) ([]ArticlePreview, string, error) {
 	var tmpRet mock.Arguments
@@ -581,6 +519,68 @@ func (_c *MockRepository_ListArticlesPreviews_Call) Return(results []ArticlePrev
 }
 
 func (_c *MockRepository_ListArticlesPreviews_Call) RunAndReturn(run func(ctx context.Context, pageSize int, opts ...ListArticlesPreviewsOption) ([]ArticlePreview, string, error)) *MockRepository_ListArticlesPreviews_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDigitalAuthorsWithArticleSlugs provides a mock function for the type MockRepository
+func (_mock *MockRepository) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDigitalAuthorsWithArticleSlugs")
+	}
+
+	var r0 []*DigitalAuthorWithArticleSlugs
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*DigitalAuthorWithArticleSlugs, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*DigitalAuthorWithArticleSlugs); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*DigitalAuthorWithArticleSlugs)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_ListDigitalAuthorsWithArticleSlugs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDigitalAuthorsWithArticleSlugs'
+type MockRepository_ListDigitalAuthorsWithArticleSlugs_Call struct {
+	*mock.Call
+}
+
+// ListDigitalAuthorsWithArticleSlugs is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockRepository_Expecter) ListDigitalAuthorsWithArticleSlugs(ctx interface{}) *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call {
+	return &MockRepository_ListDigitalAuthorsWithArticleSlugs_Call{Call: _e.mock.On("ListDigitalAuthorsWithArticleSlugs", ctx)}
+}
+
+func (_c *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call) Run(run func(ctx context.Context)) *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call) Return(digitalAuthorWithArticleSlugss []*DigitalAuthorWithArticleSlugs, err error) *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call {
+	_c.Call.Return(digitalAuthorWithArticleSlugss, err)
+	return _c
+}
+
+func (_c *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call) RunAndReturn(run func(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error)) *MockRepository_ListDigitalAuthorsWithArticleSlugs_Call {
 	_c.Call.Return(run)
 	return _c
 }

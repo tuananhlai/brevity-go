@@ -73,3 +73,9 @@ type DigitalAuthor struct {
 	DisplayName  string    `db:"display_name"`
 	SystemPrompt string    `db:"system_prompt"`
 }
+
+type DigitalAuthorWithArticleSlugs struct {
+	ID           uuid.UUID `db:"id"`
+	SystemPrompt string    `db:"system_prompt"`
+	ArticleSlugs []string  `db:"article_slugs"`
+}

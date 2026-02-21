@@ -12,11 +12,12 @@ import (
 
 // CreateArticle creates a new article
 func (r *Postgres) CreateArticle(ctx context.Context, article *Article) error {
+	// TODO: Add support for other content formats
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content,
-		content, author_id) VALUES ($1, $2, $3, $4, $5, $6)`,
+		content, content_format, author_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		article.Slug, article.Title, article.Description,
-		article.PlaintextContent, article.Content, article.AuthorID)
+		article.PlaintextContent, article.Content, "text/markdown", article.AuthorID)
 
 	return err
 }

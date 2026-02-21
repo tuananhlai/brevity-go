@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 
@@ -13,13 +14,6 @@ import (
 	"github.com/openai/openai-go/option"
 	"github.com/tuananhlai/brevity-go/internal/repository"
 )
-
-type LLMOutput struct {
-	Slug        string `json:"slug"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Content     string `json:"content"`
-}
 
 type Article struct {
 	Slug        string `json:"slug"`
@@ -42,7 +36,7 @@ func RunGenerateArticle() {
 
 	repo := repository.NewPostgres(db)
 
-	authors, err := repo.ListAllDigitalAuthors(ctx)
+	authors, err := repo.ListDigitalAuthorsWithArticleSlugs(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -85,10 +79,11 @@ func newArticleGenerator(client openai.Client, repo repository.Repository) *arti
 	}
 }
 
-func (a *articleGenerator) generate(ctx context.Context, author *repository.DigitalAuthor) error {
+func (a *articleGenerator) generate(ctx context.Context, author *repository.DigitalAuthorWithArticleSlugs) error {
 	chat, err := a.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(author.SystemPrompt),
+			openai.SystemMessage(fmt.Sprintf("You have already written articles with the following slugs: %v. Do not write about the same topic.", author.ArticleSlugs)),
 			openai.UserMessage("Write about a random topic of your specialty"),
 		},
 		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
@@ -96,7 +91,7 @@ func (a *articleGenerator) generate(ctx context.Context, author *repository.Digi
 				JSONSchema: a.schemaParam,
 			},
 		},
-		Model: "minimax/minimax-m2.5",
+		Model: "moonshotai/kimi-k2.5",
 	})
 	if err != nil {
 		return err

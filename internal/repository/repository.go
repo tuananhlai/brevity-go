@@ -29,5 +29,5 @@ type Repository interface {
 	ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error)
 	CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error)
 
-	ListAllDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error)
+	ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error)
 }
