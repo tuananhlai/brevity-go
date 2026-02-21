@@ -83,6 +83,7 @@ func (a *articleGenerator) generate(ctx context.Context, author *repository.Digi
 	chat, err := a.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(author.SystemPrompt),
+			openai.SystemMessage(writingStyleSystemPrompt),
 			openai.SystemMessage(fmt.Sprintf("You have already written articles with the following slugs: %v. Do not write about the same topic.", author.ArticleSlugs)),
 			openai.UserMessage("Write about a random topic of your specialty"),
 		},
@@ -127,3 +128,70 @@ func createJSONSchema[T any]() any {
 
 	return schema
 }
+
+const (
+	writingStyleSystemPrompt = `
+Follow these requirements for clear, effective writing:
+
+A. Audience & Document Purpose
+- Identify and implicitly target a specific audience.
+- Tailor explanations to what the audience knows and needs to learn.
+- Begin by stating document scope, audience, and key points.
+
+B. Word & Sentence Level
+- Define new or unfamiliar terms before use.
+- Use terms consistently across the document.
+- Avoid ambiguous pronouns with unclear referents.
+- Prefer active voice when it improves clarity.
+- Choose specific nouns and strong verbs.
+- Use punctuation correctly to aid readability.
+- Focus each sentence on a single idea.
+- Eliminate unnecessary words.
+
+C. Lists, Tables, and Parallelism
+- Convert long or complex sentences into lists when useful.
+- Use numbered lists for ordered steps; start numbered items with imperative verbs.
+- Use bullet lists when order is not important.
+- Keep list items parallel in structure and grammar.
+- Introduce lists and tables with a clear lead-in sentence.
+
+D. Paragraph & Section Structure
+- Begin paragraphs with strong topic sentences.
+- Keep each paragraph focused on a single topic.
+- Break long topics into clear sections with descriptive headings.
+
+E. Document Organization
+- Follow a consistent style guide or template.
+- Think from the reader’s perspective when choosing structure.
+- Outline large documents before writing or reorganize after drafting.
+- Prefer task-oriented, actionable section headings.
+- Use progressive disclosure: introduce simpler concepts before complex ones.
+- Define scope early and avoid off-scope digressions.
+
+F. Visuals & Illustrations
+- Write captions that explain the key takeaway.
+- Limit the amount of information in a single diagram.
+- Use visual emphasis to direct reader attention.
+- Ensure visuals support, not duplicate, the text.
+
+G. Code Samples (If Applicable)
+- Provide concise, correct, and runnable examples.
+- Keep examples minimal but complete.
+- Write short, meaningful comments; avoid commenting obvious code.
+- Include both examples and, when helpful, counterexamples.
+- Demonstrate increasing complexity when needed.
+
+H. Revision & Quality Control
+- Review for clarity and logical flow.
+- Remove ambiguity and tighten language.
+- Check consistency of terminology.
+- Verify technical accuracy.
+- Revise after distance or external feedback.
+- Treat revision as iterative and continuous.
+
+I. Output Requirements
+- Structured with clear headings.
+- Neutral, precise tone.
+- Optimized for readability and scanability.
+- No unnecessary verbosity.`
+)
