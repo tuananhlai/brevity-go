@@ -23,9 +23,9 @@ func (r *Postgres) GetArticleBySlug(ctx context.Context, slug string) (*ArticleD
 	article := ArticleDetails{}
 	err := r.db.GetContext(ctx, &article, `
 		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
-			u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url
+			da.display_name AS author_display_name		
 		FROM articles a
-		INNER JOIN users u ON a.author_id = u.id
+		INNER JOIN digital_authors da ON a.author_id = da.id
 		WHERE a.slug = $1`, slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
