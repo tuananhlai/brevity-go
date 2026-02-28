@@ -14,8 +14,7 @@ var (
 type Repository interface {
 	CreateArticle(ctx context.Context, article *Article) error
 	// ListArticlesPreviews returns a list of article previews, which are essentially articles without content.
-	ListArticlesPreviews(ctx context.Context, pageSize int, opts ...ListArticlesPreviewsOption) (
-		results []ArticlePreview, nextPageToken string, err error)
+	ListArticlesPreviews(ctx context.Context) (results []ArticlePreview, err error)
 	GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error)
 
 	// GetUser returns the user with the given email or username.

@@ -124,7 +124,7 @@ func Run() {
 
 var allowedOrigins = []string{
 	// Local development
-	"http://localhost:3000",
+	"http://localhost:5173",
 	// Production environments
 	"https://brevity-next.vercel.app",
 	"https://brevity.laituananh.com",

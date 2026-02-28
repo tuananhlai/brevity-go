@@ -8,8 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
-	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller/shared"
@@ -23,7 +21,7 @@ const (
 // ArticleService defines the interface for article business logic
 type ArticleService interface {
 	Create(ctx context.Context, article *store.Article) error
-	ListPreviews(ctx context.Context, pageSize int, opts ...store.ListArticlesPreviewsOption) ([]store.ArticlePreview, string, error)
+	ListPreviews(ctx context.Context) ([]store.ArticlePreview, error)
 	GetBySlug(ctx context.Context, slug string) (*store.ArticleDetails, error)
 }
 
@@ -41,27 +39,14 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
 	defer span.End()
 
-	var req ListPreviewsRequest
-	if err := ginCtx.ShouldBindQuery(&req); err != nil {
-		shared.WriteBindingErrorResponse(ginCtx, span, err)
-		return
-	}
-
-	span.SetAttributes(attribute.Int("page_size", req.PageSize),
-		attribute.String("page_token", req.PageToken))
-
-	req.PageSize = lo.Clamp(req.PageSize, 1, 100)
-
-	articles, nextPageToken, err := c.articleService.ListPreviews(ctx,
-		req.PageSize, store.WithPageToken(req.PageToken))
+	articles, err := c.articleService.ListPreviews(ctx)
 	if err != nil {
 		shared.WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
 	response := ListPreviewsResponse{
-		Items:         make([]ListPreviewResponseItem, len(articles)),
-		NextPageToken: nextPageToken,
+		Items: make([]ListPreviewResponseItem, len(articles)),
 	}
 	for i, article := range articles {
 		response.Items[i] = ListPreviewResponseItem{
@@ -144,14 +129,8 @@ type ListPreviewResponseItemAuthor struct {
 	AvatarURL   string    `json:"avatarURL,omitempty"`
 }
 
-type ListPreviewsRequest struct {
-	PageToken string `form:"pageToken"`
-	PageSize  int    `form:"pageSize,default=50"`
-}
-
 type ListPreviewsResponse struct {
-	Items         []ListPreviewResponseItem `json:"items"`
-	NextPageToken string                    `json:"nextPageToken,omitempty"`
+	Items []ListPreviewResponseItem `json:"items"`
 }
 
 type GetBySlugRequest struct {

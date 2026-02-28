@@ -58,7 +58,7 @@ func (s *ArticleRepositoryTestSuite) TestListArticlesPreviews_Success() {
 	author := s.mustCreateUser()
 	newArticle := s.mustCreateArticle(author.ID)
 
-	previews, _, err := s.repo.ListArticlesPreviews(ctx, 100)
+	previews, err := s.repo.ListArticlesPreviews(ctx)
 
 	s.Require().NoError(err)
 	s.Require().Len(previews, 1)
@@ -93,8 +93,17 @@ func (s *ArticleRepositoryTestSuite) mustCreateUser() *repository.User {
 
 	createdUser, err := s.repo.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
+	s.mustCreateDigitalAuthor(createdUser.ID)
 
 	return createdUser
+}
+
+func (s *ArticleRepositoryTestSuite) mustCreateDigitalAuthor(id uuid.UUID) {
+	_, err := s.dbTestUtil.DB().ExecContext(context.Background(), `
+		INSERT INTO digital_authors (id, display_name, system_prompt)
+		VALUES ($1, $2, $3)
+	`, id, "Test Author Bot", "Write helpful articles")
+	s.Require().NoError(err)
 }
 
 func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *repository.Article {

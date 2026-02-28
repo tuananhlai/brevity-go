@@ -3,5 +3,7 @@ services:
     build:
       dockerfile: .devcontainer/Dockerfile
     command: sleep infinity
+    ports:
+      - 48080:48080
     volumes:
       - .:/workspaces/brevity-go:cached

@@ -11,8 +11,7 @@ var ErrArticleNotFound = errors.New("article not found")
 
 type Service interface {
 	Create(ctx context.Context, article *repository.Article) error
-	ListPreviews(ctx context.Context, pageSize int, opts ...repository.ListArticlesPreviewsOption) (
-		[]repository.ArticlePreview, string, error)
+	ListPreviews(ctx context.Context) ([]repository.ArticlePreview, error)
 	GetBySlug(ctx context.Context, slug string) (*repository.ArticleDetails, error)
 }
 
@@ -31,16 +30,13 @@ func (s *serviceImpl) Create(ctx context.Context, article *repository.Article) e
 }
 
 // ListPreviews lists articles with basic information
-func (s *serviceImpl) ListPreviews(ctx context.Context,
-	pageSize int,
-	opts ...repository.ListArticlesPreviewsOption,
-) ([]repository.ArticlePreview, string, error) {
-	previews, nextPageToken, err := s.repo.ListArticlesPreviews(ctx, pageSize, opts...)
+func (s *serviceImpl) ListPreviews(ctx context.Context) ([]repository.ArticlePreview, error) {
+	previews, err := s.repo.ListArticlesPreviews(ctx)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return previews, nextPageToken, nil
+	return previews, nil
 }
 
 func (s *serviceImpl) GetBySlug(ctx context.Context, slug string) (*repository.ArticleDetails, error) {

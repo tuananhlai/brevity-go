@@ -57,11 +57,10 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 			UpdatedAt:         date,
 		},
 	}
-	nextPageToken := "next-token"
-	s.mockService.On("ListPreviews", mock.Anything, 50, mock.Anything).Return(previews, nextPageToken, nil)
+	s.mockService.On("ListPreviews", mock.Anything).Return(previews, nil)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/v1/article-previews?pageSize=50", nil)
+	req, _ := http.NewRequest("GET", "/v1/article-previews", nil)
 	s.router.ServeHTTP(w, req)
 
 	res := w.Body.String()
@@ -83,5 +82,4 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 		gjson.Get(res, "items.0.createdAt").String())
 	s.Require().Equal(date.Format(time.RFC3339),
 		gjson.Get(res, "items.0.updatedAt").String())
-	s.Require().Equal(nextPageToken, gjson.Get(res, "nextPageToken").String())
 }

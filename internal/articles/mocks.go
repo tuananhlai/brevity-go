@@ -164,43 +164,31 @@ func (_c *MockService_GetBySlug_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // ListPreviews provides a mock function for the type MockService
-func (_mock *MockService) ListPreviews(ctx context.Context, pageSize int, opts ...repository.ListArticlesPreviewsOption) ([]repository.ArticlePreview, string, error) {
-	var tmpRet mock.Arguments
-	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, pageSize, opts)
-	} else {
-		tmpRet = _mock.Called(ctx, pageSize)
-	}
-	ret := tmpRet
+func (_mock *MockService) ListPreviews(ctx context.Context) ([]repository.ArticlePreview, error) {
+	ret := _mock.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPreviews")
 	}
 
 	var r0 []repository.ArticlePreview
-	var r1 string
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, ...repository.ListArticlesPreviewsOption) ([]repository.ArticlePreview, string, error)); ok {
-		return returnFunc(ctx, pageSize, opts...)
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]repository.ArticlePreview, error)); ok {
+		return returnFunc(ctx)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, ...repository.ListArticlesPreviewsOption) []repository.ArticlePreview); ok {
-		r0 = returnFunc(ctx, pageSize, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []repository.ArticlePreview); ok {
+		r0 = returnFunc(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]repository.ArticlePreview)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, int, ...repository.ListArticlesPreviewsOption) string); ok {
-		r1 = returnFunc(ctx, pageSize, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
 	} else {
-		r1 = ret.Get(1).(string)
+		r1 = ret.Error(1)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, int, ...repository.ListArticlesPreviewsOption) error); ok {
-		r2 = returnFunc(ctx, pageSize, opts...)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
+	return r0, r1
 }
 
 // MockService_ListPreviews_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPreviews'
@@ -210,44 +198,29 @@ type MockService_ListPreviews_Call struct {
 
 // ListPreviews is a helper method to define mock.On call
 //   - ctx context.Context
-//   - pageSize int
-//   - opts ...repository.ListArticlesPreviewsOption
-func (_e *MockService_Expecter) ListPreviews(ctx interface{}, pageSize interface{}, opts ...interface{}) *MockService_ListPreviews_Call {
-	return &MockService_ListPreviews_Call{Call: _e.mock.On("ListPreviews",
-		append([]interface{}{ctx, pageSize}, opts...)...)}
+func (_e *MockService_Expecter) ListPreviews(ctx interface{}) *MockService_ListPreviews_Call {
+	return &MockService_ListPreviews_Call{Call: _e.mock.On("ListPreviews", ctx)}
 }
 
-func (_c *MockService_ListPreviews_Call) Run(run func(ctx context.Context, pageSize int, opts ...repository.ListArticlesPreviewsOption)) *MockService_ListPreviews_Call {
+func (_c *MockService_ListPreviews_Call) Run(run func(ctx context.Context)) *MockService_ListPreviews_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 int
-		if args[1] != nil {
-			arg1 = args[1].(int)
-		}
-		var arg2 []repository.ListArticlesPreviewsOption
-		var variadicArgs []repository.ListArticlesPreviewsOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]repository.ListArticlesPreviewsOption)
-		}
-		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1,
-			arg2...,
 		)
 	})
 	return _c
 }
 
-func (_c *MockService_ListPreviews_Call) Return(articlePreviews []repository.ArticlePreview, s string, err error) *MockService_ListPreviews_Call {
-	_c.Call.Return(articlePreviews, s, err)
+func (_c *MockService_ListPreviews_Call) Return(articlePreviews []repository.ArticlePreview, err error) *MockService_ListPreviews_Call {
+	_c.Call.Return(articlePreviews, err)
 	return _c
 }
 
-func (_c *MockService_ListPreviews_Call) RunAndReturn(run func(ctx context.Context, pageSize int, opts ...repository.ListArticlesPreviewsOption) ([]repository.ArticlePreview, string, error)) *MockService_ListPreviews_Call {
+func (_c *MockService_ListPreviews_Call) RunAndReturn(run func(ctx context.Context) ([]repository.ArticlePreview, error)) *MockService_ListPreviews_Call {
 	_c.Call.Return(run)
 	return _c
 }
