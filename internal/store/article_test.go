@@ -1,4 +1,4 @@
-package repository_test
+package store_test
 
 import (
 	"context"
@@ -8,57 +8,57 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
 	"github.com/tuananhlai/brevity-go/internal/testutil"
 )
 
-func TestArticleRepository(t *testing.T) {
-	suite.Run(t, new(ArticleRepositoryTestSuite))
+func TestArticleStore(t *testing.T) {
+	suite.Run(t, new(ArticleStoreTestSuite))
 }
 
-type ArticleRepositoryTestSuite struct {
+type ArticleStoreTestSuite struct {
 	suite.Suite
 	dbTestUtil *testutil.DatabaseTestUtil
-	repo       *repository.Postgres
+	store      *store.PostgresStore
 }
 
-func (s *ArticleRepositoryTestSuite) SetupSuite() {
+func (s *ArticleStoreTestSuite) SetupSuite() {
 	var err error
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.repo = repository.NewPostgres(s.dbTestUtil.DB())
+	s.store = store.NewPostgresStore(s.dbTestUtil.DB())
 }
 
-func (s *ArticleRepositoryTestSuite) BeforeTest(suiteName, testName string) {
+func (s *ArticleStoreTestSuite) BeforeTest(suiteName, testName string) {
 	err := s.dbTestUtil.Reset()
 	s.Require().NoError(err)
 }
 
-func (s *ArticleRepositoryTestSuite) TearDownSuite() {
+func (s *ArticleStoreTestSuite) TearDownSuite() {
 	err := s.dbTestUtil.Teardown()
 	s.Require().NoError(err)
 }
 
-func (s *ArticleRepositoryTestSuite) TestCreateArticle_Success() {
+func (s *ArticleStoreTestSuite) TestCreateArticle_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 
-	article := &repository.Article{
+	article := &store.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: author.ID,
 	}
-	err := s.repo.CreateArticle(ctx, article)
+	err := s.store.CreateArticle(ctx, article)
 	s.Require().NoError(err)
 }
 
-func (s *ArticleRepositoryTestSuite) TestListArticlesPreviews_Success() {
+func (s *ArticleStoreTestSuite) TestListArticlesPreviews_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 	newArticle := s.mustCreateArticle(author.ID)
 
-	previews, err := s.repo.ListArticlesPreviews(ctx)
+	previews, err := s.store.ListArticlesPreviews(ctx)
 
 	s.Require().NoError(err)
 	s.Require().Len(previews, 1)
@@ -67,12 +67,12 @@ func (s *ArticleRepositoryTestSuite) TestListArticlesPreviews_Success() {
 	s.Require().Equal(newArticle.AuthorID, previews[0].AuthorID)
 }
 
-func (s *ArticleRepositoryTestSuite) TestGetArticleBySlug_Success() {
+func (s *ArticleStoreTestSuite) TestGetArticleBySlug_Success() {
 	ctx := context.Background()
 	author := s.mustCreateUser()
 	newArticle := s.mustCreateArticle(author.ID)
 
-	article, err := s.repo.GetArticleBySlug(ctx, newArticle.Slug)
+	article, err := s.store.GetArticleBySlug(ctx, newArticle.Slug)
 
 	s.Require().NoError(err)
 	s.Require().Equal(newArticle.Slug, article.Slug)
@@ -84,21 +84,21 @@ func (s *ArticleRepositoryTestSuite) TestGetArticleBySlug_Success() {
 	s.Require().Equal(author.Username, article.AuthorUsername)
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateUser() *repository.User {
-	user := repository.CreateUserParams{
+func (s *ArticleStoreTestSuite) mustCreateUser() *store.User {
+	user := store.CreateUserParams{
 		Username:     "testuser",
 		Email:        "testuser@example.com",
 		PasswordHash: []byte("passwordHash"),
 	}
 
-	createdUser, err := s.repo.CreateUser(context.Background(), user)
+	createdUser, err := s.store.CreateUser(context.Background(), user)
 	s.Require().NoError(err)
 	s.mustCreateDigitalAuthor(createdUser.ID)
 
 	return createdUser
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateDigitalAuthor(id uuid.UUID) {
+func (s *ArticleStoreTestSuite) mustCreateDigitalAuthor(id uuid.UUID) {
 	_, err := s.dbTestUtil.DB().ExecContext(context.Background(), `
 		INSERT INTO digital_authors (id, display_name, system_prompt)
 		VALUES ($1, $2, $3)
@@ -106,14 +106,14 @@ func (s *ArticleRepositoryTestSuite) mustCreateDigitalAuthor(id uuid.UUID) {
 	s.Require().NoError(err)
 }
 
-func (s *ArticleRepositoryTestSuite) mustCreateArticle(authorID uuid.UUID) *repository.Article {
-	article := &repository.Article{
+func (s *ArticleStoreTestSuite) mustCreateArticle(authorID uuid.UUID) *store.Article {
+	article := &store.Article{
 		Title:    "Test Article",
 		Content:  "This is a test article",
 		AuthorID: authorID,
 	}
 
-	err := s.repo.CreateArticle(context.Background(), article)
+	err := s.store.CreateArticle(context.Background(), article)
 	s.Require().NoError(err)
 
 	err = s.dbTestUtil.DB().GetContext(context.Background(), article, `

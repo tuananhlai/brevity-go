@@ -1,4 +1,4 @@
-package repository
+package store
 
 import (
 	"context"
@@ -11,7 +11,7 @@ var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
-type Repository interface {
+type Store interface {
 	CreateArticle(ctx context.Context, article *Article) error
 	// ListArticlesPreviews returns a list of article previews, which are essentially articles without content.
 	ListArticlesPreviews(ctx context.Context) (results []ArticlePreview, err error)

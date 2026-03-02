@@ -22,8 +22,9 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/controller"
 	"github.com/tuananhlai/brevity-go/internal/controller/middleware"
 	"github.com/tuananhlai/brevity-go/internal/encryption"
-	"github.com/tuananhlai/brevity-go/internal/otelsdk"
-	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
+	"github.com/tuananhlai/brevity-go/internal/telemetry"
+	"github.com/tuananhlai/brevity-go/internal/token"
 )
 
 const (
@@ -40,27 +41,27 @@ func Run() {
 	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
-	repo := repository.NewPostgres(db)
-	articleController := initializeArticleController(repo)
-	authService := initializeAuthService(repo, cfg.Auth.TokenSecret)
-	authController := controller.NewAuthController(authService)
+	s := store.NewPostgresStore(db)
+	tokenManager := token.NewIssuer(cfg.Auth.TokenSecret)
+	articleController := initializeArticleController(s)
+	authController := initializeAuthController(s, tokenManager)
 	healthController := controller.NewHealthController()
 	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
 	if err != nil {
 		log.Fatalf("error initializing encryption service: %s", err)
 	}
-	llmAPIKeyController := initializeLLMAPIKeyController(repo, encryptionService)
-	authMiddleware := middleware.AuthMiddleware(authService)
+	llmAPIKeyController := initializeLLMAPIKeyController(s, encryptionService)
+	authMiddleware := middleware.AuthMiddleware(tokenManager)
 
 	// == Otel Setup ==
-	otelShutdown, err := otelsdk.Setup(globalCtx, otelsdk.SetupConfig{
+	otelShutdown, err := telemetry.Setup(globalCtx, telemetry.SetupConfig{
 		Debug: cfg.Mode == config.ModeDev,
 	})
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 
-	logger := otelsdk.Logger("github.com/tuananhlai/brevity-go/cmd/server")
+	logger := telemetry.Logger("github.com/tuananhlai/brevity-go/cmd/server")
 
 	// == Gin Setup ==
 	r := gin.Default()

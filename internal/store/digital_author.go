@@ -1,4 +1,4 @@
-package repository
+package store
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 // ListDigitalAuthorsWithArticleSlugs returns a list of digital authors along with the slugs of their existing articles.
 // This is used avoid duplication when generating new articles.
-func (p *Postgres) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error) {
+func (p *PostgresStore) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error) {
 	rows, err := p.qb.
 		Select("da.id", "da.system_prompt", "COALESCE(ARRAY_AGG(a.slug) FILTER (WHERE a.slug IS NOT NULL), '{}') AS article_slugs").
 		From("digital_authors da").

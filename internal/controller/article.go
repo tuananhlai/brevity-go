@@ -8,40 +8,37 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 
-	"github.com/tuananhlai/brevity-go/internal/articles"
-	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	store "github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
 )
 
 const (
-	CodeArticleNotFound shared.Code = "article_not_found"
+	CodeArticleNotFound ErrorCode = "article_not_found"
 )
 
-// ArticleService defines the interface for article business logic
-type ArticleService interface {
-	Create(ctx context.Context, article *store.Article) error
-	ListPreviews(ctx context.Context) ([]store.ArticlePreview, error)
-	GetBySlug(ctx context.Context, slug string) (*store.ArticleDetails, error)
+// ArticleStore defines the store methods used by the article controller.
+type ArticleStore interface {
+	CreateArticle(ctx context.Context, article *store.Article) error
+	ListArticlesPreviews(ctx context.Context) ([]store.ArticlePreview, error)
+	GetArticleBySlug(ctx context.Context, slug string) (*store.ArticleDetails, error)
 }
 
 type ArticleController struct {
-	articleService ArticleService
+	store ArticleStore
 }
 
-func NewArticleController(articleService ArticleService) *ArticleController {
-	return &ArticleController{articleService: articleService}
+func NewArticleController(store ArticleStore) *ArticleController {
+	return &ArticleController{store: store}
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
-	appLogger.Info("Processing ListPreviews request...")
-
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
 	defer span.End()
 
-	articles, err := c.articleService.ListPreviews(ctx)
+	articles, err := c.store.ListArticlesPreviews(ctx)
 	if err != nil {
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -68,20 +65,20 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 }
 
 func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "ArticleController.GetBySlug")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "ArticleController.GetBySlug")
 	defer span.End()
 
 	var req GetBySlugRequest
 	if err := ginCtx.ShouldBindUri(&req); err != nil {
-		shared.WriteBindingErrorResponse(ginCtx, span, err)
+		WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
-	article, err := c.articleService.GetBySlug(ctx, req.Slug)
+	article, err := c.store.GetArticleBySlug(ctx, req.Slug)
 	if err != nil {
-		if errors.Is(err, articles.ErrArticleNotFound) {
-			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-				Body: shared.ErrorResponse{
+		if errors.Is(err, store.ErrArticleNotFound) {
+			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+				Body: ErrorResponse{
 					Code:    CodeArticleNotFound,
 					Message: err.Error(),
 				},
@@ -91,7 +88,7 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 			return
 		}
 
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 

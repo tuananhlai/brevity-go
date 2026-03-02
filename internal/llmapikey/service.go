@@ -5,41 +5,39 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
 )
 
+// Crypter defines the interface for encrypting and decrypting data.
 type Crypter interface {
 	Encrypt(plainText []byte) []byte
 	Decrypt(cipherText []byte) ([]byte, error)
 }
 
-// Service defines business logic for managing LLM API keys.
-type Service interface {
-	ListByUserID(ctx context.Context, userID string) ([]*APIKey, error)
-	Create(ctx context.Context, apiKey CreateInput) (*APIKey, error)
-}
-
-type serviceImpl struct {
-	repo    repository.Repository
+// Manager handles LLM API key operations, encapsulating encryption/decryption and DTO mapping logic.
+type Manager struct {
+	store   store.Store
 	crypter Crypter
 }
 
-func NewService(repo repository.Repository, crypter Crypter) Service {
-	return &serviceImpl{
-		repo:    repo,
+// NewManager creates a new LLM API key manager.
+func NewManager(store store.Store, crypter Crypter) *Manager {
+	return &Manager{
+		store:   store,
 		crypter: crypter,
 	}
 }
 
-func (s *serviceImpl) ListByUserID(ctx context.Context, userID string) ([]*APIKey, error) {
-	results, err := s.repo.ListLLMAPIKeysByUserID(ctx, userID)
+// ListByUserID returns all API keys for the given user with masked values.
+func (m *Manager) ListByUserID(ctx context.Context, userID string) ([]*APIKey, error) {
+	results, err := m.store.ListLLMAPIKeysByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	res := make([]*APIKey, 0, len(results))
 	for _, result := range results {
-		apiKeyBytes, err := s.crypter.Decrypt(result.EncryptedKey)
+		apiKeyBytes, err := m.crypter.Decrypt(result.EncryptedKey)
 		if err != nil {
 			return nil, err
 		}
@@ -59,10 +57,11 @@ func (s *serviceImpl) ListByUserID(ctx context.Context, userID string) ([]*APIKe
 	return res, nil
 }
 
-func (s *serviceImpl) Create(ctx context.Context, apiKey CreateInput) (*APIKey, error) {
-	encryptedKey := s.crypter.Encrypt([]byte(apiKey.Value))
+// Create encrypts and stores a new API key, returning the created key with masked values.
+func (m *Manager) Create(ctx context.Context, apiKey CreateInput) (*APIKey, error) {
+	encryptedKey := m.crypter.Encrypt([]byte(apiKey.Value))
 
-	newAPIKey, err := s.repo.CreateLLMAPIKey(ctx, repository.CreateLLMAPIKeyParams{
+	newAPIKey, err := m.store.CreateLLMAPIKey(ctx, store.CreateLLMAPIKeyParams{
 		Name:         apiKey.Name,
 		EncryptedKey: encryptedKey,
 		UserID:       apiKey.UserID,
@@ -81,7 +80,7 @@ func (s *serviceImpl) Create(ctx context.Context, apiKey CreateInput) (*APIKey, 
 	}, nil
 }
 
-// APIKey is the DTO returned by the service layer.
+// APIKey is the DTO returned by the manager.
 type APIKey struct {
 	ID   uuid.UUID
 	Name string
@@ -93,6 +92,7 @@ type APIKey struct {
 	CreatedAt    time.Time
 }
 
+// CreateInput is the input for creating a new API key.
 type CreateInput struct {
 	Name string
 	// Value is the plaintext API key string.

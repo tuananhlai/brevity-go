@@ -1,4 +1,4 @@
-package repository
+package store
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // CreateArticle creates a new article
-func (r *Postgres) CreateArticle(ctx context.Context, article *Article) error {
+func (r *PostgresStore) CreateArticle(ctx context.Context, article *Article) error {
 	// TODO: Add support for other content formats
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO articles (slug, title, description, plaintext_content,
@@ -19,13 +19,15 @@ func (r *Postgres) CreateArticle(ctx context.Context, article *Article) error {
 	return err
 }
 
-func (r *Postgres) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
+func (r *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
 	article := ArticleDetails{}
 	err := r.db.GetContext(ctx, &article, `
 		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
+			u.username AS author_username,
 			da.display_name AS author_display_name		
 		FROM articles a
 		INNER JOIN digital_authors da ON a.author_id = da.id
+		INNER JOIN users u ON a.author_id = u.id
 		WHERE a.slug = $1`, slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -38,7 +40,7 @@ func (r *Postgres) GetArticleBySlug(ctx context.Context, slug string) (*ArticleD
 }
 
 // ListArticlesPreviews lists articles with basic information
-func (p *Postgres) ListArticlesPreviews(ctx context.Context) ([]ArticlePreview, error) {
+func (p *PostgresStore) ListArticlesPreviews(ctx context.Context) ([]ArticlePreview, error) {
 	articles := []ArticlePreview{}
 
 	queryBuilder := p.qb.Select("a.id", "a.slug", "a.title", "a.description", "a.author_id",

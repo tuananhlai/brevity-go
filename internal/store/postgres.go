@@ -1,20 +1,20 @@
-package repository
+package store
 
 import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 )
 
-type Postgres struct {
+type PostgresStore struct {
 	db *sqlx.DB
 	// qb is a query builder for PostgreSQL
 	qb sq.StatementBuilderType
 }
 
-var _ Repository = (*Postgres)(nil)
+var _ Store = (*PostgresStore)(nil)
 
-func NewPostgres(db *sqlx.DB) *Postgres {
-	return &Postgres{
+func NewPostgresStore(db *sqlx.DB) *PostgresStore {
+	return &PostgresStore{
 		db: db,
 		qb: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
 	}

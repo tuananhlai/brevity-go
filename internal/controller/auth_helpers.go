@@ -1,4 +1,4 @@
-package shared
+package controller
 
 import (
 	"errors"
@@ -32,8 +32,7 @@ func GetContextUserID(ginCtx *gin.Context) (string, error) {
 	return userID, nil
 }
 
-// ExtractAccessTokenFromRequest returns the access token from the HTTP request. If the access token is found,
-// the second return value will be true, otherwise it will be false.
+// ExtractAccessTokenFromRequest returns the access token from the HTTP request.
 func ExtractAccessTokenFromRequest(ginCtx *gin.Context) (string, bool) {
 	token, err := ginCtx.Cookie(accessTokenCookieName)
 	if err != nil {

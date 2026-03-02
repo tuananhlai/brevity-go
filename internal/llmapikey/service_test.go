@@ -11,33 +11,33 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/tuananhlai/brevity-go/internal/llmapikey"
-	"github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
 )
 
-func TestService(t *testing.T) {
-	suite.Run(t, new(ServiceTestSuite))
+func TestManager(t *testing.T) {
+	suite.Run(t, new(ManagerTestSuite))
 }
 
-type ServiceTestSuite struct {
+type ManagerTestSuite struct {
 	suite.Suite
-	service        llmapikey.Service
-	mockRepo       *repository.MockRepository
+	manager        *llmapikey.Manager
+	mockStore      *store.MockStore
 	mockEncryption *llmapikey.MockCrypter
 }
 
-func (s *ServiceTestSuite) SetupTest() {
-	s.mockRepo = repository.NewMockRepository(s.T())
+func (s *ManagerTestSuite) SetupTest() {
+	s.mockStore = store.NewMockStore(s.T())
 	s.mockEncryption = llmapikey.NewMockCrypter(s.T())
-	s.service = llmapikey.NewService(s.mockRepo, s.mockEncryption)
+	s.manager = llmapikey.NewManager(s.mockStore, s.mockEncryption)
 }
 
-func (s *ServiceTestSuite) TestListByUserID_Success() {
+func (s *ManagerTestSuite) TestListByUserID_Success() {
 	ctx := context.Background()
 	userID := uuid.New()
 	plainKey := "sk-1234567890abcdef"
 	encKey := []byte("encrypted")
 	createdAt := time.Now()
-	mockModel := &repository.OpenRouterAPIKey{
+	mockModel := &store.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -45,12 +45,12 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 		CreatedAt:    createdAt,
 	}
 
-	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.OpenRouterAPIKey{
+	s.mockStore.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*store.OpenRouterAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return([]byte(plainKey), nil)
 
-	result, err := s.service.ListByUserID(ctx, userID.String())
+	result, err := s.manager.ListByUserID(ctx, userID.String())
 
 	s.Require().NoError(err)
 	s.Require().Len(result, 1)
@@ -59,27 +59,27 @@ func (s *ServiceTestSuite) TestListByUserID_Success() {
 	s.Require().Equal("abcdef", result[0].ValueLastSix)
 	s.Require().Equal(userID, result[0].UserID)
 	s.Require().Equal(createdAt, result[0].CreatedAt)
-	s.mockRepo.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 	s.mockEncryption.AssertExpectations(s.T())
 }
 
-func (s *ServiceTestSuite) TestListByUserID_RepoError() {
+func (s *ManagerTestSuite) TestListByUserID_RepoError() {
 	ctx := context.Background()
 	userID := uuid.New()
-	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return(nil, assert.AnError)
+	s.mockStore.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return(nil, assert.AnError)
 
-	result, err := s.service.ListByUserID(ctx, userID.String())
+	result, err := s.manager.ListByUserID(ctx, userID.String())
 
 	s.Require().Error(err)
 	s.Require().Nil(result)
-	s.mockRepo.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 }
 
-func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
+func (s *ManagerTestSuite) TestListByUserID_DecryptError() {
 	ctx := context.Background()
 	userID := uuid.New()
 	encKey := []byte("encrypted")
-	mockModel := &repository.OpenRouterAPIKey{
+	mockModel := &store.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         "Test Key",
 		EncryptedKey: encKey,
@@ -87,20 +87,20 @@ func (s *ServiceTestSuite) TestListByUserID_DecryptError() {
 		CreatedAt:    time.Now(),
 	}
 
-	s.mockRepo.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*repository.OpenRouterAPIKey{
+	s.mockStore.On("ListLLMAPIKeysByUserID", ctx, userID.String()).Return([]*store.OpenRouterAPIKey{
 		mockModel,
 	}, nil)
 	s.mockEncryption.On("Decrypt", encKey).Return(nil, assert.AnError)
 
-	result, err := s.service.ListByUserID(ctx, userID.String())
+	result, err := s.manager.ListByUserID(ctx, userID.String())
 
 	s.Require().Error(err)
 	s.Require().Nil(result)
-	s.mockRepo.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 	s.mockEncryption.AssertExpectations(s.T())
 }
 
-func (s *ServiceTestSuite) TestCreate_Success() {
+func (s *ManagerTestSuite) TestCreate_Success() {
 	ctx := context.Background()
 	userID := uuid.New()
 	plainKey := "sk-1234567890abcdef"
@@ -111,7 +111,7 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 		Value:  plainKey,
 		UserID: userID.String(),
 	}
-	mockModel := &repository.OpenRouterAPIKey{
+	mockModel := &store.OpenRouterAPIKey{
 		ID:           uuid.New(),
 		Name:         params.Name,
 		EncryptedKey: encKey,
@@ -120,13 +120,13 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 	}
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)
-	s.mockRepo.On("CreateLLMAPIKey", ctx, mock.MatchedBy(func(
-		p repository.CreateLLMAPIKeyParams,
+	s.mockStore.On("CreateLLMAPIKey", ctx, mock.MatchedBy(func(
+		p store.CreateLLMAPIKeyParams,
 	) bool {
 		return p.Name == params.Name && string(p.EncryptedKey) == string(encKey) && p.UserID == userID.String()
 	})).Return(mockModel, nil)
 
-	result, err := s.service.Create(ctx, params)
+	result, err := s.manager.Create(ctx, params)
 
 	s.Require().NoError(err)
 	s.Require().NotNil(result)
@@ -136,11 +136,11 @@ func (s *ServiceTestSuite) TestCreate_Success() {
 	s.Require().Equal("abcdef", result.ValueLastSix)
 	s.Require().Equal(userID, result.UserID)
 	s.Require().Equal(createdAt, result.CreatedAt)
-	s.mockRepo.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 	s.mockEncryption.AssertExpectations(s.T())
 }
 
-func (s *ServiceTestSuite) TestCreate_RepoError() {
+func (s *ManagerTestSuite) TestCreate_RepoError() {
 	ctx := context.Background()
 	userID := uuid.New()
 	plainKey := "sk-1234567890abcdef"
@@ -152,12 +152,12 @@ func (s *ServiceTestSuite) TestCreate_RepoError() {
 	}
 
 	s.mockEncryption.On("Encrypt", []byte(plainKey)).Return(encKey)
-	s.mockRepo.On("CreateLLMAPIKey", ctx, mock.Anything).Return(nil, assert.AnError)
+	s.mockStore.On("CreateLLMAPIKey", ctx, mock.Anything).Return(nil, assert.AnError)
 
-	result, err := s.service.Create(ctx, params)
+	result, err := s.manager.Create(ctx, params)
 
 	s.Require().Error(err)
 	s.Require().Nil(result)
-	s.mockRepo.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 	s.mockEncryption.AssertExpectations(s.T())
 }

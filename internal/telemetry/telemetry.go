@@ -1,4 +1,4 @@
-package otelsdk
+package telemetry
 
 import (
 	"context"

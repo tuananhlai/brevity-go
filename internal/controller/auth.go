@@ -1,39 +1,53 @@
 package controller
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/tuananhlai/brevity-go/internal/auth"
-	"github.com/tuananhlai/brevity-go/internal/controller/shared"
-	store "github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
+	"github.com/tuananhlai/brevity-go/internal/token"
 )
+
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
 const (
-	CodeInvalidCredentials shared.Code = "invalid_credentials"
-	CodeUserAlreadyExists  shared.Code = "user_already_exists"
+	CodeInvalidCredentials ErrorCode = "invalid_credentials"
+	CodeUserAlreadyExists  ErrorCode = "user_already_exists"
 )
 
-type AuthController struct {
-	authService auth.Service
+// AuthStore defines the store methods used by the auth controller.
+type AuthStore interface {
+	GetUser(ctx context.Context, emailOrUsername string) (*store.User, error)
+	CreateUser(ctx context.Context, params store.CreateUserParams) (*store.User, error)
+	GetUserByID(ctx context.Context, userID string) (*store.User, error)
 }
 
-func NewAuthController(authService auth.Service) *AuthController {
+type AuthController struct {
+	store        AuthStore
+	tokenManager *token.AccessTokenIssuer
+}
+
+func NewAuthController(store AuthStore, tokenManager *token.AccessTokenIssuer) *AuthController {
 	return &AuthController{
-		authService: authService,
+		store:        store,
+		tokenManager: tokenManager,
 	}
 }
 
 func (c *AuthController) Login(ginCtx *gin.Context) {
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.Login")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.Login")
 	defer span.End()
 
 	var req LoginRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		shared.WriteBindingErrorResponse(ginCtx, span, err)
+		WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -41,41 +55,59 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 		attribute.String("emailOrUsername", req.EmailOrUsername),
 	)
 
-	user, err := c.authService.Login(ctx, req.EmailOrUsername, req.Password)
+	user, err := c.store.GetUser(ctx, req.EmailOrUsername)
 	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCredentials) {
-			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-				Body: shared.ErrorResponse{
+		if errors.Is(err, store.ErrUserNotFound) {
+			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+				Body: ErrorResponse{
 					Code:    CodeInvalidCredentials,
-					Message: err.Error(),
+					Message: fmt.Sprintf("%s: %s", ErrInvalidCredentials, err),
 				},
 				Span: span,
-				Err:  err,
+				Err:  ErrInvalidCredentials,
 			})
 			return
 		}
 
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(req.Password)); err != nil {
+		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			Body: ErrorResponse{
+				Code:    CodeInvalidCredentials,
+				Message: fmt.Sprintf("%s: %s", ErrInvalidCredentials, err),
+			},
+			Span: span,
+			Err:  ErrInvalidCredentials,
+		})
+		return
+	}
+
+	accessToken, err := c.tokenManager.Issue(user.ID.String())
+	if err != nil {
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
 	res := LoginResponse{
-		ID:       user.ID,
+		ID:       user.ID.String(),
 		Username: user.Username,
 		Email:    user.Email,
 	}
 
-	shared.SetAccessTokenCookie(ginCtx, user.AccessToken)
+	SetAccessTokenCookie(ginCtx, accessToken)
 	ginCtx.JSON(http.StatusOK, res)
 }
 
 func (c *AuthController) Register(ginCtx *gin.Context) {
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.Register")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.Register")
 	defer span.End()
 
 	var req RegisterRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		shared.WriteBindingErrorResponse(ginCtx, span, err)
+		WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -84,13 +116,23 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 		attribute.String("username", req.Username),
 	)
 
-	err := c.authService.Register(ctx, req.Email, req.Username, req.Password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		WriteUnknownErrorResponse(ginCtx, span, err)
+		return
+	}
+
+	_, err = c.store.CreateUser(ctx, store.CreateUserParams{
+		Email:        req.Email,
+		Username:     req.Username,
+		PasswordHash: hashedPassword,
+	})
 	if err != nil {
 		if errors.Is(err, store.ErrUserAlreadyExists) {
-			shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-				Body: shared.ErrorResponse{
+			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+				Body: ErrorResponse{
 					Code:    CodeUserAlreadyExists,
-					Message: err.Error(),
+					Message: fmt.Sprintf("%s: %s", store.ErrUserAlreadyExists, err),
 				},
 				Span: span,
 				Err:  err,
@@ -98,7 +140,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 			return
 		}
 
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -106,14 +148,14 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 }
 
 func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
 	defer span.End()
 
-	userID, err := shared.GetContextUserID(ginCtx)
+	userID, err := GetContextUserID(ginCtx)
 	if err != nil {
-		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-			Body: shared.ErrorResponse{
-				Code:    shared.CodeUnauthorized,
+		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			Body: ErrorResponse{
+				Code:    CodeUnauthorized,
 				Message: err.Error(),
 			},
 			Span: span,
@@ -122,9 +164,9 @@ func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
 		return
 	}
 
-	user, err := c.authService.GetCurrentUser(ctx, userID)
+	user, err := c.store.GetUserByID(ctx, userID)
 	if err != nil {
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 

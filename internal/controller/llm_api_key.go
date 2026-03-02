@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/tuananhlai/brevity-go/internal/controller/shared"
 	"github.com/tuananhlai/brevity-go/internal/llmapikey"
 )
 
 type LLMAPIKeyController struct {
-	llmAPIKeyService llmapikey.Service
+	llmAPIKeyManager *llmapikey.Manager
 }
 
-func NewLLMAPIKeyController(llmAPIKeyService llmapikey.Service) *LLMAPIKeyController {
-	return &LLMAPIKeyController{llmAPIKeyService: llmAPIKeyService}
+func NewLLMAPIKeyController(llmAPIKeyManager *llmapikey.Manager) *LLMAPIKeyController {
+	return &LLMAPIKeyController{llmAPIKeyManager: llmAPIKeyManager}
 }
 
 func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
@@ -33,14 +33,14 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 		Items []responseItem `json:"items"`
 	}
 
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "LLMAPIKeyController.ListLLMAPIKeys")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.ListLLMAPIKeys")
 	defer span.End()
 
-	userID, err := shared.GetContextUserID(ginCtx)
+	userID, err := GetContextUserID(ginCtx)
 	if err != nil {
-		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-			Body: shared.ErrorResponse{
-				Code:    shared.CodeUnauthorized,
+		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			Body: ErrorResponse{
+				Code:    CodeUnauthorized,
 				Message: "error getting userID from context",
 			},
 			Span: span,
@@ -50,9 +50,9 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 	}
 	span.SetAttributes(attribute.String("userID", userID))
 
-	llmAPIKeys, err := c.llmAPIKeyService.ListByUserID(ctx, userID)
+	llmAPIKeys, err := c.llmAPIKeyManager.ListByUserID(ctx, userID)
 	if err != nil {
-		shared.WriteUnknownErrorResponse(ginCtx, span, err)
+		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -84,14 +84,14 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		CreatedAt     time.Time `json:"createdAt"`
 	}
 
-	ctx, span := appTracer.Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
+	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
 	defer span.End()
 
-	userID, err := shared.GetContextUserID(ginCtx)
+	userID, err := GetContextUserID(ginCtx)
 	if err != nil {
-		shared.WriteErrorResponse(ginCtx, shared.WriteErrorResponseParams{
-			Body: shared.ErrorResponse{
-				Code:    shared.CodeUnauthorized,
+		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			Body: ErrorResponse{
+				Code:    CodeUnauthorized,
 				Message: "error getting userID from context",
 			},
 			Span: span,
@@ -102,17 +102,17 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 
 	var req request
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		shared.WriteBindingErrorResponse(ginCtx, span, err)
+		WriteBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
-	llmAPIKey, err := c.llmAPIKeyService.Create(ctx, llmapikey.CreateInput{
+	llmAPIKey, err := c.llmAPIKeyManager.Create(ctx, llmapikey.CreateInput{
 		Name:   req.Name,
 		Value:  req.Value,
 		UserID: userID,
 	})
 	if err != nil {
-		shared.WriteUnknownErrorResponse(ginCtx, span,
+		WriteUnknownErrorResponse(ginCtx, span,
 			fmt.Errorf("failed to create llm api key: %w", err))
 		return
 	}

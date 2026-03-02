@@ -12,9 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/tidwall/gjson"
-	"github.com/tuananhlai/brevity-go/internal/articles"
 	"github.com/tuananhlai/brevity-go/internal/controller"
-	store "github.com/tuananhlai/brevity-go/internal/repository"
+	"github.com/tuananhlai/brevity-go/internal/store"
 )
 
 func TestArticleController(t *testing.T) {
@@ -23,8 +22,8 @@ func TestArticleController(t *testing.T) {
 
 type ArticleControllerTestSuite struct {
 	suite.Suite
-	mockService *articles.MockService
-	router      *gin.Engine
+	mockStore *controller.MockArticleStore
+	router    *gin.Engine
 }
 
 func (s *ArticleControllerTestSuite) SetupTest() {
@@ -32,11 +31,11 @@ func (s *ArticleControllerTestSuite) SetupTest() {
 }
 
 func (s *ArticleControllerTestSuite) BeforeTest(suiteName, testName string) {
-	s.mockService = articles.NewMockService(s.T())
+	s.mockStore = controller.NewMockArticleStore(s.T())
 	s.router = gin.Default()
-	controller := controller.NewArticleController(s.mockService)
-	s.router.GET("/v1/article-previews", controller.ListPreviews)
-	s.router.GET("/v1/articles/:slug", controller.GetBySlug)
+	ctrl := controller.NewArticleController(s.mockStore)
+	s.router.GET("/v1/article-previews", ctrl.ListPreviews)
+	s.router.GET("/v1/articles/:slug", ctrl.GetBySlug)
 }
 
 func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
@@ -57,7 +56,7 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 			UpdatedAt:         date,
 		},
 	}
-	s.mockService.On("ListPreviews", mock.Anything).Return(previews, nil)
+	s.mockStore.On("ListArticlesPreviews", mock.Anything).Return(previews, nil)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/v1/article-previews", nil)
@@ -66,7 +65,7 @@ func (s *ArticleControllerTestSuite) TestListPreviews_Success() {
 	res := w.Body.String()
 
 	s.Require().Equal(http.StatusOK, w.Code)
-	s.mockService.AssertExpectations(s.T())
+	s.mockStore.AssertExpectations(s.T())
 	s.Require().Len(gjson.Get(res, "items").Array(), 1)
 	s.Require().Equal(articleID.String(), gjson.Get(res, "items.0.id").String())
 	s.Require().Equal(previews[0].Slug, gjson.Get(res, "items.0.slug").String())

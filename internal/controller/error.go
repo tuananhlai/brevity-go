@@ -1,4 +1,4 @@
-package shared
+package controller
 
 import (
 	"net/http"
@@ -6,6 +6,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+)
+
+type ErrorResponse struct {
+	// Code is a short error code. Examples: "invalid_credentials", "user_already_exists".
+	Code ErrorCode `json:"errorCode"`
+	// Message is a human-readable error message.
+	Message string `json:"message,omitempty"`
+	Details any    `json:"details,omitempty"`
+}
+
+// ErrorCode is a string representing a type of server error.
+type ErrorCode string
+
+const (
+	CodeUnknown             ErrorCode = "unknown"
+	CodeBindingRequestError ErrorCode = "binding_request_error"
+	CodeUnauthorized        ErrorCode = "unauthorized"
 )
 
 // WriteErrorResponse writes an HTTP response which signify that an error has occurred.
