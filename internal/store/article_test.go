@@ -19,7 +19,7 @@ func TestArticleStore(t *testing.T) {
 type ArticleStoreTestSuite struct {
 	suite.Suite
 	dbTestUtil *testutil.DatabaseTestUtil
-	store      *store.PostgresStore
+	store      *store.Store
 }
 
 func (s *ArticleStoreTestSuite) SetupSuite() {
@@ -27,7 +27,7 @@ func (s *ArticleStoreTestSuite) SetupSuite() {
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.store = store.NewPostgresStore(s.dbTestUtil.DB())
+	s.store = store.New(s.dbTestUtil.DB())
 }
 
 func (s *ArticleStoreTestSuite) BeforeTest(suiteName, testName string) {

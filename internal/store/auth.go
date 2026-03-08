@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-func (r *PostgresStore) GetUser(ctx context.Context, emailOrUsername string) (*User, error) {
+func (r *Store) GetUser(ctx context.Context, emailOrUsername string) (*User, error) {
 	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash
@@ -24,7 +24,7 @@ func (r *PostgresStore) GetUser(ctx context.Context, emailOrUsername string) (*U
 	return &user, nil
 }
 
-func (r *PostgresStore) CreateUser(ctx context.Context, params CreateUserParams) (*User, error) {
+func (r *Store) CreateUser(ctx context.Context, params CreateUserParams) (*User, error) {
 	user := &User{
 		Email:    params.Email,
 		Username: params.Username,
@@ -49,7 +49,7 @@ func (r *PostgresStore) CreateUser(ctx context.Context, params CreateUserParams)
 	return user, nil
 }
 
-func (r *PostgresStore) GetUserByID(ctx context.Context, userID string) (*User, error) {
+func (r *Store) GetUserByID(ctx context.Context, userID string) (*User, error) {
 	var user User
 	err := r.db.GetContext(ctx, &user,
 		`SELECT id, username, email, password_hash

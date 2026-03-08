@@ -8,7 +8,7 @@ import (
 )
 
 // CreateArticle creates a new article
-func (p *PostgresStore) CreateArticle(ctx context.Context, article *Article) error {
+func (p *Store) CreateArticle(ctx context.Context, article *Article) error {
 	query, args, err := p.qb.
 		Insert("articles").
 		Columns("slug", "title", "description", "plaintext_content", "content", "content_format", "author_id").
@@ -24,7 +24,7 @@ func (p *PostgresStore) CreateArticle(ctx context.Context, article *Article) err
 }
 
 // GetArticleBySlug retrieves a single article by its slug
-func (p *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
+func (p *Store) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
 	query, args, err := p.qb.
 		Select("a.id", "a.slug", "a.title", "a.content", "a.author_id",
 			"a.created_at", "a.updated_at", "da.display_name AS author_display_name").
@@ -49,7 +49,7 @@ func (p *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*Art
 }
 
 // ListArticlesPreviews lists articles with basic information
-func (p *PostgresStore) ListArticlesPreviews(ctx context.Context) ([]ArticlePreview, error) {
+func (p *Store) ListArticlesPreviews(ctx context.Context) ([]ArticlePreview, error) {
 	articles := []ArticlePreview{}
 
 	query, _, err := p.qb.

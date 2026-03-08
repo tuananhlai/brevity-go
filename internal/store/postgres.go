@@ -5,16 +5,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type PostgresStore struct {
+type Store struct {
 	db *sqlx.DB
 	// qb is a query builder for PostgreSQL
 	qb sq.StatementBuilderType
 }
 
-var _ Store = (*PostgresStore)(nil)
-
-func NewPostgresStore(db *sqlx.DB) *PostgresStore {
-	return &PostgresStore{
+func New(db *sqlx.DB) *Store {
+	return &Store{
 		db: db,
 		qb: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
 	}

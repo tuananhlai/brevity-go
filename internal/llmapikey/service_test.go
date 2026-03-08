@@ -21,12 +21,12 @@ func TestManager(t *testing.T) {
 type ManagerTestSuite struct {
 	suite.Suite
 	manager        *llmapikey.Manager
-	mockStore      *store.MockStore
+	mockStore      *llmapikey.MockLLMApiKeyStore
 	mockEncryption *llmapikey.MockCrypter
 }
 
 func (s *ManagerTestSuite) SetupTest() {
-	s.mockStore = store.NewMockStore(s.T())
+	s.mockStore = llmapikey.NewMockLLMApiKeyStore(s.T())
 	s.mockEncryption = llmapikey.NewMockCrypter(s.T())
 	s.manager = llmapikey.NewManager(s.mockStore, s.mockEncryption)
 }

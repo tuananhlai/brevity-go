@@ -9,7 +9,7 @@ import (
 
 // ListDigitalAuthorsWithArticleSlugs returns a list of digital authors along with the slugs of their existing articles.
 // This is used avoid duplication when generating new articles.
-func (p *PostgresStore) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error) {
+func (p *Store) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) ([]*DigitalAuthorWithArticleSlugs, error) {
 	rows, err := p.qb.
 		Select("da.id", "da.system_prompt", "COALESCE(ARRAY_AGG(a.slug) FILTER (WHERE a.slug IS NOT NULL), '{}') AS article_slugs").
 		From("digital_authors da").
@@ -38,7 +38,7 @@ func (p *PostgresStore) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) 
 	return items, nil
 }
 
-func (p *PostgresStore) ListDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error) {
+func (p *Store) ListDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error) {
 	query, _, err := p.qb.
 		Select("id", "display_name", "system_prompt", "created_at").
 		From("digital_authors").

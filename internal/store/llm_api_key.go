@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func (r *PostgresStore) ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error) {
+func (r *Store) ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*OpenRouterAPIKey, error) {
 	var apiKeys []*OpenRouterAPIKey
 	err := r.db.SelectContext(ctx, &apiKeys, `
 		SELECT id, name, encrypted_key, created_at, user_id
@@ -18,7 +18,7 @@ func (r *PostgresStore) ListLLMAPIKeysByUserID(ctx context.Context, userID strin
 	return apiKeys, nil
 }
 
-func (r *PostgresStore) CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error) {
+func (r *Store) CreateLLMAPIKey(ctx context.Context, apiKey CreateLLMAPIKeyParams) (*OpenRouterAPIKey, error) {
 	storedKey := &OpenRouterAPIKey{}
 
 	err := r.db.GetContext(ctx, storedKey, `

@@ -34,7 +34,7 @@ func RunGenerateArticle() {
 		log.Fatalln(err)
 	}
 
-	s := store.NewPostgresStore(db)
+	s := store.New(db)
 
 	authors, err := s.ListDigitalAuthorsWithArticleSlugs(ctx)
 	if err != nil {
@@ -56,11 +56,11 @@ func RunGenerateArticle() {
 
 type articleGenerator struct {
 	client      openai.Client
-	store       store.Store
+	store       *store.Store
 	schemaParam openai.ResponseFormatJSONSchemaJSONSchemaParam
 }
 
-func newArticleGenerator(client openai.Client, s store.Store) *articleGenerator {
+func newArticleGenerator(client openai.Client, s *store.Store) *articleGenerator {
 	articleSchema := createJSONSchema[Article]()
 
 	schemaParam := openai.ResponseFormatJSONSchemaJSONSchemaParam{

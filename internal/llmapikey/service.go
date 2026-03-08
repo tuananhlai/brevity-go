@@ -14,14 +14,19 @@ type Crypter interface {
 	Decrypt(cipherText []byte) ([]byte, error)
 }
 
+type LLMApiKeyStore interface {
+	ListLLMAPIKeysByUserID(ctx context.Context, userID string) ([]*store.OpenRouterAPIKey, error)
+	CreateLLMAPIKey(ctx context.Context, apiKey store.CreateLLMAPIKeyParams) (*store.OpenRouterAPIKey, error)
+}
+
 // Manager handles LLM API key operations, encapsulating encryption/decryption and DTO mapping logic.
 type Manager struct {
-	store   store.Store
+	store   LLMApiKeyStore
 	crypter Crypter
 }
 
 // NewManager creates a new LLM API key manager.
-func NewManager(store store.Store, crypter Crypter) *Manager {
+func NewManager(store LLMApiKeyStore, crypter Crypter) *Manager {
 	return &Manager{
 		store:   store,
 		crypter: crypter,

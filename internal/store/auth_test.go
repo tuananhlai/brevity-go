@@ -18,7 +18,7 @@ func TestAuthStore(t *testing.T) {
 type AuthStoreTestSuite struct {
 	suite.Suite
 	dbTestUtil *testutil.DatabaseTestUtil
-	store      *store.PostgresStore
+	store      *store.Store
 }
 
 func (s *AuthStoreTestSuite) SetupSuite() {
@@ -26,7 +26,7 @@ func (s *AuthStoreTestSuite) SetupSuite() {
 	s.dbTestUtil, err = testutil.NewDatabaseTestUtil()
 	s.Require().NoError(err)
 
-	s.store = store.NewPostgresStore(s.dbTestUtil.DB())
+	s.store = store.New(s.dbTestUtil.DB())
 }
 
 func (s *AuthStoreTestSuite) BeforeTest(suiteName, testName string) {

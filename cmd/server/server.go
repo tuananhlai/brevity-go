@@ -43,7 +43,7 @@ func Run() {
 	db := otelsqlx.MustConnect("postgres", cfg.DatabaseURL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
-	s := store.NewPostgresStore(db)
+	s := store.New(db)
 	tokenIssuer := token.NewIssuer(accessTokenSecret)
 	articleController := initializeArticleController(s)
 	authController := initializeAuthController(s, tokenIssuer)
