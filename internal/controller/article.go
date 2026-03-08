@@ -33,7 +33,7 @@ func NewArticleController(store ArticleStore) *ArticleController {
 }
 
 func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "ArticleController.ListPreviews")
 	defer span.End()
 
 	articles, err := c.store.ListArticlesPreviews(ctx)
@@ -65,7 +65,7 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 }
 
 func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "ArticleController.GetBySlug")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "ArticleController.GetBySlug")
 	defer span.End()
 
 	var req GetBySlugRequest

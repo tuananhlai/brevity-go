@@ -73,6 +73,7 @@ func Run() {
 	r.POST("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.CreateLLMAPIKey)
 	r.GET("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.ListLLMAPIKeys)
 	r.GET("/v1/digital-authors", digitalAuthorController.ListDigitalAuthors)
+	r.POST("/v1/digital-authors", digitalAuthorController.CreateDigitalAuthor)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", cfg.Port),

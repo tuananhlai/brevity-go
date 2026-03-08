@@ -55,3 +55,26 @@ func (p *Store) ListDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error
 
 	return digitalAuthors, nil
 }
+
+func (s *Store) CreateDigitalAuthor(ctx context.Context, params CreateDigitalAuthorParams) (*DigitalAuthor, error) {
+	query, args, err := s.qb.
+		Insert("digital_authors").
+		Columns("display_name", "system_prompt").
+		Values(params.DisplayName, params.SystemPrompt).
+		Suffix("RETURNING id, display_name, system_prompt, created_at").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	author := &DigitalAuthor{}
+	if err := s.db.GetContext(ctx, author, query, args...); err != nil {
+		return nil, err
+	}
+	return author, nil
+}
+
+type CreateDigitalAuthorParams struct {
+	DisplayName  string
+	SystemPrompt string
+}

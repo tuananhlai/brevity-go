@@ -33,7 +33,7 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 		Items []responseItem `json:"items"`
 	}
 
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.ListLLMAPIKeys")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.ListLLMAPIKeys")
 	defer span.End()
 
 	userID, err := getContextUserID(ginCtx)
@@ -84,7 +84,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		CreatedAt     time.Time `json:"createdAt"`
 	}
 
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
 	defer span.End()
 
 	userID, err := getContextUserID(ginCtx)

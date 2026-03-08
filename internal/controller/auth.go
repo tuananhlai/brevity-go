@@ -42,7 +42,7 @@ func NewAuthController(store AuthStore, tokenIssuer *token.AccessTokenIssuer) *A
 }
 
 func (c *AuthController) Login(ginCtx *gin.Context) {
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.Login")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "AuthController.Login")
 	defer span.End()
 
 	var req LoginRequest
@@ -102,7 +102,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 }
 
 func (c *AuthController) Register(ginCtx *gin.Context) {
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.Register")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "AuthController.Register")
 	defer span.End()
 
 	var req RegisterRequest
@@ -148,7 +148,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 }
 
 func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
-	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
+	ctx, span := otel.Tracer(otelScopeName).Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
 	defer span.End()
 
 	userID, err := getContextUserID(ginCtx)
