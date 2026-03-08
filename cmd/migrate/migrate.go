@@ -25,7 +25,7 @@ var upCmd = &cobra.Command{
 	Short: "Run all pending migrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)
@@ -43,7 +43,7 @@ var downCmd = &cobra.Command{
 	Short: "Rollback the last migration",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)
@@ -83,7 +83,7 @@ var forceCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)
@@ -108,7 +108,7 @@ var versionCmd = &cobra.Command{
 	Short: "Show current migration version",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)
@@ -128,7 +128,7 @@ var gotoCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)
@@ -165,7 +165,7 @@ var dropCmd = &cobra.Command{
 			return
 		}
 		cfg := config.MustLoadConfig()
-		m, err := migrate.New("file://"+migrationsDir, cfg.Database.URL)
+		m, err := migrate.New("file://"+migrationsDir, cfg.DatabaseURL)
 		if err != nil {
 			fmt.Println("Failed to create migrator:", err)
 			os.Exit(1)

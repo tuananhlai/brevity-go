@@ -10,14 +10,14 @@ const KeySize = 32
 
 var ErrInvalidKeySize = fmt.Errorf("invalid aes key size. expecting key to have length: %d", KeySize)
 
-// Encryption is a wrapper around the AES-GCM cipher, providing a simple interface for encrypting and decrypting data.
-type Encryption struct {
+// Cipher is a wrapper around the AES-GCM cipher, providing a simple interface for encrypting and decrypting data.
+type Cipher struct {
 	gcm cipher.AEAD
 }
 
 // New creates a new instance of EncryptionService. The `key` argument must be a byte slice
 // with length of `KeySize`.
-func New(key []byte) (*Encryption, error) {
+func New(key []byte) (*Cipher, error) {
 	if len(key) != KeySize {
 		return nil, ErrInvalidKeySize
 	}
@@ -32,17 +32,17 @@ func New(key []byte) (*Encryption, error) {
 		return nil, err
 	}
 
-	return &Encryption{
+	return &Cipher{
 		gcm: gcm,
 	}, nil
 }
 
-func (s *Encryption) Encrypt(plainText []byte) []byte {
+func (s *Cipher) Encrypt(plainText []byte) []byte {
 	// nonce does not need to be passed, as the AEAD returned by `NewGCMWithRandomNonce` already includes a random nonce.
 	return s.gcm.Seal(nil, nil, plainText, nil)
 }
 
-func (s *Encryption) Decrypt(cipherText []byte) ([]byte, error) {
+func (s *Cipher) Decrypt(cipherText []byte) ([]byte, error) {
 	// nonce does not need to be passed, as the AEAD returned by `NewGCMWithRandomNonce` will automatically
 	// extract the nonce from the cipher text.
 	return s.gcm.Open(nil, nil, cipherText, nil)

@@ -2,26 +2,16 @@ package config
 
 import (
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/tuananhlai/brevity-go/internal/telemetry"
 )
 
 type AppConfig struct {
-	Server struct {
-		Port string `env:"SERVER_PORT"`
-	}
-	Database struct {
-		URL string `env:"DATABASE_URL"`
-	}
-	LLM struct {
-		BaseURL string `env:"LLM_BASE_URL"`
-		APIKey  string `env:"LLM_API_KEY"`
-		ModelID string `env:"LLM_MODEL_ID"`
-	}
-	Encryption struct {
-		Key string `env:"ENCRYPTION_KEY"`
-	}
+	Port          string `env:"PORT"`
+	DatabaseURL   string `env:"DATABASE_URL"`
+	EncryptionKey string `env:"ENCRYPTION_KEY"`
 }
 
 func LoadConfig() (*AppConfig, error) {
@@ -38,7 +28,9 @@ func LoadConfig() (*AppConfig, error) {
 func MustLoadConfig() *AppConfig {
 	config, err := LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		telemetry.Logger("github.com/tuananhlai/brevity-go/internal/config").Error(
+			"failed to read app config", "error", err)
+		os.Exit(1)
 	}
 	return config
 }

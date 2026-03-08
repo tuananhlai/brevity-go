@@ -6,47 +6,40 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
 // Setup bootstraps the OpenTelemetry pipeline.
 func Setup(ctx context.Context) (err error) {
-	resource, err := newResource()
-	if err != nil {
-		return
-	}
-
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx, resource)
+	loggerProvider, err := newLoggerProvider(ctx)
 	if err != nil {
 		return
 	}
 	global.SetLoggerProvider(loggerProvider)
 
-	tracerProvider, err := newTracerProvider(ctx, resource)
+	tracerProvider, err := newTracerProvider(ctx)
 	if err != nil {
 		return
 	}
 	otel.SetTracerProvider(tracerProvider)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		),
+	)
 
-	// Initialize meter provider and application runtime metric producer.
-	runtimeProducer := runtime.NewProducer()
-	meterProvider, err := newMeterProvider(ctx, resource, runtimeProducer)
+	meterProvider, err := newMeterProvider(ctx)
 	if err != nil {
 		return
 	}
@@ -78,57 +71,38 @@ func Logger(name string) *slog.Logger {
 	return otelslog.NewLogger(name)
 }
 
-func newResource() (*resource.Resource, error) {
-	return resource.Merge(
-		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-		),
-	)
-}
-
-func newLoggerProvider(ctx context.Context, resource *resource.Resource) (*sdklog.LoggerProvider, error) {
-	logExporter, err := otlploghttp.New(ctx)
+func newLoggerProvider(ctx context.Context) (*sdklog.LoggerProvider, error) {
+	logExporter, err := autoexport.NewLogExporter(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
-		sdklog.WithResource(resource),
 	)
 	return loggerProvider, nil
 }
 
-func newTracerProvider(ctx context.Context, resource *resource.Resource) (*sdktrace.TracerProvider, error) {
-	traceExporter, err := otlptracehttp.New(ctx)
+func newTracerProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
+	traceExporter, err := autoexport.NewSpanExporter(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter),
-		sdktrace.WithResource(resource),
 	)
 	return tracerProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, resource *resource.Resource,
-	runtimeProducer *runtime.Producer,
-) (*sdkmetric.MeterProvider, error) {
-	metricExporter, err := otlpmetrichttp.New(ctx)
+func newMeterProvider(ctx context.Context) (*sdkmetric.MeterProvider, error) {
+	metricReader, err := autoexport.NewMetricReader(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	meterProvider := sdkmetric.NewMeterProvider(
-		sdkmetric.WithResource(resource),
-		sdkmetric.WithReader(
-			sdkmetric.NewPeriodicReader(
-				metricExporter,
-				sdkmetric.WithProducer(runtimeProducer),
-			),
-		),
+		sdkmetric.WithReader(metricReader),
 	)
 	return meterProvider, nil
 }

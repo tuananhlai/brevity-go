@@ -33,7 +33,14 @@ func Run() {
 	cfg := config.MustLoadConfig()
 
 	globalCtx := context.Background()
-	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
+
+	err := telemetry.Setup(globalCtx)
+	if err != nil {
+		log.Printf("error initializing opentelemetry sdk: %s\n", err)
+	}
+	logger := telemetry.Logger("github.com/tuananhlai/brevity-go/cmd/server")
+
+	db := otelsqlx.MustConnect("postgres", cfg.DatabaseURL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
 	s := store.NewPostgresStore(db)
@@ -41,21 +48,15 @@ func Run() {
 	articleController := initializeArticleController(s)
 	authController := initializeAuthController(s, tokenIssuer)
 	healthController := controller.NewHealthController()
-	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
+	encryptionService, err := encryption.New([]byte(cfg.EncryptionKey))
 	if err != nil {
-		log.Fatalf("error initializing encryption service: %s", err)
+		logger.Error(
+			"failed to initialize cipher", "error", err)
+		os.Exit(1)
 	}
 	llmAPIKeyController := initializeLLMAPIKeyController(s, encryptionService)
 	authMiddleware := controller.AuthMiddleware(tokenIssuer)
 	digitalAuthorController := controller.NewDigitalAuthorController(s)
-
-	// == Otel Setup ==
-	err = telemetry.Setup(globalCtx)
-	if err != nil {
-		log.Fatalf("error initializing opentelemetry sdk: %s", err)
-	}
-
-	logger := telemetry.Logger("github.com/tuananhlai/brevity-go/cmd/server")
 
 	// == Gin Setup ==
 	r := gin.Default()
@@ -74,11 +75,11 @@ func Run() {
 	r.GET("/v1/digital-authors", digitalAuthorController.ListDigitalAuthors)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),
+		Addr:    fmt.Sprintf(":%v", cfg.Port),
 		Handler: r.Handler(),
 	}
 
-	logger.Info("Server started", "port", cfg.Server.Port)
+	logger.Info("Server started", "port", cfg.Port)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Error("Server stopped unexpectedly", "error", err)
 		os.Exit(1)
