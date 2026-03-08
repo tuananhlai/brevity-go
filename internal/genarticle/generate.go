@@ -1,0 +1,160 @@
+package genarticle
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	"github.com/invopop/jsonschema"
+	"github.com/openai/openai-go"
+)
+
+type Generator struct {
+	openAIClient openai.Client
+	schemaParam  openai.ResponseFormatJSONSchemaJSONSchemaParam
+}
+
+const (
+	defaultModel           = "moonshotai/kimi-k2.5"
+	defaultMaxOutputTokens = 8000
+)
+
+// New returns an article generator instance.
+func New(client openai.Client) *Generator {
+	schemaParam := openai.ResponseFormatJSONSchemaJSONSchemaParam{
+		Name:        "Article",
+		Description: openai.String("An article / blog post that can be found on platforms like Substack"),
+		Schema:      createJSONSchema[Article](),
+		Strict:      openai.Bool(true),
+	}
+	return &Generator{
+		openAIClient: client,
+		schemaParam:  schemaParam,
+	}
+}
+
+// Generate ...
+func (g *Generator) Generate(ctx context.Context, personalityPrompt string, excludedTopics []string) (*Article, error) {
+	messages := []openai.ChatCompletionMessageParamUnion{
+		openai.SystemMessage(personalityPrompt),
+		openai.SystemMessage(TechnicalWritingStylePrompt),
+	}
+	if len(excludedTopics) > 0 {
+		messages = append(messages, openai.SystemMessage(
+			fmt.Sprintf("You have already written articles with the following slugs: %v. Do not write about the same topic.", excludedTopics),
+		))
+	}
+	messages = append(messages, openai.UserMessage("Write about a random topic of your specialty"))
+
+	chat, err := g.openAIClient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		Messages: messages,
+		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
+			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
+				JSONSchema: g.schemaParam,
+			},
+		},
+		Model:               defaultModel,
+		MaxCompletionTokens: openai.Int(defaultMaxOutputTokens),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(chat.Choices) == 0 {
+		return nil, errors.New("error empty chat completion choice array")
+	}
+
+	var article Article
+	if err := json.Unmarshal([]byte(chat.Choices[0].Message.Content), &article); err != nil {
+		return nil, fmt.Errorf("error unmarshaling LLM response: %w", err)
+	}
+
+	return &article, nil
+}
+
+type Article struct {
+	Slug        string `json:"slug"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Content     string `json:"content"`
+}
+
+func createJSONSchema[T any]() any {
+	reflector := jsonschema.Reflector{
+		AllowAdditionalProperties: true,
+		DoNotReference:            true,
+	}
+
+	var v T
+	schema := reflector.Reflect(v)
+
+	return schema
+}
+
+const (
+	TechnicalWritingStylePrompt = `
+Follow these requirements for clear, effective writing:
+
+A. Audience & Document Purpose
+- Identify and implicitly target a specific audience.
+- Tailor explanations to what the audience knows and needs to learn.
+- Begin by stating document scope, audience, and key points.
+
+B. Word & Sentence Level
+- Define new or unfamiliar terms before use.
+- Use terms consistently across the document.
+- Avoid ambiguous pronouns with unclear referents.
+- Prefer active voice when it improves clarity.
+- Choose specific nouns and strong verbs.
+- Use punctuation correctly to aid readability.
+- Focus each sentence on a single idea.
+- Eliminate unnecessary words.
+
+C. Lists, Tables, and Parallelism
+- Convert long or complex sentences into lists when useful.
+- Use numbered lists for ordered steps; start numbered items with imperative verbs.
+- Use bullet lists when order is not important.
+- Keep list items parallel in structure and grammar.
+- Introduce lists and tables with a clear lead-in sentence.
+
+D. Paragraph & Section Structure
+- Begin paragraphs with strong topic sentences.
+- Keep each paragraph focused on a single topic.
+- Break long topics into clear sections with descriptive headings.
+
+E. Document Organization
+- Follow a consistent style guide or template.
+- Think from the reader's perspective when choosing structure.
+- Outline large documents before writing or reorganize after drafting.
+- Prefer task-oriented, actionable section headings.
+- Use progressive disclosure: introduce simpler concepts before complex ones.
+- Define scope early and avoid off-scope digressions.
+
+F. Visuals & Illustrations
+- Write captions that explain the key takeaway.
+- Limit the amount of information in a single diagram.
+- Use visual emphasis to direct reader attention.
+- Ensure visuals support, not duplicate, the text.
+
+G. Code Samples (If Applicable)
+- Provide concise, correct, and runnable examples.
+- Keep examples minimal but complete.
+- Write short, meaningful comments; avoid commenting obvious code.
+- Include both examples and, when helpful, counterexamples.
+- Demonstrate increasing complexity when needed.
+
+H. Revision & Quality Control
+- Review for clarity and logical flow.
+- Remove ambiguity and tighten language.
+- Check consistency of terminology.
+- Verify technical accuracy.
+- Revise after distance or external feedback.
+- Treat revision as iterative and continuous.
+
+I. Output Requirements
+- Structured with clear headings.
+- Neutral, precise tone.
+- Optimized for readability and scanability.
+- No unnecessary verbosity.`
+)

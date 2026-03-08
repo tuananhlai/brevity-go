@@ -53,3 +53,10 @@ tasks:
     desc: Alias for server
     cmds:
       - task: server
+
+  generate-article:
+    desc: Generate a new article for each digital authors.
+    dotenv: 
+      - .env
+    cmds:
+      - go run ./cmd generate-article

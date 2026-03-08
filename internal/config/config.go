@@ -12,6 +12,10 @@ type AppConfig struct {
 	Port          string `env:"PORT"`
 	DatabaseURL   string `env:"DATABASE_URL"`
 	EncryptionKey string `env:"ENCRYPTION_KEY"`
+	// LLMAPIKey is the API key used to generate **all** articles.
+	// This field might be removed once llm api key management feature
+	// is developed.
+	LLMAPIKey string `env:"LLM_API_KEY"`
 }
 
 func LoadConfig() (*AppConfig, error) {

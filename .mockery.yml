@@ -11,12 +11,6 @@ require-template-schema-exists: true
 template: testify
 template-schema: '{{.Template}}.schema.json'
 packages:
-  github.com/tuananhlai/brevity-go/internal/store:
-    config:
-      all: true
   github.com/tuananhlai/brevity-go/internal/llmapikey:
-    config:
-      all: true
-  github.com/tuananhlai/brevity-go/internal/controller:
     config:
       all: true
