@@ -44,8 +44,8 @@ tasks:
 
   server:
     desc: Run the server with OTEL_EXPORTER_OTLP_ENDPOINT set
-    env:
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+    dotenv: 
+      - .env
     cmds:
       - go run ./cmd server
 

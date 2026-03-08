@@ -24,9 +24,6 @@ go.work.sum
 # env file
 .env
 
-# config files
-config.yaml
-config.yml
 
 # Local .terraform directories
 **/.terraform/*

@@ -25,7 +25,7 @@ type Article struct {
 func RunGenerateArticle() {
 	ctx := context.Background()
 	baseURL := "https://openrouter.ai/api/v1"
-	apiKey := "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"
+	apiKey := ""
 	client := openai.NewClient(option.WithBaseURL(baseURL), option.WithAPIKey(apiKey))
 
 	databaseURL := "postgres://postgres:postgres@postgres:5432/brevity?sslmode=disable"

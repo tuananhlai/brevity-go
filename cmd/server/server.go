@@ -24,18 +24,20 @@ import (
 	"github.com/tuananhlai/brevity-go/internal/token"
 )
 
+const (
+	// TODO: sign with private key instead
+	accessTokenSecret = "secret"
+)
+
 func Run() {
 	cfg := config.MustLoadConfig()
-	if cfg.Mode == config.ModeRelease {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	globalCtx := context.Background()
 	db := otelsqlx.MustConnect("postgres", cfg.Database.URL,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
 	s := store.NewPostgresStore(db)
-	tokenIssuer := token.NewIssuer(cfg.Auth.TokenSecret)
+	tokenIssuer := token.NewIssuer(accessTokenSecret)
 	articleController := initializeArticleController(s)
 	authController := initializeAuthController(s, tokenIssuer)
 	healthController := controller.NewHealthController()
@@ -80,6 +82,7 @@ func Run() {
 		os.Exit(1)
 	}
 
+	// TODO: enable ReleaseMode for Gin
 	// TODO: add graceful shutdown
 }
 

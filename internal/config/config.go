@@ -1,53 +1,35 @@
 package config
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type Mode string
-
-const (
-	ModeDev     Mode = "dev"
-	ModeRelease Mode = "release"
-)
-
 type AppConfig struct {
-	// If `mode` is `dev`, the server will run in a way that is easier for development.
-	// Otherwise, it will be optimized for better performance and data safety.
-	Mode   Mode `yaml:"mode" env:"MODE" env-default:"dev"`
 	Server struct {
-		Port string `yaml:"port" env:"SERVER_PORT" env-default:"8080"`
+		Port string `env:"SERVER_PORT"`
 	}
 	Database struct {
-		URL string `yaml:"url" env:"DATABASE_URL"`
+		URL string `env:"DATABASE_URL"`
 	}
 	LLM struct {
-		BaseURL string `yaml:"base_url" env:"LLM_BASE_URL"`
-		APIKey  string `yaml:"api_key" env:"LLM_API_KEY"`
-		ModelID string `yaml:"model_id" env:"LLM_MODEL_ID"`
+		BaseURL string `env:"LLM_BASE_URL"`
+		APIKey  string `env:"LLM_API_KEY"`
+		ModelID string `env:"LLM_MODEL_ID"`
 	}
 	Encryption struct {
-		Key string `yaml:"key" env:"ENCRYPTION_KEY"`
-	}
-	Auth struct {
-		TokenSecret string `yaml:"token_secret" env:"AUTH_TOKEN_SECRET" env-default:"secret"`
+		Key string `env:"ENCRYPTION_KEY"`
 	}
 }
 
 func LoadConfig() (*AppConfig, error) {
 	var config AppConfig
 
-	err := cleanenv.ReadConfig("config.yaml", &config)
-	if err != nil {
-		log.Printf("Failed to read configuration file: %v. Trying to read environment variables instead.", err)
-	}
-
-	// Read from environment variables if the configuration file does not exists.
-	err = cleanenv.ReadEnv(&config)
-	if err != nil {
-		return nil, err
+	// Read variables **only from the environment** and populate config struct fields.
+	if err := cleanenv.ReadEnv(&config); err != nil {
+		return nil, fmt.Errorf("error reading configuration: %v", err)
 	}
 
 	return &config, nil
