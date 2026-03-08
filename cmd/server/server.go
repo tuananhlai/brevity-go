@@ -36,7 +36,7 @@ func Run() {
 
 	err := telemetry.Setup(globalCtx)
 	if err != nil {
-		log.Printf("error initializing opentelemetry sdk: %s\n", err)
+		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
 	logger := telemetry.Logger("github.com/tuananhlai/brevity-go/cmd/server")
 
