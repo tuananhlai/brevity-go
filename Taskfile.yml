@@ -1,0 +1,55 @@
+version: '3'
+
+tasks:
+  migrate-up:
+    desc: Run all pending migrations
+    cmds:
+      - go run ./cmd migrate up
+
+  migrate-down:
+    desc: Rollback the last migration
+    cmds:
+      - go run ./cmd migrate down
+
+  migrate-create:
+    desc: Create a new migration
+    requires:
+      vars: [NAME]
+    cmds:
+      - go run ./cmd migrate create {{.NAME}}
+
+  migrate-force:
+    desc: Force migration version
+    requires:
+      vars: [VERSION]
+    cmds:
+      - go run ./cmd migrate force {{.VERSION}}
+
+  migrate-version:
+    desc: Show current migration version
+    cmds:
+      - go run ./cmd migrate version
+
+  migrate-goto:
+    desc: Migrate to a specific version
+    requires:
+      vars: [VERSION]
+    cmds:
+      - go run ./cmd migrate goto {{.VERSION}}
+
+  migrate-drop:
+    desc: Drop everything in the database
+    cmds:
+      - go run ./cmd migrate drop
+
+  server:
+    desc: Run the server with OTEL_EXPORTER_OTLP_ENDPOINT set
+    env:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+    cmds:
+      - go run ./cmd server
+
+  s:
+    desc: Alias for server
+    cmds:
+      - task: server

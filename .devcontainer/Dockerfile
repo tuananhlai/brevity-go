@@ -29,7 +29,7 @@ RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"' >> /home/v
 
 # Enable access to `brew` command and install packages.
 RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" &&\
-    brew install golang-migrate mockery opentofu gh httpie pgcli
+    brew install golang-migrate mockery opentofu gh httpie pgcli go-task
 
 # golangci-lint **should not** be installed via brew since it can cause brew to install a different version
 # of Go

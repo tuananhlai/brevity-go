@@ -6,10 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -20,15 +18,10 @@ import (
 
 	"github.com/tuananhlai/brevity-go/internal/config"
 	"github.com/tuananhlai/brevity-go/internal/controller"
-	"github.com/tuananhlai/brevity-go/internal/controller/middleware"
 	"github.com/tuananhlai/brevity-go/internal/encryption"
 	"github.com/tuananhlai/brevity-go/internal/store"
 	"github.com/tuananhlai/brevity-go/internal/telemetry"
 	"github.com/tuananhlai/brevity-go/internal/token"
-)
-
-const (
-	shutdownTimeout = 5 * time.Second
 )
 
 func Run() {
@@ -42,21 +35,19 @@ func Run() {
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 
 	s := store.NewPostgresStore(db)
-	tokenManager := token.NewIssuer(cfg.Auth.TokenSecret)
+	tokenIssuer := token.NewIssuer(cfg.Auth.TokenSecret)
 	articleController := initializeArticleController(s)
-	authController := initializeAuthController(s, tokenManager)
+	authController := initializeAuthController(s, tokenIssuer)
 	healthController := controller.NewHealthController()
 	encryptionService, err := encryption.New([]byte(cfg.Encryption.Key))
 	if err != nil {
 		log.Fatalf("error initializing encryption service: %s", err)
 	}
 	llmAPIKeyController := initializeLLMAPIKeyController(s, encryptionService)
-	authMiddleware := middleware.AuthMiddleware(tokenManager)
+	authMiddleware := controller.AuthMiddleware(tokenIssuer)
 
 	// == Otel Setup ==
-	otelShutdown, err := telemetry.Setup(globalCtx, telemetry.SetupConfig{
-		Debug: cfg.Mode == config.ModeDev,
-	})
+	err = telemetry.Setup(globalCtx)
 	if err != nil {
 		log.Fatalf("error initializing opentelemetry sdk: %s", err)
 	}
@@ -83,44 +74,13 @@ func Run() {
 		Handler: r.Handler(),
 	}
 
-	go func() {
-		logger.Info("Server started on port", "port", cfg.Server.Port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error("Failed to start server", "error", err)
-			os.Exit(1)
-		}
-	}()
-
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
-
-	// == Graceful Shutdown ==
-	if cfg.Mode == config.ModeDev {
-		log.Println("Server is running in dev mode, skipping graceful shutdown.")
-		return
+	logger.Info("Server started on port", "port", cfg.Server.Port)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Error("Failed to start server", "error", err)
+		os.Exit(1)
 	}
 
-	logger.Info("Shutting down server...")
-
-	timeoutCtx, cancel := context.WithTimeout(globalCtx, shutdownTimeout)
-	defer cancel()
-
-	if err := srv.Shutdown(timeoutCtx); err != nil {
-		logger.Warn("Failed to shutdown server gracefully", "error", err)
-	}
-
-	if err := otelShutdown(timeoutCtx); err != nil {
-		logger.Warn("Failed to shutdown opentelemetry sdk", "error", err)
-	}
-
-	// Close the database connection after the server has been shutdown to ensure in-flight requests are completed.
-	if err := db.Close(); err != nil {
-		logger.Warn("Failed to close database connection gracefully", "error", err)
-	}
-
-	<-timeoutCtx.Done()
-	logger.Info("Server shutdown complete.")
+	// TODO: add graceful shutdown
 }
 
 var allowedOrigins = []string{

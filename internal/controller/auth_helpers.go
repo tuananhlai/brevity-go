@@ -13,12 +13,12 @@ const (
 	contextKeyUserID        = "$userID"
 )
 
-func SetContextUserID(ginCtx *gin.Context, userID string) {
+func setContextUserID(ginCtx *gin.Context, userID string) {
 	ginCtx.Set(contextKeyUserID, userID)
 }
 
-// GetContextUserID extracts the current user ID from the Gin context.
-func GetContextUserID(ginCtx *gin.Context) (string, error) {
+// getContextUserID extracts the current user ID from the Gin context.
+func getContextUserID(ginCtx *gin.Context) (string, error) {
 	rawUserID, ok := ginCtx.Get(contextKeyUserID)
 	if !ok {
 		return "", errors.New("userID not found in context")
@@ -32,8 +32,8 @@ func GetContextUserID(ginCtx *gin.Context) (string, error) {
 	return userID, nil
 }
 
-// ExtractAccessTokenFromRequest returns the access token from the HTTP request.
-func ExtractAccessTokenFromRequest(ginCtx *gin.Context) (string, bool) {
+// extractAccessTokenFromRequest returns the access token from the HTTP request.
+func extractAccessTokenFromRequest(ginCtx *gin.Context) (string, bool) {
 	token, err := ginCtx.Cookie(accessTokenCookieName)
 	if err != nil {
 		return "", false
@@ -42,6 +42,6 @@ func ExtractAccessTokenFromRequest(ginCtx *gin.Context) (string, bool) {
 	return token, true
 }
 
-func SetAccessTokenCookie(ginCtx *gin.Context, token string) {
+func setAccessTokenCookie(ginCtx *gin.Context, token string) {
 	ginCtx.SetCookie(accessTokenCookieName, token, accessTokenCookieMaxAge, accessTokenCookiePath, "", true, true)
 }

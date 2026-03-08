@@ -30,14 +30,14 @@ type AuthStore interface {
 }
 
 type AuthController struct {
-	store        AuthStore
-	tokenManager *token.AccessTokenIssuer
+	store       AuthStore
+	tokenIssuer *token.AccessTokenIssuer
 }
 
-func NewAuthController(store AuthStore, tokenManager *token.AccessTokenIssuer) *AuthController {
+func NewAuthController(store AuthStore, tokenIssuer *token.AccessTokenIssuer) *AuthController {
 	return &AuthController{
-		store:        store,
-		tokenManager: tokenManager,
+		store:       store,
+		tokenIssuer: tokenIssuer,
 	}
 }
 
@@ -85,7 +85,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 		return
 	}
 
-	accessToken, err := c.tokenManager.Issue(user.ID.String())
+	accessToken, err := c.tokenIssuer.Issue(user.ID.String())
 	if err != nil {
 		WriteUnknownErrorResponse(ginCtx, span, err)
 		return
@@ -97,7 +97,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 		Email:    user.Email,
 	}
 
-	SetAccessTokenCookie(ginCtx, accessToken)
+	setAccessTokenCookie(ginCtx, accessToken)
 	ginCtx.JSON(http.StatusOK, res)
 }
 
@@ -151,7 +151,7 @@ func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
 	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "AuthController.GetCurrentUser")
 	defer span.End()
 
-	userID, err := GetContextUserID(ginCtx)
+	userID, err := getContextUserID(ginCtx)
 	if err != nil {
 		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
 			Body: ErrorResponse{

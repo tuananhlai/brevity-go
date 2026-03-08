@@ -36,7 +36,7 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.ListLLMAPIKeys")
 	defer span.End()
 
-	userID, err := GetContextUserID(ginCtx)
+	userID, err := getContextUserID(ginCtx)
 	if err != nil {
 		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
 			Body: ErrorResponse{
@@ -87,7 +87,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 	ctx, span := otel.Tracer(packageName).Start(ginCtx.Request.Context(), "LLMAPIKeyController.CreateLLMAPIKey")
 	defer span.End()
 
-	userID, err := GetContextUserID(ginCtx)
+	userID, err := getContextUserID(ginCtx)
 	if err != nil {
 		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
 			Body: ErrorResponse{

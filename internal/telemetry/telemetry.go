@@ -2,7 +2,6 @@ package telemetry
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"time"
 
@@ -23,54 +22,24 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type SetupConfig struct {
-	// Debug customizes the OpenTelemetry SDK behavior for better debugging experience when the value is true.
-	Debug bool
-}
-
 // Setup bootstraps the OpenTelemetry pipeline.
-// If it does not return an error, make sure to call shutdown for proper cleanup.
-func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context) error, err error) {
-	var shutdownFuncs []func(context.Context) error
-
-	// shutdown calls cleanup functions registered via shutdownFuncs.
-	// The errors from the calls are joined.
-	// Each registered cleanup will be invoked once.
-	shutdown = func(ctx context.Context) error {
-		var err error
-		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
-		}
-		shutdownFuncs = nil
-		return err
-	}
-
-	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
-	handleErr := func(inErr error) {
-		err = errors.Join(inErr, shutdown(ctx))
-	}
-
+func Setup(ctx context.Context) (err error) {
 	resource, err := newResource()
 	if err != nil {
-		handleErr(err)
 		return
 	}
 
 	// Set up logger provider.
 	loggerProvider, err := newLoggerProvider(ctx, resource)
 	if err != nil {
-		handleErr(err)
 		return
 	}
-	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
 	global.SetLoggerProvider(loggerProvider)
 
 	tracerProvider, err := newTracerProvider(ctx, resource)
 	if err != nil {
-		handleErr(err)
 		return
 	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{}, propagation.Baggage{}))
@@ -79,15 +48,12 @@ func Setup(ctx context.Context, cfg SetupConfig) (shutdown func(context.Context)
 	runtimeProducer := runtime.NewProducer()
 	meterProvider, err := newMeterProvider(ctx, resource, runtimeProducer)
 	if err != nil {
-		handleErr(err)
 		return
 	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
 	err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
 	if err != nil {
-		handleErr(err)
 		return
 	}
 
