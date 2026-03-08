@@ -37,3 +37,21 @@ func (p *PostgresStore) ListDigitalAuthorsWithArticleSlugs(ctx context.Context) 
 
 	return items, nil
 }
+
+func (p *PostgresStore) ListDigitalAuthors(ctx context.Context) ([]*DigitalAuthor, error) {
+	query, _, err := p.qb.
+		Select("id", "display_name", "system_prompt", "created_at").
+		From("digital_authors").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var digitalAuthors []*DigitalAuthor
+	err = p.db.SelectContext(ctx, &digitalAuthors, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return digitalAuthors, nil
+}

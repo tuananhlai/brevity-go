@@ -47,7 +47,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 
 	var req LoginRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		WriteBindingErrorResponse(ginCtx, span, err)
+		writeBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 	user, err := c.store.GetUser(ctx, req.EmailOrUsername)
 	if err != nil {
 		if errors.Is(err, store.ErrUserNotFound) {
-			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			writeErrorResponse(ginCtx, writeErrorResponseParams{
 				Body: ErrorResponse{
 					Code:    CodeInvalidCredentials,
 					Message: fmt.Sprintf("%s: %s", ErrInvalidCredentials, err),
@@ -69,12 +69,12 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 			return
 		}
 
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(req.Password)); err != nil {
-		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+		writeErrorResponse(ginCtx, writeErrorResponseParams{
 			Body: ErrorResponse{
 				Code:    CodeInvalidCredentials,
 				Message: fmt.Sprintf("%s: %s", ErrInvalidCredentials, err),
@@ -87,7 +87,7 @@ func (c *AuthController) Login(ginCtx *gin.Context) {
 
 	accessToken, err := c.tokenIssuer.Issue(user.ID.String())
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	var req RegisterRequest
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		WriteBindingErrorResponse(ginCtx, span, err)
+		writeBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, store.ErrUserAlreadyExists) {
-			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			writeErrorResponse(ginCtx, writeErrorResponseParams{
 				Body: ErrorResponse{
 					Code:    CodeUserAlreadyExists,
 					Message: fmt.Sprintf("%s: %s", store.ErrUserAlreadyExists, err),
@@ -140,7 +140,7 @@ func (c *AuthController) Register(ginCtx *gin.Context) {
 			return
 		}
 
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -153,7 +153,7 @@ func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
 
 	userID, err := getContextUserID(ginCtx)
 	if err != nil {
-		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+		writeErrorResponse(ginCtx, writeErrorResponseParams{
 			Body: ErrorResponse{
 				Code:    CodeUnauthorized,
 				Message: err.Error(),
@@ -166,7 +166,7 @@ func (c *AuthController) GetCurrentUser(ginCtx *gin.Context) {
 
 	user, err := c.store.GetUserByID(ctx, userID)
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 

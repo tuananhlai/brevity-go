@@ -38,7 +38,7 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 
 	userID, err := getContextUserID(ginCtx)
 	if err != nil {
-		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+		writeErrorResponse(ginCtx, writeErrorResponseParams{
 			Body: ErrorResponse{
 				Code:    CodeUnauthorized,
 				Message: "error getting userID from context",
@@ -52,7 +52,7 @@ func (c *LLMAPIKeyController) ListLLMAPIKeys(ginCtx *gin.Context) {
 
 	llmAPIKeys, err := c.llmAPIKeyManager.ListByUserID(ctx, userID)
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -89,7 +89,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 
 	userID, err := getContextUserID(ginCtx)
 	if err != nil {
-		WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+		writeErrorResponse(ginCtx, writeErrorResponseParams{
 			Body: ErrorResponse{
 				Code:    CodeUnauthorized,
 				Message: "error getting userID from context",
@@ -102,7 +102,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 
 	var req request
 	if err := ginCtx.ShouldBindJSON(&req); err != nil {
-		WriteBindingErrorResponse(ginCtx, span, err)
+		writeBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (c *LLMAPIKeyController) CreateLLMAPIKey(ginCtx *gin.Context) {
 		UserID: userID,
 	})
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span,
+		writeUnknownErrorResponse(ginCtx, span,
 			fmt.Errorf("failed to create llm api key: %w", err))
 		return
 	}

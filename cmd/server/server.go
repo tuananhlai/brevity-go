@@ -47,6 +47,7 @@ func Run() {
 	}
 	llmAPIKeyController := initializeLLMAPIKeyController(s, encryptionService)
 	authMiddleware := controller.AuthMiddleware(tokenIssuer)
+	digitalAuthorController := controller.NewDigitalAuthorController(s)
 
 	// == Otel Setup ==
 	err = telemetry.Setup(globalCtx)
@@ -70,15 +71,16 @@ func Run() {
 	r.GET("/v1/auth/me", authMiddleware, authController.GetCurrentUser)
 	r.POST("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.CreateLLMAPIKey)
 	r.GET("/v1/llm-api-keys", authMiddleware, llmAPIKeyController.ListLLMAPIKeys)
+	r.GET("/v1/digital-authors", digitalAuthorController.ListDigitalAuthors)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", cfg.Server.Port),
 		Handler: r.Handler(),
 	}
 
-	logger.Info("Server started on port", "port", cfg.Server.Port)
+	logger.Info("Server started", "port", cfg.Server.Port)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Error("Failed to start server", "error", err)
+		logger.Error("Server stopped unexpectedly", "error", err)
 		os.Exit(1)
 	}
 

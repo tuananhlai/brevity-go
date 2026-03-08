@@ -25,8 +25,8 @@ const (
 	CodeUnauthorized        ErrorCode = "unauthorized"
 )
 
-// WriteErrorResponse writes an HTTP response which signify that an error has occurred.
-func WriteErrorResponse(ginCtx *gin.Context, params WriteErrorResponseParams) {
+// writeErrorResponse writes an HTTP response which signify that an error has occurred.
+func writeErrorResponse(ginCtx *gin.Context, params writeErrorResponseParams) {
 	if params.Err != nil {
 		params.Span.RecordError(params.Err)
 		params.Span.SetStatus(codes.Error, params.Err.Error())
@@ -40,7 +40,7 @@ func WriteErrorResponse(ginCtx *gin.Context, params WriteErrorResponseParams) {
 	ginCtx.JSON(statusCode, params.Body)
 }
 
-type WriteErrorResponseParams struct {
+type writeErrorResponseParams struct {
 	Body ErrorResponse
 	Span trace.Span
 	// Err is the error that will be recorded with the current span. If not provided, the error will not be recorded.
@@ -50,9 +50,9 @@ type WriteErrorResponseParams struct {
 	StatusCode int
 }
 
-// WriteBindingErrorResponse writes an HTTP response when a binding error (request body, query, ...) occurs.
-func WriteBindingErrorResponse(ginCtx *gin.Context, span trace.Span, err error) {
-	WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+// writeBindingErrorResponse writes an HTTP response when a binding error (request body, query, ...) occurs.
+func writeBindingErrorResponse(ginCtx *gin.Context, span trace.Span, err error) {
+	writeErrorResponse(ginCtx, writeErrorResponseParams{
 		Body: ErrorResponse{
 			Code:    CodeBindingRequestError,
 			Message: err.Error(),
@@ -63,9 +63,9 @@ func WriteBindingErrorResponse(ginCtx *gin.Context, span trace.Span, err error) 
 	})
 }
 
-// WriteUnknownErrorResponse writes an HTTP response when an unknown error occurs.
-func WriteUnknownErrorResponse(ginCtx *gin.Context, span trace.Span, err error) {
-	WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+// writeUnknownErrorResponse writes an HTTP response when an unknown error occurs.
+func writeUnknownErrorResponse(ginCtx *gin.Context, span trace.Span, err error) {
+	writeErrorResponse(ginCtx, writeErrorResponseParams{
 		Body: ErrorResponse{
 			Code:    CodeUnknown,
 			Message: err.Error(),

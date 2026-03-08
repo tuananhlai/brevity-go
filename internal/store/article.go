@@ -8,27 +8,36 @@ import (
 )
 
 // CreateArticle creates a new article
-func (r *PostgresStore) CreateArticle(ctx context.Context, article *Article) error {
-	// TODO: Add support for other content formats
-	_, err := r.db.ExecContext(ctx,
-		`INSERT INTO articles (slug, title, description, plaintext_content,
-		content, content_format, author_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-		article.Slug, article.Title, article.Description,
-		article.PlaintextContent, article.Content, "text/markdown", article.AuthorID)
+func (p *PostgresStore) CreateArticle(ctx context.Context, article *Article) error {
+	query, args, err := p.qb.
+		Insert("articles").
+		Columns("slug", "title", "description", "plaintext_content", "content", "content_format", "author_id").
+		Values(article.Slug, article.Title, article.Description, article.PlaintextContent,
+			article.Content, "text/markdown", article.AuthorID).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("failed to build query: %w", err)
+	}
 
+	_, err = p.db.ExecContext(ctx, query, args...)
 	return err
 }
 
-func (r *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
-	article := ArticleDetails{}
-	err := r.db.GetContext(ctx, &article, `
-		SELECT a.id, a.slug, a.title, a.content, a.author_id, a.created_at, a.updated_at,
-			u.username AS author_username,
-			da.display_name AS author_display_name		
-		FROM articles a
-		INNER JOIN digital_authors da ON a.author_id = da.id
-		INNER JOIN users u ON a.author_id = u.id
-		WHERE a.slug = $1`, slug)
+// GetArticleBySlug retrieves a single article by its slug
+func (p *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*ArticleDetails, error) {
+	query, args, err := p.qb.
+		Select("a.id", "a.slug", "a.title", "a.content", "a.author_id",
+			"a.created_at", "a.updated_at", "da.display_name AS author_display_name").
+		From("articles a").
+		InnerJoin("digital_authors da ON a.author_id = da.id").
+		Where("a.slug = ?", slug).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	var article ArticleDetails
+	err = p.db.GetContext(ctx, &article, query, args...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrArticleNotFound
@@ -43,18 +52,18 @@ func (r *PostgresStore) GetArticleBySlug(ctx context.Context, slug string) (*Art
 func (p *PostgresStore) ListArticlesPreviews(ctx context.Context) ([]ArticlePreview, error) {
 	articles := []ArticlePreview{}
 
-	queryBuilder := p.qb.Select("a.id", "a.slug", "a.title", "a.description", "a.author_id",
-		"a.created_at", "a.updated_at", "da.display_name AS author_display_name").
+	query, _, err := p.qb.
+		Select("a.id", "a.slug", "a.title", "a.description", "a.author_id",
+			"a.created_at", "a.updated_at", "da.display_name AS author_display_name").
 		From("articles a").
 		InnerJoin("digital_authors da ON a.author_id = da.id").
-		OrderBy("a.created_at DESC")
-
-	query, args, err := queryBuilder.ToSql()
+		OrderBy("a.created_at DESC").
+		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build SQL query: %w", err)
 	}
 
-	err = p.db.SelectContext(ctx, &articles, query, args...)
+	err = p.db.SelectContext(ctx, &articles, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute SQL query: %w", err)
 	}

@@ -38,20 +38,20 @@ func (c *ArticleController) ListPreviews(ginCtx *gin.Context) {
 
 	articles, err := c.store.ListArticlesPreviews(ctx)
 	if err != nil {
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
 	response := ListPreviewsResponse{
-		Items: make([]ListPreviewResponseItem, len(articles)),
+		Items: make([]ArticlePreview, len(articles)),
 	}
 	for i, article := range articles {
-		response.Items[i] = ListPreviewResponseItem{
+		response.Items[i] = ArticlePreview{
 			ID:          article.ID,
 			Slug:        article.Slug,
 			Title:       article.Title,
 			Description: article.Description,
-			Author: ListPreviewResponseItemAuthor{
+			Author: ArticlePreviewAuthor{
 				ID:          article.AuthorID,
 				Username:    article.AuthorUsername,
 				DisplayName: article.AuthorDisplayName.String,
@@ -70,14 +70,14 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 
 	var req GetBySlugRequest
 	if err := ginCtx.ShouldBindUri(&req); err != nil {
-		WriteBindingErrorResponse(ginCtx, span, err)
+		writeBindingErrorResponse(ginCtx, span, err)
 		return
 	}
 
 	article, err := c.store.GetArticleBySlug(ctx, req.Slug)
 	if err != nil {
 		if errors.Is(err, store.ErrArticleNotFound) {
-			WriteErrorResponse(ginCtx, WriteErrorResponseParams{
+			writeErrorResponse(ginCtx, writeErrorResponseParams{
 				Body: ErrorResponse{
 					Code:    CodeArticleNotFound,
 					Message: err.Error(),
@@ -88,7 +88,7 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 			return
 		}
 
-		WriteUnknownErrorResponse(ginCtx, span, err)
+		writeUnknownErrorResponse(ginCtx, span, err)
 		return
 	}
 
@@ -109,17 +109,17 @@ func (c *ArticleController) GetBySlug(ginCtx *gin.Context) {
 	ginCtx.JSON(http.StatusOK, response)
 }
 
-type ListPreviewResponseItem struct {
-	ID          uuid.UUID                     `json:"id"`
-	Slug        string                        `json:"slug"`
-	Title       string                        `json:"title"`
-	Description string                        `json:"description"`
-	Author      ListPreviewResponseItemAuthor `json:"author"`
-	CreatedAt   time.Time                     `json:"createdAt"`
-	UpdatedAt   time.Time                     `json:"updatedAt"`
+type ArticlePreview struct {
+	ID          uuid.UUID            `json:"id"`
+	Slug        string               `json:"slug"`
+	Title       string               `json:"title"`
+	Description string               `json:"description"`
+	Author      ArticlePreviewAuthor `json:"author"`
+	CreatedAt   time.Time            `json:"createdAt"`
+	UpdatedAt   time.Time            `json:"updatedAt"`
 }
 
-type ListPreviewResponseItemAuthor struct {
+type ArticlePreviewAuthor struct {
 	ID          uuid.UUID `json:"id"`
 	Username    string    `json:"username"`
 	DisplayName string    `json:"displayName,omitempty"`
@@ -127,7 +127,7 @@ type ListPreviewResponseItemAuthor struct {
 }
 
 type ListPreviewsResponse struct {
-	Items []ListPreviewResponseItem `json:"items"`
+	Items []ArticlePreview `json:"items"`
 }
 
 type GetBySlugRequest struct {
