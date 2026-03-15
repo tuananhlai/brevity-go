@@ -3,16 +3,22 @@ version: '3'
 tasks:
   migrate-up:
     desc: Run all pending migrations
+    dotenv: 
+      - .env
     cmds:
       - go run ./cmd migrate up
 
   migrate-down:
     desc: Rollback the last migration
+    dotenv: 
+      - .env
     cmds:
       - go run ./cmd migrate down
 
   migrate-create:
     desc: Create a new migration
+    dotenv: 
+      - .env
     requires:
       vars: [NAME]
     cmds:
@@ -20,6 +26,8 @@ tasks:
 
   migrate-force:
     desc: Force migration version
+    dotenv: 
+      - .env
     requires:
       vars: [VERSION]
     cmds:
@@ -27,11 +35,15 @@ tasks:
 
   migrate-version:
     desc: Show current migration version
+    dotenv: 
+      - .env
     cmds:
       - go run ./cmd migrate version
 
   migrate-goto:
     desc: Migrate to a specific version
+    dotenv: 
+      - .env
     requires:
       vars: [VERSION]
     cmds:
@@ -39,6 +51,8 @@ tasks:
 
   migrate-drop:
     desc: Drop everything in the database
+    dotenv: 
+      - .env
     cmds:
       - go run ./cmd migrate drop
 

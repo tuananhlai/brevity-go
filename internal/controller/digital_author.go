@@ -38,7 +38,9 @@ func (c *DigitalAuthorController) ListDigitalAuthors(ginCtx *gin.Context) {
 		return
 	}
 
-	var res ListDigitalAuthorsResponse
+	res := ListDigitalAuthorsResponse{
+		Items: []DigitalAuthor{},
+	}
 	for _, da := range digitalAuthors {
 		res.Items = append(res.Items, DigitalAuthor{
 			ID:           da.ID,

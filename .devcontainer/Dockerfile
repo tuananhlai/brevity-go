@@ -22,13 +22,11 @@ ENV PATH="${ASDF_DATA_DIR}/shims:${PATH}"
 
 # Homebrew installer must be run as non-root user, as instructed by the maintainer.
 # https://docs.brew.sh/FAQ#why-does-homebrew-say-sudo-is-bad
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Add `brew` command to the PATH of zsh (default shell).
-RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"' >> /home/vscode/.zshrc
-
-# Enable access to `brew` command and install packages.
-RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" &&\
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
+    # Add `brew` command to the PATH of zsh (default shell).
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"' >> /home/vscode/.zshrc && \
+    # Enable access to `brew` command and install packages.
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && \
     brew install golang-migrate mockery opentofu gh httpie pgcli go-task
 
 # golangci-lint **should not** be installed via brew since it can cause brew to install a different version
